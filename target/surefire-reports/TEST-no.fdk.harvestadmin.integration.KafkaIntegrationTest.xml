@@ -1,0 +1,1358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="no.fdk.harvestadmin.integration.KafkaIntegrationTest" time="18.027" tests="1" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="22"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/Users/jeffreiffers/Digdir/fdk-harvest-admin-service/target/test-classes:/Users/jeffreiffers/Digdir/fdk-harvest-admin-service/target/classes:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-web/3.5.6/spring-boot-starter-web-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter/3.5.6/spring-boot-starter-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot/3.5.6/spring-boot-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.5.6/spring-boot-autoconfigure-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-logging/3.5.6/spring-boot-starter-logging-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.24.3/log4j-to-slf4j-2.24.3.jar:/Users/jeffreiffers/.m2/repository/org/apache/logging/log4j/log4j-api/2.24.3/log4j-api-2.24.3.jar:/Users/jeffreiffers/.m2/repository/org/slf4j/jul-to-slf4j/2.0.17/jul-to-slf4j-2.0.17.jar:/Users/jeffreiffers/.m2/repository/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-json/3.5.6/spring-boot-starter-json-3.5.6.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/module/jackson-module-parameter-names/2.19.2/jackson-module-parameter-names-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/3.5.6/spring-boot-starter-tomcat-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.46/tomcat-embed-core-10.1.46.jar:/Users/jeffreiffers/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/10.1.46/tomcat-embed-websocket-10.1.46.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-web/6.2.11/spring-web-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-beans/6.2.11/spring-beans-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-webmvc/6.2.11/spring-webmvc-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-expression/6.2.11/spring-expression-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-data-jpa/3.5.6/spring-boot-starter-data-jpa-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/3.5.6/spring-boot-starter-jdbc-3.5.6.jar:/Users/jeffreiffers/.m2/repository/com/zaxxer/HikariCP/6.3.3/HikariCP-6.3.3.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-jdbc/6.2.11/spring-jdbc-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/hibernate/orm/hibernate-core/6.6.29.Final/hibernate-core-6.6.29.Final.jar:/Users/jeffreiffers/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.1.0/jakarta.persistence-api-3.1.0.jar:/Users/jeffreiffers/.m2/repository/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar:/Users/jeffreiffers/.m2/repository/org/jboss/logging/jboss-logging/3.6.1.Final/jboss-logging-3.6.1.Final.jar:/Users/jeffreiffers/.m2/repository/org/hibernate/common/hibernate-commons-annotations/7.0.3.Final/hibernate-commons-annotations-7.0.3.Final.jar:/Users/jeffreiffers/.m2/repository/io/smallrye/jandex/3.2.0/jandex-3.2.0.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/classmate/1.7.0/classmate-1.7.0.jar:/Users/jeffreiffers/.m2/repository/org/glassfish/jaxb/jaxb-runtime/4.0.5/jaxb-runtime-4.0.5.jar:/Users/jeffreiffers/.m2/repository/org/glassfish/jaxb/jaxb-core/4.0.5/jaxb-core-4.0.5.jar:/Users/jeffreiffers/.m2/repository/org/eclipse/angus/angus-activation/2.0.2/angus-activation-2.0.2.jar:/Users/jeffreiffers/.m2/repository/org/glassfish/jaxb/txw2/4.0.5/txw2-4.0.5.jar:/Users/jeffreiffers/.m2/repository/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar:/Users/jeffreiffers/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar:/Users/jeffreiffers/.m2/repository/org/antlr/antlr4-runtime/4.13.0/antlr4-runtime-4.13.0.jar:/Users/jeffreiffers/.m2/repository/org/springframework/data/spring-data-jpa/3.5.4/spring-data-jpa-3.5.4.jar:/Users/jeffreiffers/.m2/repository/org/springframework/data/spring-data-commons/3.5.4/spring-data-commons-3.5.4.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-orm/6.2.11/spring-orm-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-aspects/6.2.11/spring-aspects-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/aspectj/aspectjweaver/1.9.24/aspectjweaver-1.9.24.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-validation/3.5.6/spring-boot-starter-validation-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/10.1.46/tomcat-embed-el-10.1.46.jar:/Users/jeffreiffers/.m2/repository/org/hibernate/validator/hibernate-validator/8.0.3.Final/hibernate-validator-8.0.3.Final.jar:/Users/jeffreiffers/.m2/repository/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/3.5.6/spring-boot-starter-actuator-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/3.5.6/spring-boot-actuator-autoconfigure-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-actuator/3.5.6/spring-boot-actuator-3.5.6.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-observation/1.15.4/micrometer-observation-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-commons/1.15.4/micrometer-commons-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-jakarta9/1.15.4/micrometer-jakarta9-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.15.4/micrometer-registry-prometheus-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-core/1.15.4/micrometer-core-1.15.4.jar:/Users/jeffreiffers/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/Users/jeffreiffers/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-core/1.3.10/prometheus-metrics-core-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-model/1.3.10/prometheus-metrics-model-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-config/1.3.10/prometheus-metrics-config-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-tracer-common/1.3.10/prometheus-metrics-tracer-common-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-exposition-formats/1.3.10/prometheus-metrics-exposition-formats-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-exposition-textformats/1.3.10/prometheus-metrics-exposition-textformats-1.3.10.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-amqp/3.5.6/spring-boot-starter-amqp-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-messaging/6.2.11/spring-messaging-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-rabbit/3.2.7/spring-rabbit-3.2.7.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-amqp/3.2.7/spring-amqp-3.2.7.jar:/Users/jeffreiffers/.m2/repository/com/rabbitmq/amqp-client/5.25.0/amqp-client-5.25.0.jar:/Users/jeffreiffers/.m2/repository/org/springframework/kafka/spring-kafka/3.3.10/spring-kafka-3.3.10.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-context/6.2.11/spring-context-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-tx/6.2.11/spring-tx-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/retry/spring-retry/2.0.12/spring-retry-2.0.12.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-clients/3.9.1/kafka-clients-3.9.1.jar:/Users/jeffreiffers/.m2/repository/com/github/luben/zstd-jni/1.5.6-4/zstd-jni-1.5.6-4.jar:/Users/jeffreiffers/.m2/repository/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar:/Users/jeffreiffers/.m2/repository/org/xerial/snappy/snappy-java/1.1.10.5/snappy-java-1.1.10.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-security/3.5.6/spring-boot-starter-security-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-aop/6.2.11/spring-aop-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-config/6.5.5/spring-security-config-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-web/6.5.5/spring-security-web-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-oauth2-jose/6.5.5/spring-security-oauth2-jose-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-core/6.5.5/spring-security-core-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-crypto/6.5.5/spring-security-crypto-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-oauth2-core/6.5.5/spring-security-oauth2-core-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-core/6.2.11/spring-core-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-jcl/6.2.11/spring-jcl-6.2.11.jar:/Users/jeffreiffers/.m2/repository/com/nimbusds/nimbus-jose-jwt/9.37.4/nimbus-jose-jwt-9.37.4.jar:/Users/jeffreiffers/.m2/repository/com/github/stephenc/jcip/jcip-annotations/1.0-1/jcip-annotations-1.0-1.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-oauth2-resource-server/6.5.5/spring-security-oauth2-resource-server-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar:/Users/jeffreiffers/.m2/repository/org/checkerframework/checker-qual/3.49.3/checker-qual-3.49.3.jar:/Users/jeffreiffers/.m2/repository/org/flywaydb/flyway-core/11.7.2/flyway-core-11.7.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.19.2/jackson-dataformat-toml-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.19.2/jackson-datatype-jsr310-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/flywaydb/flyway-database-postgresql/11.7.2/flyway-database-postgresql-11.7.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/module/jackson-module-kotlin/2.19.2/jackson-module-kotlin-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.19.2/jackson-databind-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.19.2/jackson-annotations-2.19.2.jar:/Users/jeffreiffers/.m2/repository/io/confluent/kafka-schema-registry-client/8.1.0/kafka-schema-registry-client-8.1.0.jar:/Users/jeffreiffers/.m2/repository/org/yaml/snakeyaml/2.4/snakeyaml-2.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/commons/commons-compress/1.26.1/commons-compress-1.26.1.jar:/Users/jeffreiffers/.m2/repository/commons-codec/commons-codec/1.18.0/commons-codec-1.18.0.jar:/Users/jeffreiffers/.m2/repository/commons-io/commons-io/2.15.1/commons-io-2.15.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.19.2/jackson-datatype-jdk8-2.19.2.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-annotations/2.2.29/swagger-annotations-2.2.29.jar:/Users/jeffreiffers/.m2/repository/com/google/guava/guava/32.0.1-jre/guava-32.0.1-jre.jar:/Users/jeffreiffers/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/Users/jeffreiffers/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/Users/jeffreiffers/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/jeffreiffers/.m2/repository/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar:/Users/jeffreiffers/.m2/repository/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar:/Users/jeffreiffers/.m2/repository/org/apache/httpcomponents/client5/httpclient5/5.5/httpclient5-5.5.jar:/Users/jeffreiffers/.m2/repository/org/apache/httpcomponents/core5/httpcore5/5.3.5/httpcore5-5.3.5.jar:/Users/jeffreiffers/.m2/repository/org/apache/httpcomponents/core5/httpcore5-h2/5.3.5/httpcore5-h2-5.3.5.jar:/Users/jeffreiffers/.m2/repository/io/confluent/common-utils/8.1.0/common-utils-8.1.0.jar:/Users/jeffreiffers/.m2/repository/io/confluent/kafka-avro-serializer/8.1.0/kafka-avro-serializer-8.1.0.jar:/Users/jeffreiffers/.m2/repository/io/confluent/kafka-schema-serializer/8.1.0/kafka-schema-serializer-8.1.0.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-csv/2.19.2/jackson-dataformat-csv-2.19.2.jar:/Users/jeffreiffers/.m2/repository/io/confluent/logredactor/1.0.13/logredactor-1.0.13.jar:/Users/jeffreiffers/.m2/repository/com/google/re2j/re2j/1.6/re2j-1.6.jar:/Users/jeffreiffers/.m2/repository/io/confluent/logredactor-metrics/1.0.13/logredactor-metrics-1.0.13.jar:/Users/jeffreiffers/.m2/repository/com/eclipsesource/minimal-json/minimal-json/0.9.5/minimal-json-0.9.5.jar:/Users/jeffreiffers/.m2/repository/org/apache/avro/avro/1.12.1/avro-1.12.1.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.19.2/jackson-core-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-spring-boot3/2.2.0/resilience4j-spring-boot3-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-spring6/2.2.0/resilience4j-spring6-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-annotations/2.2.0/resilience4j-annotations-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-consumer/2.2.0/resilience4j-consumer-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-core/2.2.0/resilience4j-core-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-circularbuffer/2.2.0/resilience4j-circularbuffer-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-framework-common/2.2.0/resilience4j-framework-common-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-micrometer/2.2.0/resilience4j-micrometer-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-bulkhead/2.2.0/resilience4j-bulkhead-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-circuitbreaker/2.2.0/resilience4j-circuitbreaker-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-retry/2.2.0/resilience4j-retry-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-ratelimiter/2.2.0/resilience4j-ratelimiter-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-timelimiter/2.2.0/resilience4j-timelimiter-2.2.0.jar:/Users/jeffreiffers/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-ui/2.8.14/springdoc-openapi-starter-webmvc-ui-2.8.14.jar:/Users/jeffreiffers/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-api/2.8.14/springdoc-openapi-starter-webmvc-api-2.8.14.jar:/Users/jeffreiffers/.m2/repository/org/springdoc/springdoc-openapi-starter-common/2.8.14/springdoc-openapi-starter-common-2.8.14.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-core-jakarta/2.2.38/swagger-core-jakarta-2.2.38.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-annotations-jakarta/2.2.38/swagger-annotations-jakarta-2.2.38.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-models-jakarta/2.2.38/swagger-models-jakarta-2.2.38.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.19.2/jackson-dataformat-yaml-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/webjars/swagger-ui/5.30.1/swagger-ui-5.30.1.jar:/Users/jeffreiffers/.m2/repository/org/webjars/webjars-locator-lite/1.1.0/webjars-locator-lite-1.1.0.jar:/Users/jeffreiffers/.m2/repository/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-reflect/2.2.20/kotlin-reflect-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/2.2.20/kotlin-stdlib-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.2.20/kotlin-stdlib-jdk8-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.2.20/kotlin-stdlib-jdk7-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-test/3.5.6/spring-boot-starter-test-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-test/3.5.6/spring-boot-test-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/3.5.6/spring-boot-test-autoconfigure-3.5.6.jar:/Users/jeffreiffers/.m2/repository/com/jayway/jsonpath/json-path/2.9.0/json-path-2.9.0.jar:/Users/jeffreiffers/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.2/jakarta.xml.bind-api-4.0.2.jar:/Users/jeffreiffers/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar:/Users/jeffreiffers/.m2/repository/net/minidev/json-smart/2.5.2/json-smart-2.5.2.jar:/Users/jeffreiffers/.m2/repository/net/minidev/accessors-smart/2.5.2/accessors-smart-2.5.2.jar:/Users/jeffreiffers/.m2/repository/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar:/Users/jeffreiffers/.m2/repository/org/assertj/assertj-core/3.27.4/assertj-core-3.27.4.jar:/Users/jeffreiffers/.m2/repository/org/awaitility/awaitility/4.2.2/awaitility-4.2.2.jar:/Users/jeffreiffers/.m2/repository/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter/5.12.2/junit-jupiter-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.12.2/junit-jupiter-params-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.12.2/junit-jupiter-engine-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/Users/jeffreiffers/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-test/6.2.11/spring-test-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/xmlunit/xmlunit-core/2.10.4/xmlunit-core-2.10.4.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-rabbit-test/3.2.7/spring-rabbit-test-3.2.7.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-rabbit-junit/3.2.7/spring-rabbit-junit-3.2.7.jar:/Users/jeffreiffers/.m2/repository/org/hamcrest/hamcrest-library/3.0/hamcrest-library-3.0.jar:/Users/jeffreiffers/.m2/repository/org/hamcrest/hamcrest-core/3.0/hamcrest-core-3.0.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/junit-jupiter/1.19.3/junit-jupiter-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/testcontainers/1.19.3/testcontainers-1.19.3.jar:/Users/jeffreiffers/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/jeffreiffers/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/Users/jeffreiffers/.m2/repository/com/github/docker-java/docker-java-api/3.3.4/docker-java-api-3.3.4.jar:/Users/jeffreiffers/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.3.4/docker-java-transport-zerodep-3.3.4.jar:/Users/jeffreiffers/.m2/repository/com/github/docker-java/docker-java-transport/3.3.4/docker-java-transport-3.3.4.jar:/Users/jeffreiffers/.m2/repository/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/postgresql/1.19.3/postgresql-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/jdbc/1.19.3/jdbc-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/database-commons/1.19.3/database-commons-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/rabbitmq/1.19.3/rabbitmq-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/kafka/1.19.3/kafka-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/springframework/kafka/spring-kafka-test/3.3.10/spring-kafka-test-3.3.10.jar:/Users/jeffreiffers/.m2/repository/org/apache/zookeeper/zookeeper/3.8.4/zookeeper-3.8.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/zookeeper/zookeeper-jute/3.8.4/zookeeper-jute-3.8.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/yetus/audience-annotations/0.12.0/audience-annotations-0.12.0.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-handler/4.1.127.Final/netty-handler-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-common/4.1.127.Final/netty-common-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-resolver/4.1.127.Final/netty-resolver-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-buffer/4.1.127.Final/netty-buffer-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport/4.1.127.Final/netty-transport-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport-native-unix-common/4.1.127.Final/netty-transport-native-unix-common-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-codec/4.1.127.Final/netty-codec-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport-native-epoll/4.1.127.Final/netty-transport-native-epoll-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport-classes-epoll/4.1.127.Final/netty-transport-classes-epoll-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar:/Users/jeffreiffers/.m2/repository/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-clients/3.9.1/kafka-clients-3.9.1-test.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-server/3.9.1/kafka-server-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-storage/3.9.1/kafka-storage-3.9.1.jar:/Users/jeffreiffers/.m2/repository/com/github/ben-manes/caffeine/caffeine/3.2.2/caffeine-3.2.2.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-group-coordinator/3.9.1/kafka-group-coordinator-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-transaction-coordinator/3.9.1/kafka-transaction-coordinator-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-raft/3.9.1/kafka-raft-3.9.1.jar:/Users/jeffreiffers/.m2/repository/com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-metadata/3.9.1/kafka-metadata-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-server-common/3.9.1/kafka-server-common-3.9.1.jar:/Users/jeffreiffers/.m2/repository/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar:/Users/jeffreiffers/.m2/repository/org/pcollections/pcollections/4.0.1/pcollections-4.0.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-server-common/3.9.1/kafka-server-common-3.9.1-test.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-streams-test-utils/3.9.1/kafka-streams-test-utils-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-streams/3.9.1/kafka-streams-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/rocksdb/rocksdbjni/7.9.2/rocksdbjni-7.9.2.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka_2.13/3.9.1/kafka_2.13-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-group-coordinator-api/3.9.1/kafka-group-coordinator-api-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-storage-api/3.9.1/kafka-storage-api-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-tools-api/3.9.1/kafka-tools-api-3.9.1.jar:/Users/jeffreiffers/.m2/repository/net/sourceforge/argparse4j/argparse4j/0.7.0/argparse4j-0.7.0.jar:/Users/jeffreiffers/.m2/repository/commons-validator/commons-validator/1.7/commons-validator-1.7.jar:/Users/jeffreiffers/.m2/repository/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar:/Users/jeffreiffers/.m2/repository/commons-digester/commons-digester/2.1/commons-digester-2.1.jar:/Users/jeffreiffers/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.19.2/jackson-module-scala_2.13-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/thoughtworks/paranamer/paranamer/2.8.3/paranamer-2.8.3.jar:/Users/jeffreiffers/.m2/repository/org/bitbucket/b_c/jose4j/0.9.4/jose4j-0.9.4.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/modules/scala-collection-compat_2.13/2.10.0/scala-collection-compat_2.13-2.10.0.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/modules/scala-java8-compat_2.13/1.0.2/scala-java8-compat_2.13-1.0.2.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15.jar:/Users/jeffreiffers/.m2/repository/com/typesafe/scala-logging/scala-logging_2.13/3.9.5/scala-logging_2.13-3.9.5.jar:/Users/jeffreiffers/.m2/repository/io/dropwizard/metrics/metrics-core/4.1.12.1/metrics-core-4.1.12.1.jar:/Users/jeffreiffers/.m2/repository/commons-cli/commons-cli/1.4/commons-cli-1.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka_2.13/3.9.1/kafka_2.13-3.9.1-test.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.12.2/junit-jupiter-api-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/Users/jeffreiffers/.m2/repository/org/junit/platform/junit-platform-commons/1.12.2/junit-platform-commons-1.12.2.jar:/Users/jeffreiffers/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/platform/junit-platform-launcher/1.12.2/junit-platform-launcher-1.12.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/platform/junit-platform-engine/1.12.2/junit-platform-engine-1.12.2.jar:/Users/jeffreiffers/.m2/repository/org/mockito/mockito-core/5.17.0/mockito-core-5.17.0.jar:/Users/jeffreiffers/.m2/repository/net/bytebuddy/byte-buddy/1.17.7/byte-buddy-1.17.7.jar:/Users/jeffreiffers/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar:/Users/jeffreiffers/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/Users/jeffreiffers/.m2/repository/org/mockito/mockito-junit-jupiter/5.17.0/mockito-junit-jupiter-5.17.0.jar:/Users/jeffreiffers/.m2/repository/org/mockito/kotlin/mockito-kotlin/5.4.0/mockito-kotlin-5.4.0.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-test/6.5.5/spring-security-test-6.5.5.jar:"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="user.timezone" value="Europe/Oslo"/>
+    <property name="org.jboss.logging.provider" value="slf4j"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="java.vm.specification.version" value="22"/>
+    <property name="APPLICATION_NAME" value="fdk-harvest-admin-service"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="/Users/jeffreiffers/.sdkman/candidates/java/22-open/lib"/>
+    <property name="sun.java.command" value="/Users/jeffreiffers/Digdir/fdk-harvest-admin-service/target/surefire/surefirebooter-20251209152148926_3.jar /Users/jeffreiffers/Digdir/fdk-harvest-admin-service/target/surefire 2025-12-09T15-21-48_893-jvmRun1 surefire-20251209152148926_1tmp surefire_0-20251209152148926_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/Users/jeffreiffers/Digdir/fdk-harvest-admin-service/target/test-classes:/Users/jeffreiffers/Digdir/fdk-harvest-admin-service/target/classes:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-web/3.5.6/spring-boot-starter-web-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter/3.5.6/spring-boot-starter-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot/3.5.6/spring-boot-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.5.6/spring-boot-autoconfigure-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-logging/3.5.6/spring-boot-starter-logging-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.24.3/log4j-to-slf4j-2.24.3.jar:/Users/jeffreiffers/.m2/repository/org/apache/logging/log4j/log4j-api/2.24.3/log4j-api-2.24.3.jar:/Users/jeffreiffers/.m2/repository/org/slf4j/jul-to-slf4j/2.0.17/jul-to-slf4j-2.0.17.jar:/Users/jeffreiffers/.m2/repository/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-json/3.5.6/spring-boot-starter-json-3.5.6.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/module/jackson-module-parameter-names/2.19.2/jackson-module-parameter-names-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/3.5.6/spring-boot-starter-tomcat-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.46/tomcat-embed-core-10.1.46.jar:/Users/jeffreiffers/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/10.1.46/tomcat-embed-websocket-10.1.46.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-web/6.2.11/spring-web-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-beans/6.2.11/spring-beans-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-webmvc/6.2.11/spring-webmvc-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-expression/6.2.11/spring-expression-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-data-jpa/3.5.6/spring-boot-starter-data-jpa-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/3.5.6/spring-boot-starter-jdbc-3.5.6.jar:/Users/jeffreiffers/.m2/repository/com/zaxxer/HikariCP/6.3.3/HikariCP-6.3.3.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-jdbc/6.2.11/spring-jdbc-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/hibernate/orm/hibernate-core/6.6.29.Final/hibernate-core-6.6.29.Final.jar:/Users/jeffreiffers/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.1.0/jakarta.persistence-api-3.1.0.jar:/Users/jeffreiffers/.m2/repository/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar:/Users/jeffreiffers/.m2/repository/org/jboss/logging/jboss-logging/3.6.1.Final/jboss-logging-3.6.1.Final.jar:/Users/jeffreiffers/.m2/repository/org/hibernate/common/hibernate-commons-annotations/7.0.3.Final/hibernate-commons-annotations-7.0.3.Final.jar:/Users/jeffreiffers/.m2/repository/io/smallrye/jandex/3.2.0/jandex-3.2.0.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/classmate/1.7.0/classmate-1.7.0.jar:/Users/jeffreiffers/.m2/repository/org/glassfish/jaxb/jaxb-runtime/4.0.5/jaxb-runtime-4.0.5.jar:/Users/jeffreiffers/.m2/repository/org/glassfish/jaxb/jaxb-core/4.0.5/jaxb-core-4.0.5.jar:/Users/jeffreiffers/.m2/repository/org/eclipse/angus/angus-activation/2.0.2/angus-activation-2.0.2.jar:/Users/jeffreiffers/.m2/repository/org/glassfish/jaxb/txw2/4.0.5/txw2-4.0.5.jar:/Users/jeffreiffers/.m2/repository/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar:/Users/jeffreiffers/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar:/Users/jeffreiffers/.m2/repository/org/antlr/antlr4-runtime/4.13.0/antlr4-runtime-4.13.0.jar:/Users/jeffreiffers/.m2/repository/org/springframework/data/spring-data-jpa/3.5.4/spring-data-jpa-3.5.4.jar:/Users/jeffreiffers/.m2/repository/org/springframework/data/spring-data-commons/3.5.4/spring-data-commons-3.5.4.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-orm/6.2.11/spring-orm-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-aspects/6.2.11/spring-aspects-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/aspectj/aspectjweaver/1.9.24/aspectjweaver-1.9.24.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-validation/3.5.6/spring-boot-starter-validation-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/10.1.46/tomcat-embed-el-10.1.46.jar:/Users/jeffreiffers/.m2/repository/org/hibernate/validator/hibernate-validator/8.0.3.Final/hibernate-validator-8.0.3.Final.jar:/Users/jeffreiffers/.m2/repository/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/3.5.6/spring-boot-starter-actuator-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/3.5.6/spring-boot-actuator-autoconfigure-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-actuator/3.5.6/spring-boot-actuator-3.5.6.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-observation/1.15.4/micrometer-observation-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-commons/1.15.4/micrometer-commons-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-jakarta9/1.15.4/micrometer-jakarta9-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.15.4/micrometer-registry-prometheus-1.15.4.jar:/Users/jeffreiffers/.m2/repository/io/micrometer/micrometer-core/1.15.4/micrometer-core-1.15.4.jar:/Users/jeffreiffers/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/Users/jeffreiffers/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-core/1.3.10/prometheus-metrics-core-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-model/1.3.10/prometheus-metrics-model-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-config/1.3.10/prometheus-metrics-config-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-tracer-common/1.3.10/prometheus-metrics-tracer-common-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-exposition-formats/1.3.10/prometheus-metrics-exposition-formats-1.3.10.jar:/Users/jeffreiffers/.m2/repository/io/prometheus/prometheus-metrics-exposition-textformats/1.3.10/prometheus-metrics-exposition-textformats-1.3.10.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-amqp/3.5.6/spring-boot-starter-amqp-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-messaging/6.2.11/spring-messaging-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-rabbit/3.2.7/spring-rabbit-3.2.7.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-amqp/3.2.7/spring-amqp-3.2.7.jar:/Users/jeffreiffers/.m2/repository/com/rabbitmq/amqp-client/5.25.0/amqp-client-5.25.0.jar:/Users/jeffreiffers/.m2/repository/org/springframework/kafka/spring-kafka/3.3.10/spring-kafka-3.3.10.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-context/6.2.11/spring-context-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-tx/6.2.11/spring-tx-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/retry/spring-retry/2.0.12/spring-retry-2.0.12.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-clients/3.9.1/kafka-clients-3.9.1.jar:/Users/jeffreiffers/.m2/repository/com/github/luben/zstd-jni/1.5.6-4/zstd-jni-1.5.6-4.jar:/Users/jeffreiffers/.m2/repository/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar:/Users/jeffreiffers/.m2/repository/org/xerial/snappy/snappy-java/1.1.10.5/snappy-java-1.1.10.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-security/3.5.6/spring-boot-starter-security-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-aop/6.2.11/spring-aop-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-config/6.5.5/spring-security-config-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-web/6.5.5/spring-security-web-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-oauth2-jose/6.5.5/spring-security-oauth2-jose-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-core/6.5.5/spring-security-core-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-crypto/6.5.5/spring-security-crypto-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-oauth2-core/6.5.5/spring-security-oauth2-core-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-core/6.2.11/spring-core-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-jcl/6.2.11/spring-jcl-6.2.11.jar:/Users/jeffreiffers/.m2/repository/com/nimbusds/nimbus-jose-jwt/9.37.4/nimbus-jose-jwt-9.37.4.jar:/Users/jeffreiffers/.m2/repository/com/github/stephenc/jcip/jcip-annotations/1.0-1/jcip-annotations-1.0-1.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-oauth2-resource-server/6.5.5/spring-security-oauth2-resource-server-6.5.5.jar:/Users/jeffreiffers/.m2/repository/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar:/Users/jeffreiffers/.m2/repository/org/checkerframework/checker-qual/3.49.3/checker-qual-3.49.3.jar:/Users/jeffreiffers/.m2/repository/org/flywaydb/flyway-core/11.7.2/flyway-core-11.7.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.19.2/jackson-dataformat-toml-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.19.2/jackson-datatype-jsr310-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/flywaydb/flyway-database-postgresql/11.7.2/flyway-database-postgresql-11.7.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/module/jackson-module-kotlin/2.19.2/jackson-module-kotlin-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.19.2/jackson-databind-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.19.2/jackson-annotations-2.19.2.jar:/Users/jeffreiffers/.m2/repository/io/confluent/kafka-schema-registry-client/8.1.0/kafka-schema-registry-client-8.1.0.jar:/Users/jeffreiffers/.m2/repository/org/yaml/snakeyaml/2.4/snakeyaml-2.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/commons/commons-compress/1.26.1/commons-compress-1.26.1.jar:/Users/jeffreiffers/.m2/repository/commons-codec/commons-codec/1.18.0/commons-codec-1.18.0.jar:/Users/jeffreiffers/.m2/repository/commons-io/commons-io/2.15.1/commons-io-2.15.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.19.2/jackson-datatype-jdk8-2.19.2.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-annotations/2.2.29/swagger-annotations-2.2.29.jar:/Users/jeffreiffers/.m2/repository/com/google/guava/guava/32.0.1-jre/guava-32.0.1-jre.jar:/Users/jeffreiffers/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/Users/jeffreiffers/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/Users/jeffreiffers/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/jeffreiffers/.m2/repository/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar:/Users/jeffreiffers/.m2/repository/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar:/Users/jeffreiffers/.m2/repository/org/apache/httpcomponents/client5/httpclient5/5.5/httpclient5-5.5.jar:/Users/jeffreiffers/.m2/repository/org/apache/httpcomponents/core5/httpcore5/5.3.5/httpcore5-5.3.5.jar:/Users/jeffreiffers/.m2/repository/org/apache/httpcomponents/core5/httpcore5-h2/5.3.5/httpcore5-h2-5.3.5.jar:/Users/jeffreiffers/.m2/repository/io/confluent/common-utils/8.1.0/common-utils-8.1.0.jar:/Users/jeffreiffers/.m2/repository/io/confluent/kafka-avro-serializer/8.1.0/kafka-avro-serializer-8.1.0.jar:/Users/jeffreiffers/.m2/repository/io/confluent/kafka-schema-serializer/8.1.0/kafka-schema-serializer-8.1.0.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-csv/2.19.2/jackson-dataformat-csv-2.19.2.jar:/Users/jeffreiffers/.m2/repository/io/confluent/logredactor/1.0.13/logredactor-1.0.13.jar:/Users/jeffreiffers/.m2/repository/com/google/re2j/re2j/1.6/re2j-1.6.jar:/Users/jeffreiffers/.m2/repository/io/confluent/logredactor-metrics/1.0.13/logredactor-metrics-1.0.13.jar:/Users/jeffreiffers/.m2/repository/com/eclipsesource/minimal-json/minimal-json/0.9.5/minimal-json-0.9.5.jar:/Users/jeffreiffers/.m2/repository/org/apache/avro/avro/1.12.1/avro-1.12.1.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.19.2/jackson-core-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-spring-boot3/2.2.0/resilience4j-spring-boot3-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-spring6/2.2.0/resilience4j-spring6-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-annotations/2.2.0/resilience4j-annotations-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-consumer/2.2.0/resilience4j-consumer-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-core/2.2.0/resilience4j-core-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-circularbuffer/2.2.0/resilience4j-circularbuffer-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-framework-common/2.2.0/resilience4j-framework-common-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-micrometer/2.2.0/resilience4j-micrometer-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-bulkhead/2.2.0/resilience4j-bulkhead-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-circuitbreaker/2.2.0/resilience4j-circuitbreaker-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-retry/2.2.0/resilience4j-retry-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-ratelimiter/2.2.0/resilience4j-ratelimiter-2.2.0.jar:/Users/jeffreiffers/.m2/repository/io/github/resilience4j/resilience4j-timelimiter/2.2.0/resilience4j-timelimiter-2.2.0.jar:/Users/jeffreiffers/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-ui/2.8.14/springdoc-openapi-starter-webmvc-ui-2.8.14.jar:/Users/jeffreiffers/.m2/repository/org/springdoc/springdoc-openapi-starter-webmvc-api/2.8.14/springdoc-openapi-starter-webmvc-api-2.8.14.jar:/Users/jeffreiffers/.m2/repository/org/springdoc/springdoc-openapi-starter-common/2.8.14/springdoc-openapi-starter-common-2.8.14.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-core-jakarta/2.2.38/swagger-core-jakarta-2.2.38.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-annotations-jakarta/2.2.38/swagger-annotations-jakarta-2.2.38.jar:/Users/jeffreiffers/.m2/repository/io/swagger/core/v3/swagger-models-jakarta/2.2.38/swagger-models-jakarta-2.2.38.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.19.2/jackson-dataformat-yaml-2.19.2.jar:/Users/jeffreiffers/.m2/repository/org/webjars/swagger-ui/5.30.1/swagger-ui-5.30.1.jar:/Users/jeffreiffers/.m2/repository/org/webjars/webjars-locator-lite/1.1.0/webjars-locator-lite-1.1.0.jar:/Users/jeffreiffers/.m2/repository/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-reflect/2.2.20/kotlin-reflect-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/2.2.20/kotlin-stdlib-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.2.20/kotlin-stdlib-jdk8-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.2.20/kotlin-stdlib-jdk7-2.2.20.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-starter-test/3.5.6/spring-boot-starter-test-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-test/3.5.6/spring-boot-test-3.5.6.jar:/Users/jeffreiffers/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/3.5.6/spring-boot-test-autoconfigure-3.5.6.jar:/Users/jeffreiffers/.m2/repository/com/jayway/jsonpath/json-path/2.9.0/json-path-2.9.0.jar:/Users/jeffreiffers/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.2/jakarta.xml.bind-api-4.0.2.jar:/Users/jeffreiffers/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar:/Users/jeffreiffers/.m2/repository/net/minidev/json-smart/2.5.2/json-smart-2.5.2.jar:/Users/jeffreiffers/.m2/repository/net/minidev/accessors-smart/2.5.2/accessors-smart-2.5.2.jar:/Users/jeffreiffers/.m2/repository/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar:/Users/jeffreiffers/.m2/repository/org/assertj/assertj-core/3.27.4/assertj-core-3.27.4.jar:/Users/jeffreiffers/.m2/repository/org/awaitility/awaitility/4.2.2/awaitility-4.2.2.jar:/Users/jeffreiffers/.m2/repository/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter/5.12.2/junit-jupiter-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.12.2/junit-jupiter-params-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.12.2/junit-jupiter-engine-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/Users/jeffreiffers/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/Users/jeffreiffers/.m2/repository/org/springframework/spring-test/6.2.11/spring-test-6.2.11.jar:/Users/jeffreiffers/.m2/repository/org/xmlunit/xmlunit-core/2.10.4/xmlunit-core-2.10.4.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-rabbit-test/3.2.7/spring-rabbit-test-3.2.7.jar:/Users/jeffreiffers/.m2/repository/org/springframework/amqp/spring-rabbit-junit/3.2.7/spring-rabbit-junit-3.2.7.jar:/Users/jeffreiffers/.m2/repository/org/hamcrest/hamcrest-library/3.0/hamcrest-library-3.0.jar:/Users/jeffreiffers/.m2/repository/org/hamcrest/hamcrest-core/3.0/hamcrest-core-3.0.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/junit-jupiter/1.19.3/junit-jupiter-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/testcontainers/1.19.3/testcontainers-1.19.3.jar:/Users/jeffreiffers/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/jeffreiffers/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/Users/jeffreiffers/.m2/repository/com/github/docker-java/docker-java-api/3.3.4/docker-java-api-3.3.4.jar:/Users/jeffreiffers/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.3.4/docker-java-transport-zerodep-3.3.4.jar:/Users/jeffreiffers/.m2/repository/com/github/docker-java/docker-java-transport/3.3.4/docker-java-transport-3.3.4.jar:/Users/jeffreiffers/.m2/repository/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/postgresql/1.19.3/postgresql-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/jdbc/1.19.3/jdbc-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/database-commons/1.19.3/database-commons-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/rabbitmq/1.19.3/rabbitmq-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/testcontainers/kafka/1.19.3/kafka-1.19.3.jar:/Users/jeffreiffers/.m2/repository/org/springframework/kafka/spring-kafka-test/3.3.10/spring-kafka-test-3.3.10.jar:/Users/jeffreiffers/.m2/repository/org/apache/zookeeper/zookeeper/3.8.4/zookeeper-3.8.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/zookeeper/zookeeper-jute/3.8.4/zookeeper-jute-3.8.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/yetus/audience-annotations/0.12.0/audience-annotations-0.12.0.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-handler/4.1.127.Final/netty-handler-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-common/4.1.127.Final/netty-common-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-resolver/4.1.127.Final/netty-resolver-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-buffer/4.1.127.Final/netty-buffer-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport/4.1.127.Final/netty-transport-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport-native-unix-common/4.1.127.Final/netty-transport-native-unix-common-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-codec/4.1.127.Final/netty-codec-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport-native-epoll/4.1.127.Final/netty-transport-native-epoll-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/io/netty/netty-transport-classes-epoll/4.1.127.Final/netty-transport-classes-epoll-4.1.127.Final.jar:/Users/jeffreiffers/.m2/repository/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar:/Users/jeffreiffers/.m2/repository/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-clients/3.9.1/kafka-clients-3.9.1-test.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-server/3.9.1/kafka-server-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-storage/3.9.1/kafka-storage-3.9.1.jar:/Users/jeffreiffers/.m2/repository/com/github/ben-manes/caffeine/caffeine/3.2.2/caffeine-3.2.2.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-group-coordinator/3.9.1/kafka-group-coordinator-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-transaction-coordinator/3.9.1/kafka-transaction-coordinator-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-raft/3.9.1/kafka-raft-3.9.1.jar:/Users/jeffreiffers/.m2/repository/com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-metadata/3.9.1/kafka-metadata-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-server-common/3.9.1/kafka-server-common-3.9.1.jar:/Users/jeffreiffers/.m2/repository/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar:/Users/jeffreiffers/.m2/repository/org/pcollections/pcollections/4.0.1/pcollections-4.0.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-server-common/3.9.1/kafka-server-common-3.9.1-test.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-streams-test-utils/3.9.1/kafka-streams-test-utils-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-streams/3.9.1/kafka-streams-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/rocksdb/rocksdbjni/7.9.2/rocksdbjni-7.9.2.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka_2.13/3.9.1/kafka_2.13-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-group-coordinator-api/3.9.1/kafka-group-coordinator-api-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-storage-api/3.9.1/kafka-storage-api-3.9.1.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka-tools-api/3.9.1/kafka-tools-api-3.9.1.jar:/Users/jeffreiffers/.m2/repository/net/sourceforge/argparse4j/argparse4j/0.7.0/argparse4j-0.7.0.jar:/Users/jeffreiffers/.m2/repository/commons-validator/commons-validator/1.7/commons-validator-1.7.jar:/Users/jeffreiffers/.m2/repository/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar:/Users/jeffreiffers/.m2/repository/commons-digester/commons-digester/2.1/commons-digester-2.1.jar:/Users/jeffreiffers/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar:/Users/jeffreiffers/.m2/repository/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.19.2/jackson-module-scala_2.13-2.19.2.jar:/Users/jeffreiffers/.m2/repository/com/thoughtworks/paranamer/paranamer/2.8.3/paranamer-2.8.3.jar:/Users/jeffreiffers/.m2/repository/org/bitbucket/b_c/jose4j/0.9.4/jose4j-0.9.4.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/modules/scala-collection-compat_2.13/2.10.0/scala-collection-compat_2.13-2.10.0.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/modules/scala-java8-compat_2.13/1.0.2/scala-java8-compat_2.13-1.0.2.jar:/Users/jeffreiffers/.m2/repository/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15.jar:/Users/jeffreiffers/.m2/repository/com/typesafe/scala-logging/scala-logging_2.13/3.9.5/scala-logging_2.13-3.9.5.jar:/Users/jeffreiffers/.m2/repository/io/dropwizard/metrics/metrics-core/4.1.12.1/metrics-core-4.1.12.1.jar:/Users/jeffreiffers/.m2/repository/commons-cli/commons-cli/1.4/commons-cli-1.4.jar:/Users/jeffreiffers/.m2/repository/org/apache/kafka/kafka_2.13/3.9.1/kafka_2.13-3.9.1-test.jar:/Users/jeffreiffers/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.12.2/junit-jupiter-api-5.12.2.jar:/Users/jeffreiffers/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/Users/jeffreiffers/.m2/repository/org/junit/platform/junit-platform-commons/1.12.2/junit-platform-commons-1.12.2.jar:/Users/jeffreiffers/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/platform/junit-platform-launcher/1.12.2/junit-platform-launcher-1.12.2.jar:/Users/jeffreiffers/.m2/repository/org/junit/platform/junit-platform-engine/1.12.2/junit-platform-engine-1.12.2.jar:/Users/jeffreiffers/.m2/repository/org/mockito/mockito-core/5.17.0/mockito-core-5.17.0.jar:/Users/jeffreiffers/.m2/repository/net/bytebuddy/byte-buddy/1.17.7/byte-buddy-1.17.7.jar:/Users/jeffreiffers/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar:/Users/jeffreiffers/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/Users/jeffreiffers/.m2/repository/org/mockito/mockito-junit-jupiter/5.17.0/mockito-junit-jupiter-5.17.0.jar:/Users/jeffreiffers/.m2/repository/org/mockito/kotlin/mockito-kotlin/5.4.0/mockito-kotlin-5.4.0.jar:/Users/jeffreiffers/.m2/repository/org/springframework/security/spring-security-test/6.5.5/spring-security-test-6.5.5.jar:"/>
+    <property name="test" value="KafkaIntegrationTest#should handle multiple harvest events for same data source"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/Users/jeffreiffers"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2024-03-19"/>
+    <property name="java.home" value="/Users/jeffreiffers/.sdkman/candidates/java/22-open"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/Users/jeffreiffers/Digdir/fdk-harvest-admin-service"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="UTF-8"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="apple.awt.application.name" value="ForkedBooter"/>
+    <property name="surefire.real.class.path" value="/Users/jeffreiffers/Digdir/fdk-harvest-admin-service/target/surefire/surefirebooter-20251209152148926_3.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="22+36-2370"/>
+    <property name="user.name" value="jeffreiffers"/>
+    <property name="stdout.encoding" value="UTF-8"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="26.1"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="localRepository" value="/Users/jeffreiffers/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="/var/folders/rs/vzd084gn28v_v9jvlh38mkgm0000gn/T/"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
+    <property name="java.version" value="22"/>
+    <property name="user.dir" value="/Users/jeffreiffers/Digdir/fdk-harvest-admin-service"/>
+    <property name="os.arch" value="aarch64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="40386"/>
+    <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/Users/jeffreiffers/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="UTF-8"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.version" value="22+36-2370"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
+    <property name="java.class.version" value="66.0"/>
+    <property name="LOGGED_APPLICATION_NAME" value="[fdk-harvest-admin-service] "/>
+  </properties>
+  <testcase name="should handle multiple harvest events for same data source" classname="no.fdk.harvestadmin.integration.KafkaIntegrationTest" time="5.542">
+    <system-out><![CDATA[15:21:49.353 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [no.fdk.harvestadmin.integration.BaseIntegrationTest]: BaseIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+15:21:49.408 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration no.fdk.harvestadmin.FdkHarvestAdminServiceApplication for test class no.fdk.harvestadmin.integration.KafkaIntegrationTest
+15:21:49.447 [main] INFO no.fdk.harvestadmin.integration.TestContainerLifecycleExtension -- 🔧 Ensuring shared test containers are started...
+15:21:49.476 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+15:21:49.477 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+15:21:49.551 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+15:21:49.705 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+15:21:49.706 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+15:21:49.735 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 5.4.2
+  API Version: 1.41
+  Operating System: fedora
+  Total Memory: 3616 MB
+15:21:49.795 [main] INFO tc.testcontainers/ryuk:0.5.1 -- Creating container for image: testcontainers/ryuk:0.5.1
+15:21:49.798 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.5.1, configFile: /Users/jeffreiffers/.docker/config.json, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Status 404: No config supplied. Checked in order: /Users/jeffreiffers/.docker/config.json (file not found), DOCKER_AUTH_CONFIG (not set)
+15:21:49.836 [main] INFO tc.testcontainers/ryuk:0.5.1 -- Container testcontainers/ryuk:0.5.1 is starting: 031810eed4adb80c2011eb46a1fa7c25c1e9966e3f86cdd9672e65e61f6d2c93
+15:21:49.976 [main] INFO tc.testcontainers/ryuk:0.5.1 -- Container testcontainers/ryuk:0.5.1 started in PT0.180868S
+15:21:49.980 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+15:21:49.980 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+15:21:49.981 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+15:21:49.986 [main] INFO tc.postgres:15 -- Creating container for image: postgres:15
+15:21:49.991 [main] WARN tc.postgres:15 -- Reuse was requested but the environment does not support the reuse of containers
+To enable reuse of containers, you must set 'testcontainers.reuse.enable=true' in a file located at /Users/jeffreiffers/.testcontainers.properties
+15:21:50.002 [main] INFO tc.postgres:15 -- Container postgres:15 is starting: f6a83dceb6be2a192e38bc02f014a2745fd4b3690541a89de93276a72909fe7c
+15:21:50.959 [main] INFO tc.postgres:15 -- Container postgres:15 started in PT0.972962S
+15:21:50.960 [main] INFO tc.postgres:15 -- Container is started (JDBC URL: jdbc:postgresql://localhost:38731/fdk_harvest_admin?loggerLevel=OFF)
+15:21:50.984 [main] INFO tc.confluentinc/cp-kafka:7.4.0 -- Creating container for image: confluentinc/cp-kafka:7.4.0
+15:21:50.985 [main] WARN tc.confluentinc/cp-kafka:7.4.0 -- Reuse was requested but the environment does not support the reuse of containers
+To enable reuse of containers, you must set 'testcontainers.reuse.enable=true' in a file located at /Users/jeffreiffers/.testcontainers.properties
+15:21:51.000 [main] INFO tc.confluentinc/cp-kafka:7.4.0 -- Container confluentinc/cp-kafka:7.4.0 is starting: d5972f84fd52beba338317f44a2d6682f3c18716016340302c48b3431482679b
+15:21:53.472 [main] INFO tc.confluentinc/cp-kafka:7.4.0 -- Container confluentinc/cp-kafka:7.4.0 started in PT2.488498S
+15:21:53.491 [main] INFO tc.confluentinc/cp-schema-registry:7.4.0 -- Creating container for image: confluentinc/cp-schema-registry:7.4.0
+15:21:53.491 [main] WARN tc.confluentinc/cp-schema-registry:7.4.0 -- Reuse was requested but the environment does not support the reuse of containers
+To enable reuse of containers, you must set 'testcontainers.reuse.enable=true' in a file located at /Users/jeffreiffers/.testcontainers.properties
+15:21:53.503 [main] INFO tc.confluentinc/cp-schema-registry:7.4.0 -- Container confluentinc/cp-schema-registry:7.4.0 is starting: 589ecf95078b89b382d583a40732806edceb43f51b25b450fc1abefc0737cd02
+15:21:53.594 [main] INFO org.testcontainers.containers.wait.strategy.HttpWaitStrategy -- /vibrant_saha: Waiting for 60 seconds for URL: http://localhost:46153/subjects (where port 46153 maps to container port 8081)
+15:21:57.755 [main] INFO tc.confluentinc/cp-schema-registry:7.4.0 -- Container confluentinc/cp-schema-registry:7.4.0 started in PT4.264288S
+15:21:57.761 [main] INFO no.fdk.harvestadmin.integration.TestContainerLifecycleExtension -- ✅ All shared test containers are running
+15:21:57.761 [main] INFO no.fdk.harvestadmin.integration.TestContainerLifecycleExtension --    - PostgreSQL: jdbc:postgresql://localhost:38731/fdk_harvest_admin?loggerLevel=OFF
+15:21:57.762 [main] INFO no.fdk.harvestadmin.integration.TestContainerLifecycleExtension --    - Kafka: PLAINTEXT://localhost:34399
+15:21:57.762 [main] INFO no.fdk.harvestadmin.integration.TestContainerLifecycleExtension --    - Schema Registry: http://localhost:46153
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.6)
+
+2025-12-09T15:21:58.038+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] n.f.h.integration.KafkaIntegrationTest   : Starting KafkaIntegrationTest using Java 22 with PID 40386 (started by jeffreiffers in /Users/jeffreiffers/Digdir/fdk-harvest-admin-service)
+2025-12-09T15:21:58.039+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] n.f.h.integration.KafkaIntegrationTest   : Running with Spring Boot v3.5.6, Spring v6.2.11
+2025-12-09T15:21:58.039+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] n.f.h.integration.KafkaIntegrationTest   : The following 1 profile is active: "test"
+2025-12-09T15:21:58.629+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-09T15:21:58.657+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 3 JPA repository interfaces.
+2025-12-09T15:21:59.106+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-09T15:21:59.134+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
+2025-12-09T15:21:59.148+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-09T15:21:59.269+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-09T15:21:59.282+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-09T15:21:59.366+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@46c28400
+2025-12-09T15:21:59.366+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-09T15:21:59.382+01:00  WARN 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-12-09T15:21:59.392+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 15.15
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-09T15:21:59.889+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-09T15:21:59.894+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    set client_min_messages = WARNING
+Hibernate: 
+    set client_min_messages = WARNING
+2025-12-09T15:21:59.896+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    drop table if exists data_sources cascade
+Hibernate: 
+    drop table if exists data_sources cascade
+2025-12-09T15:21:59.897+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    drop table if exists harvest_progress_events cascade
+Hibernate: 
+    drop table if exists harvest_progress_events cascade
+2025-12-09T15:21:59.897+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    drop table if exists harvest_runs cascade
+Hibernate: 
+    drop table if exists harvest_runs cascade
+2025-12-09T15:21:59.900+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    create table data_sources (
+        id varchar(36) not null,
+        data_source_type varchar(50) not null,
+        data_type varchar(50) not null,
+        url varchar(2048) not null,
+        accept_header varchar(255),
+        description TEXT,
+        publisher_id varchar(255) not null,
+        primary key (id)
+    )
+Hibernate: 
+    create table data_sources (
+        id varchar(36) not null,
+        data_source_type varchar(50) not null,
+        data_type varchar(50) not null,
+        url varchar(2048) not null,
+        accept_header varchar(255),
+        description TEXT,
+        publisher_id varchar(255) not null,
+        primary key (id)
+    )
+2025-12-09T15:21:59.904+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    create table harvest_progress_events (
+        changed_resources_count integer,
+        removed_resources_count integer,
+        unchanged_resources_count integer,
+        created_at timestamp(6) with time zone not null,
+        id bigint generated by default as identity,
+        timestamp bigint not null,
+        harvest_run_id varchar(36),
+        data_type varchar(50) not null,
+        event_type varchar(100) not null,
+        data_source_url varchar(2048),
+        resource_uri varchar(2048),
+        accept_header varchar(255),
+        data_source_id varchar(255) not null,
+        end_time varchar(255),
+        error_message TEXT,
+        fdk_id varchar(255),
+        start_time varchar(255),
+        primary key (id)
+    )
+Hibernate: 
+    create table harvest_progress_events (
+        changed_resources_count integer,
+        removed_resources_count integer,
+        unchanged_resources_count integer,
+        created_at timestamp(6) with time zone not null,
+        id bigint generated by default as identity,
+        timestamp bigint not null,
+        harvest_run_id varchar(36),
+        data_type varchar(50) not null,
+        event_type varchar(100) not null,
+        data_source_url varchar(2048),
+        resource_uri varchar(2048),
+        accept_header varchar(255),
+        data_source_id varchar(255) not null,
+        end_time varchar(255),
+        error_message TEXT,
+        fdk_id varchar(255),
+        start_time varchar(255),
+        primary key (id)
+    )
+2025-12-09T15:21:59.907+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    create table harvest_runs (
+        changed_resources_count integer,
+        processed_resources integer,
+        remaining_resources integer,
+        removed_resources_count integer,
+        total_resources integer,
+        unchanged_resources_count integer,
+        ai_search_processing_duration_ms bigint,
+        api_processing_duration_ms bigint,
+        created_at timestamp(6) with time zone not null,
+        harvest_duration_ms bigint,
+        id bigint generated by default as identity,
+        init_duration_ms bigint,
+        last_event_timestamp bigint,
+        phase_started_at timestamp(6) with time zone,
+        rdf_parsing_duration_ms bigint,
+        reasoning_duration_ms bigint,
+        run_ended_at timestamp(6) with time zone,
+        run_started_at timestamp(6) with time zone not null,
+        search_processing_duration_ms bigint,
+        sparql_processing_duration_ms bigint,
+        total_duration_ms bigint,
+        updated_at timestamp(6) with time zone not null,
+        run_id varchar(36) not null unique,
+        data_type varchar(50) not null,
+        status varchar(50) not null,
+        current_phase varchar(100),
+        data_source_id varchar(255) not null,
+        error_message TEXT,
+        primary key (id)
+    )
+Hibernate: 
+    create table harvest_runs (
+        changed_resources_count integer,
+        processed_resources integer,
+        remaining_resources integer,
+        removed_resources_count integer,
+        total_resources integer,
+        unchanged_resources_count integer,
+        ai_search_processing_duration_ms bigint,
+        api_processing_duration_ms bigint,
+        created_at timestamp(6) with time zone not null,
+        harvest_duration_ms bigint,
+        id bigint generated by default as identity,
+        init_duration_ms bigint,
+        last_event_timestamp bigint,
+        phase_started_at timestamp(6) with time zone,
+        rdf_parsing_duration_ms bigint,
+        reasoning_duration_ms bigint,
+        run_ended_at timestamp(6) with time zone,
+        run_started_at timestamp(6) with time zone not null,
+        search_processing_duration_ms bigint,
+        sparql_processing_duration_ms bigint,
+        total_duration_ms bigint,
+        updated_at timestamp(6) with time zone not null,
+        run_id varchar(36) not null unique,
+        data_type varchar(50) not null,
+        status varchar(50) not null,
+        current_phase varchar(100),
+        data_source_id varchar(255) not null,
+        error_message TEXT,
+        primary key (id)
+    )
+2025-12-09T15:21:59.911+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    create index idx_publisher_id 
+       on data_sources (publisher_id)
+Hibernate: 
+    create index idx_publisher_id 
+       on data_sources (publisher_id)
+2025-12-09T15:21:59.913+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    create index idx_url_data_type 
+       on data_sources (url, data_type)
+Hibernate: 
+    create index idx_url_data_type 
+       on data_sources (url, data_type)
+2025-12-09T15:21:59.916+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-09T15:22:00.042+01:00  WARN 40386 --- [fdk-harvest-admin-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-09T15:22:00.701+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-09T15:22:01.510+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2025-12-09T15:22:01.522+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] n.f.h.integration.KafkaIntegrationTest   : Started KafkaIntegrationTest in 3.632 seconds (process running for 12.544)
+2025-12-09T15:22:01.566+01:00  WARN 40386 --- [fdk-harvest-admin-service] [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /api-docs endpoint is enabled by default. To disable it in production, set the property 'springdoc.api-docs.enabled=false'
+2025-12-09T15:22:01.566+01:00  WARN 40386 --- [fdk-harvest-admin-service] [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /swagger-ui.html endpoint is enabled by default. To disable it in production, set the property 'springdoc.swagger-ui.enabled=false'
+2025-12-09T15:22:01.649+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] KafkaListenerAnnotationBeanPostProcessor : No retry topic configuration found for topics [harvest-events]
+2025-12-09T15:22:01.694+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [PLAINTEXT://localhost:34399]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-test-group-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = test-group
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metadata.recovery.strategy = none
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class io.confluent.kafka.serializers.KafkaAvroDeserializer
+
+2025-12-09T15:22:01.718+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2025-12-09T15:22:01.734+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] i.c.k.s.KafkaAvroDeserializerConfig      : KafkaAvroDeserializerConfig values: 
+	auto.register.schemas = true
+	avro.reflection.allow.null = false
+	avro.use.logical.type.converters = false
+	basic.auth.credentials.source = URL
+	basic.auth.user.info = [hidden]
+	bearer.auth.cache.expiry.buffer.seconds = 300
+	bearer.auth.client.id = null
+	bearer.auth.client.secret = null
+	bearer.auth.credentials.source = STATIC_TOKEN
+	bearer.auth.custom.provider.class = null
+	bearer.auth.identity.pool.id = null
+	bearer.auth.issuer.endpoint.url = null
+	bearer.auth.logical.cluster = null
+	bearer.auth.scope = null
+	bearer.auth.scope.claim.name = scope
+	bearer.auth.sub.claim.name = sub
+	bearer.auth.token = [hidden]
+	context.name.strategy = class io.confluent.kafka.serializers.context.NullContextNameStrategy
+	http.connect.timeout.ms = 60000
+	http.read.timeout.ms = 60000
+	id.compatibility.strict = true
+	key.schema.id.deserializer = class io.confluent.kafka.serializers.schema.id.DualSchemaIdDeserializer
+	key.schema.id.serializer = class io.confluent.kafka.serializers.schema.id.PrefixSchemaIdSerializer
+	key.subject.name.strategy = class io.confluent.kafka.serializers.subject.TopicNameStrategy
+	latest.cache.size = 1000
+	latest.cache.ttl.sec = -1
+	latest.compatibility.strict = true
+	max.retries = 3
+	max.schemas.per.subject = 1000
+	normalize.schemas = false
+	propagate.schema.tags = false
+	proxy.host = 
+	proxy.port = -1
+	retries.max.wait.ms = 20000
+	retries.wait.ms = 1000
+	rule.actions = []
+	rule.executors = []
+	rule.service.loader.enable = true
+	schema.format = null
+	schema.reflection = false
+	schema.registry.basic.auth.user.info = [hidden]
+	schema.registry.ssl.cipher.suites = null
+	schema.registry.ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	schema.registry.ssl.endpoint.identification.algorithm = https
+	schema.registry.ssl.engine.factory.class = null
+	schema.registry.ssl.key.password = null
+	schema.registry.ssl.keymanager.algorithm = SunX509
+	schema.registry.ssl.keystore.certificate.chain = null
+	schema.registry.ssl.keystore.key = null
+	schema.registry.ssl.keystore.location = null
+	schema.registry.ssl.keystore.password = null
+	schema.registry.ssl.keystore.type = JKS
+	schema.registry.ssl.protocol = TLSv1.3
+	schema.registry.ssl.provider = null
+	schema.registry.ssl.secure.random.implementation = null
+	schema.registry.ssl.trustmanager.algorithm = PKIX
+	schema.registry.ssl.truststore.certificates = null
+	schema.registry.ssl.truststore.location = null
+	schema.registry.ssl.truststore.password = null
+	schema.registry.ssl.truststore.type = JKS
+	schema.registry.url = [http://localhost:46153]
+	schema.registry.url.randomize = false
+	specific.avro.key.type = null
+	specific.avro.reader = true
+	specific.avro.value.type = null
+	use.latest.version = false
+	use.latest.with.metadata = null
+	use.schema.id = -1
+	value.schema.id.deserializer = class io.confluent.kafka.serializers.schema.id.DualSchemaIdDeserializer
+	value.schema.id.serializer = class io.confluent.kafka.serializers.schema.id.PrefixSchemaIdSerializer
+	value.subject.name.strategy = class io.confluent.kafka.serializers.subject.TopicNameStrategy
+
+2025-12-09T15:22:01.790+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : These configurations '[schema.registry.url, specific.avro.reader]' were supplied but are not used yet.
+2025-12-09T15:22:01.791+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.9.1
+2025-12-09T15:22:01.791+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: f745dfdcee2b9851
+2025-12-09T15:22:01.791+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1765290121791
+2025-12-09T15:22:01.793+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-test-group-1, groupId=test-group] Subscribed to topic(s): harvest-events
+2025-12-09T15:22:01.797+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] KafkaListenerAnnotationBeanPostProcessor : 1 @KafkaListener methods processed on bean 'kafkaHarvestEventConsumer': {public void no.fdk.harvestadmin.kafka.KafkaHarvestEventConsumer.consumeHarvestEvent(org.apache.kafka.clients.consumer.ConsumerRecord)=[@org.springframework.kafka.annotation.KafkaListener(topicPattern="", contentTypeConverter="", containerFactory="kafkaListenerContainerFactory", beanRef="__listener", topics={"${app.kafka.topic.harvest-events}"}, groupId="${spring.kafka.consumer.group-id:fdk-harvest-admin-service}", batch="", topicPartitions={}, clientIdPrefix="", splitIterables=true, concurrency="", autoStartup="", filter="", containerGroup="", idIsGroup=true, errorHandler="", containerPostProcessor="", id="", properties={}, info="")]}
+2025-12-09T15:22:01.985+01:00  WARN 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-test-group-1, groupId=test-group] The metadata response from the cluster reported a recoverable issue with correlation id 3 : {harvest-events=LEADER_NOT_AVAILABLE}
+2025-12-09T15:22:01.985+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-test-group-1, groupId=test-group] Cluster ID: eJGnUcQZRAKVcH1I_8PCWA
+2025-12-09T15:22:01.986+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] Discovered group coordinator localhost:34399 (id: 2147483646 rack: null)
+2025-12-09T15:22:01.988+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] (Re-)joining group
+2025-12-09T15:22:01.998+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] Request joining group due to: need to re-join with the given member-id: consumer-test-group-1-4a124634-bdf8-447b-b3fe-06afd38aea58
+2025-12-09T15:22:01.998+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] (Re-)joining group
+2025-12-09T15:22:02.002+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] Successfully joined group with generation Generation{generationId=1, memberId='consumer-test-group-1-4a124634-bdf8-447b-b3fe-06afd38aea58', protocol='range'}
+2025-12-09T15:22:02.099+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] Finished assignment for group at generation 1: {consumer-test-group-1-4a124634-bdf8-447b-b3fe-06afd38aea58=Assignment(partitions=[harvest-events-0])}
+2025-12-09T15:22:02.104+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] Successfully synced group in generation Generation{generationId=1, memberId='consumer-test-group-1-4a124634-bdf8-447b-b3fe-06afd38aea58', protocol='range'}
+2025-12-09T15:22:02.105+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] Notifying assignor about the new Assignment(partitions=[harvest-events-0])
+2025-12-09T15:22:02.106+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-test-group-1, groupId=test-group] Adding newly assigned partitions: harvest-events-0
+2025-12-09T15:22:02.118+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-test-group-1, groupId=test-group] Found no committed offset for partition harvest-events-0
+2025-12-09T15:22:02.124+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-test-group-1, groupId=test-group] Resetting offset for partition harvest-events-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:34399 (id: 1 rack: null)], epoch=0}}.
+2025-12-09T15:22:02.125+01:00  INFO 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : test-group: partitions assigned: [harvest-events-0]
+2025-12-09T15:22:02.138+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.clients.producer.ProducerConfig    : ProducerConfig values: 
+	acks = -1
+	auto.include.jmx.reporter = true
+	batch.size = 16384
+	bootstrap.servers = [PLAINTEXT://localhost:34399]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = fdk-harvest-admin-service-producer-1
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 120000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 0
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.strategy = none
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transactional.id = null
+	value.serializer = class io.confluent.kafka.serializers.KafkaAvroSerializer
+
+2025-12-09T15:22:02.139+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2025-12-09T15:22:02.141+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] i.c.k.s.KafkaAvroSerializerConfig        : KafkaAvroSerializerConfig values: 
+	auto.register.schemas = true
+	avro.reflection.allow.null = false
+	avro.remove.java.properties = false
+	avro.use.logical.type.converters = false
+	basic.auth.credentials.source = URL
+	basic.auth.user.info = [hidden]
+	bearer.auth.cache.expiry.buffer.seconds = 300
+	bearer.auth.client.id = null
+	bearer.auth.client.secret = null
+	bearer.auth.credentials.source = STATIC_TOKEN
+	bearer.auth.custom.provider.class = null
+	bearer.auth.identity.pool.id = null
+	bearer.auth.issuer.endpoint.url = null
+	bearer.auth.logical.cluster = null
+	bearer.auth.scope = null
+	bearer.auth.scope.claim.name = scope
+	bearer.auth.sub.claim.name = sub
+	bearer.auth.token = [hidden]
+	context.name.strategy = class io.confluent.kafka.serializers.context.NullContextNameStrategy
+	http.connect.timeout.ms = 60000
+	http.read.timeout.ms = 60000
+	id.compatibility.strict = true
+	key.schema.id.deserializer = class io.confluent.kafka.serializers.schema.id.DualSchemaIdDeserializer
+	key.schema.id.serializer = class io.confluent.kafka.serializers.schema.id.PrefixSchemaIdSerializer
+	key.subject.name.strategy = class io.confluent.kafka.serializers.subject.TopicNameStrategy
+	latest.cache.size = 1000
+	latest.cache.ttl.sec = -1
+	latest.compatibility.strict = true
+	max.retries = 3
+	max.schemas.per.subject = 1000
+	normalize.schemas = false
+	propagate.schema.tags = false
+	proxy.host = 
+	proxy.port = -1
+	retries.max.wait.ms = 20000
+	retries.wait.ms = 1000
+	rule.actions = []
+	rule.executors = []
+	rule.service.loader.enable = true
+	schema.format = null
+	schema.reflection = false
+	schema.registry.basic.auth.user.info = [hidden]
+	schema.registry.ssl.cipher.suites = null
+	schema.registry.ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	schema.registry.ssl.endpoint.identification.algorithm = https
+	schema.registry.ssl.engine.factory.class = null
+	schema.registry.ssl.key.password = null
+	schema.registry.ssl.keymanager.algorithm = SunX509
+	schema.registry.ssl.keystore.certificate.chain = null
+	schema.registry.ssl.keystore.key = null
+	schema.registry.ssl.keystore.location = null
+	schema.registry.ssl.keystore.password = null
+	schema.registry.ssl.keystore.type = JKS
+	schema.registry.ssl.protocol = TLSv1.3
+	schema.registry.ssl.provider = null
+	schema.registry.ssl.secure.random.implementation = null
+	schema.registry.ssl.trustmanager.algorithm = PKIX
+	schema.registry.ssl.truststore.certificates = null
+	schema.registry.ssl.truststore.location = null
+	schema.registry.ssl.truststore.password = null
+	schema.registry.ssl.truststore.type = JKS
+	schema.registry.url = [http://localhost:46153]
+	schema.registry.url.randomize = false
+	use.latest.version = true
+	use.latest.with.metadata = null
+	use.schema.id = -1
+	value.schema.id.deserializer = class io.confluent.kafka.serializers.schema.id.DualSchemaIdDeserializer
+	value.schema.id.serializer = class io.confluent.kafka.serializers.schema.id.PrefixSchemaIdSerializer
+	value.subject.name.strategy = class io.confluent.kafka.serializers.subject.TopicNameStrategy
+
+2025-12-09T15:22:02.146+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=fdk-harvest-admin-service-producer-1] Instantiated an idempotent producer.
+2025-12-09T15:22:02.161+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.k.clients.producer.ProducerConfig    : These configurations '[schema.registry.url, auto.register.schemas, use.latest.version]' were supplied but are not used yet.
+2025-12-09T15:22:02.162+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.9.1
+2025-12-09T15:22:02.162+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: f745dfdcee2b9851
+2025-12-09T15:22:02.162+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1765290122162
+2025-12-09T15:22:02.163+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] o.s.k.core.DefaultKafkaProducerFactory   : Created new Producer: CloseSafeProducer [delegate=org.apache.kafka.clients.producer.KafkaProducer@3077ee5]
+2025-12-09T15:22:02.169+01:00  INFO 40386 --- [fdk-harvest-admin-service] [vice-producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=fdk-harvest-admin-service-producer-1] Cluster ID: eJGnUcQZRAKVcH1I_8PCWA
+2025-12-09T15:22:02.187+01:00  INFO 40386 --- [fdk-harvest-admin-service] [vice-producer-1] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=fdk-harvest-admin-service-producer-1] ProducerId set to 0 with epoch 0
+2025-12-09T15:22:02.317+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] n.f.h.kafka.KafkaHarvestEventPublisher   : Published harvest event to Kafka - phase: INITIATING, dataSourceId: a4aaf571-e715-44d1-a4e7-e69ca8d37a91, topic: harvest-events
+2025-12-09T15:22:02.317+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] n.f.h.kafka.KafkaHarvestEventPublisher   : Published harvest event to Kafka - phase: HARVESTING, dataSourceId: a4aaf571-e715-44d1-a4e7-e69ca8d37a91, topic: harvest-events
+2025-12-09T15:22:02.317+01:00  INFO 40386 --- [fdk-harvest-admin-service] [           main] n.f.h.kafka.KafkaHarvestEventPublisher   : Published harvest event to Kafka - phase: REASONING, dataSourceId: a4aaf571-e715-44d1-a4e7-e69ca8d37a91, topic: harvest-events
+✅ Published 3 harvest events to Kafka
+2025-12-09T15:22:02.357+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : Received: 3 records
+2025-12-09T15:22:02.358+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] .a.RecordMessagingMessageListenerAdapter : Processing [GenericMessage [payload=org.springframework.kafka.support.KafkaNull@356097db, headers={id=c86aa2e2-695c-974a-a671-7b92cbb11407, timestamp=1765290121668}]]
+2025-12-09T15:22:02.359+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.kafka.KafkaHarvestEventConsumer    : Received harvest event - offset: 0, partition: 0
+2025-12-09T15:22:02.363+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.service.HarvestEventProcessor      : Skipping INITIATING event (persisted directly)
+2025-12-09T15:22:02.364+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : Committing: {harvest-events-0=OffsetAndMetadata{offset=1, leaderEpoch=null, metadata=''}}
+2025-12-09T15:22:02.372+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] .a.RecordMessagingMessageListenerAdapter : Processing [GenericMessage [payload=org.springframework.kafka.support.KafkaNull@356097db, headers={id=c86aa2e2-695c-974a-a671-7b92cbb11407, timestamp=1765290121668}]]
+2025-12-09T15:22:02.372+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.kafka.KafkaHarvestEventConsumer    : Received harvest event - offset: 1, partition: 0
+2025-12-09T15:22:02.410+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+2025-12-09T15:22:02.436+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+2025-12-09T15:22:02.450+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        harvest_progress_events
+        (accept_header, changed_resources_count, created_at, data_source_id, data_source_url, data_type, end_time, error_message, event_type, fdk_id, removed_resources_count, resource_uri, harvest_run_id, start_time, timestamp, unchanged_resources_count) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        harvest_progress_events
+        (accept_header, changed_resources_count, created_at, data_source_id, data_source_url, data_type, end_time, error_message, event_type, fdk_id, removed_resources_count, resource_uri, harvest_run_id, start_time, timestamp, unchanged_resources_count) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-09T15:22:02.461+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+2025-12-09T15:22:02.463+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+2025-12-09T15:22:02.464+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.service.HarvestRunService          : Persisted harvest event: phase=HARVESTING, dataSourceId=a4aaf571-e715-44d1-a4e7-e69ca8d37a91, fdkId=null
+2025-12-09T15:22:02.465+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.service.HarvestEventProcessor      : Successfully processed harvest event: phase=HARVESTING, dataSourceId=a4aaf571-e715-44d1-a4e7-e69ca8d37a91
+2025-12-09T15:22:02.466+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : Committing: {harvest-events-0=OffsetAndMetadata{offset=2, leaderEpoch=null, metadata=''}}
+2025-12-09T15:22:02.468+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] .a.RecordMessagingMessageListenerAdapter : Processing [GenericMessage [payload=org.springframework.kafka.support.KafkaNull@356097db, headers={id=c86aa2e2-695c-974a-a671-7b92cbb11407, timestamp=1765290121668}]]
+2025-12-09T15:22:02.468+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.kafka.KafkaHarvestEventConsumer    : Received harvest event - offset: 2, partition: 0
+2025-12-09T15:22:02.469+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+2025-12-09T15:22:02.470+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+2025-12-09T15:22:02.471+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        harvest_progress_events
+        (accept_header, changed_resources_count, created_at, data_source_id, data_source_url, data_type, end_time, error_message, event_type, fdk_id, removed_resources_count, resource_uri, harvest_run_id, start_time, timestamp, unchanged_resources_count) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        harvest_progress_events
+        (accept_header, changed_resources_count, created_at, data_source_id, data_source_url, data_type, end_time, error_message, event_type, fdk_id, removed_resources_count, resource_uri, harvest_run_id, start_time, timestamp, unchanged_resources_count) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-09T15:22:02.473+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.run_id=?
+2025-12-09T15:22:02.474+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] org.hibernate.SQL                        : 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+Hibernate: 
+    select
+        hre1_0.id,
+        hre1_0.ai_search_processing_duration_ms,
+        hre1_0.api_processing_duration_ms,
+        hre1_0.changed_resources_count,
+        hre1_0.created_at,
+        hre1_0.current_phase,
+        hre1_0.data_source_id,
+        hre1_0.data_type,
+        hre1_0.error_message,
+        hre1_0.harvest_duration_ms,
+        hre1_0.init_duration_ms,
+        hre1_0.last_event_timestamp,
+        hre1_0.phase_started_at,
+        hre1_0.processed_resources,
+        hre1_0.rdf_parsing_duration_ms,
+        hre1_0.reasoning_duration_ms,
+        hre1_0.remaining_resources,
+        hre1_0.removed_resources_count,
+        hre1_0.run_ended_at,
+        hre1_0.run_id,
+        hre1_0.run_started_at,
+        hre1_0.search_processing_duration_ms,
+        hre1_0.sparql_processing_duration_ms,
+        hre1_0.status,
+        hre1_0.total_duration_ms,
+        hre1_0.total_resources,
+        hre1_0.unchanged_resources_count,
+        hre1_0.updated_at 
+    from
+        harvest_runs hre1_0 
+    where
+        hre1_0.data_source_id=? 
+        and hre1_0.data_type=? 
+        and hre1_0.status='IN_PROGRESS' 
+    order by
+        hre1_0.run_started_at desc
+2025-12-09T15:22:02.475+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.service.HarvestRunService          : Persisted harvest event: phase=REASONING, dataSourceId=a4aaf571-e715-44d1-a4e7-e69ca8d37a91, fdkId=null
+2025-12-09T15:22:02.476+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] n.f.h.service.HarvestEventProcessor      : Successfully processed harvest event: phase=REASONING, dataSourceId=a4aaf571-e715-44d1-a4e7-e69ca8d37a91
+2025-12-09T15:22:02.476+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : Committing: {harvest-events-0=OffsetAndMetadata{offset=3, leaderEpoch=null, metadata=''}}
+2025-12-09T15:22:07.324+01:00 DEBUG 40386 --- [fdk-harvest-admin-service] [           main] org.hibernate.SQL                        : 
+    select
+        hee1_0.id,
+        hee1_0.accept_header,
+        hee1_0.changed_resources_count,
+        hee1_0.created_at,
+        hee1_0.data_source_id,
+        hee1_0.data_source_url,
+        hee1_0.data_type,
+        hee1_0.end_time,
+        hee1_0.error_message,
+        hee1_0.event_type,
+        hee1_0.fdk_id,
+        hee1_0.removed_resources_count,
+        hee1_0.resource_uri,
+        hee1_0.harvest_run_id,
+        hee1_0.start_time,
+        hee1_0.timestamp,
+        hee1_0.unchanged_resources_count 
+    from
+        harvest_progress_events hee1_0 
+    where
+        hee1_0.data_source_id=? 
+    order by
+        hee1_0.timestamp desc
+Hibernate: 
+    select
+        hee1_0.id,
+        hee1_0.accept_header,
+        hee1_0.changed_resources_count,
+        hee1_0.created_at,
+        hee1_0.data_source_id,
+        hee1_0.data_source_url,
+        hee1_0.data_type,
+        hee1_0.end_time,
+        hee1_0.error_message,
+        hee1_0.event_type,
+        hee1_0.fdk_id,
+        hee1_0.removed_resources_count,
+        hee1_0.resource_uri,
+        hee1_0.harvest_run_id,
+        hee1_0.start_time,
+        hee1_0.timestamp,
+        hee1_0.unchanged_resources_count 
+    from
+        harvest_progress_events hee1_0 
+    where
+        hee1_0.data_source_id=? 
+    order by
+        hee1_0.timestamp desc
+✅ All harvest events successfully persisted to database
+]]></system-out>
+    <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jeffreiffers/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+  </testcase>
+</testsuite>

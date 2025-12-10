@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: no.fdk.harvestadmin.controller.DataSourceControllerTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.840 s -- in no.fdk.harvestadmin.controller.DataSourceControllerTest
