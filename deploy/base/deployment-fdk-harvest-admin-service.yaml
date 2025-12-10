@@ -49,6 +49,26 @@ spec:
                 secretKeyRef:
                   name: fdk-harvest-admin-service
                   key: POSTGRESQL_PASSWORD
+            - name: RABBIT_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq
+                  key: RABBITMQ_HOST
+            - name: RABBIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq
+                  key: RABBITMQ_USERNAME
+            - name: RABBIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq
+                  key: RABBITMQ_PASSWORD
+            - name: RABBIT_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq
+                  key: RABBITMQ_PORT
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
                 secretKeyRef:
