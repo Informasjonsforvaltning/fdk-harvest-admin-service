@@ -15,7 +15,7 @@
     <description>FDK Harvest Admin Service - Spring Boot replacement for fdk-harvest-admin (Go)</description>
     <properties>
         <java.version>21</java.version>
-        <kotlin.version>2.2.20</kotlin.version>
+        <kotlin.version>2.2.21</kotlin.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <avro.version>1.12.1</avro.version>
         <confluent.version>8.1.0</confluent.version>
