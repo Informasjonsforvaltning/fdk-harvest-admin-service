@@ -16,7 +16,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: harvest-admin.api.staging.fellesdatakatalog.digdir.no
+    - host: harvest-admin.api.test.fellesdatakatalog.digdir.no
       http:
         paths:
           - backend:
