@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment-fdk-harvest-admin-service.yaml
+  - service-fdk-harvest-admin-service.yaml
+images:
+  - name: fdk-harvest-admin-service
+    newName: ghcr.io/informasjonsforvaltning/fdk-harvest-admin-service
+    newTag: $(GIT_COMMIT_SHA)
