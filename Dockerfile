@@ -15,6 +15,6 @@ RUN adduser -D $USER && \
 USER $USER
 WORKDIR $HOME
 
-COPY --chown=$USER:$USER /target/app.jar app.jar
+COPY --chown=$USER:$USER /target/fdk-harvest-admin-service.jar app.jar
 
 CMD ["sh", "-c", "java -jar $JAVA_OPTS app.jar"]

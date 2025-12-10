@@ -15,10 +15,10 @@
     <description>FDK Harvest Admin Service - Spring Boot replacement for fdk-harvest-admin (Go)</description>
     <properties>
         <java.version>21</java.version>
-        <kotlin.version>2.2.20</kotlin.version>
-        <testcontainers.version>1.19.3</testcontainers.version>
+        <kotlin.version>2.2.21</kotlin.version>
+        <testcontainers.version>2.0.2</testcontainers.version>
         <avro.version>1.12.1</avro.version>
-        <confluent.version>8.1.0</confluent.version>
+        <confluent.version>8.1.1</confluent.version>
     </properties>
 
     <dependencyManagement>
@@ -157,22 +157,22 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
+            <artifactId>testcontainers-postgresql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>rabbitmq</artifactId>
+            <artifactId>testcontainers-rabbitmq</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>kafka</artifactId>
+            <artifactId>testcontainers-kafka</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -193,7 +193,7 @@
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
-            <version>5.4.0</version>
+            <version>6.1.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -304,7 +304,7 @@
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
-                <version>1.11.3</version>
+                <version>${avro.version}</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>

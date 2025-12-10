@@ -34,4 +34,3 @@ abstract class BaseControllerTest {
     @MockBean
     protected lateinit var securityService: SecurityService
 }
-

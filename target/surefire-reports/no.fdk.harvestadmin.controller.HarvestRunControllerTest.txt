@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: no.fdk.harvestadmin.controller.HarvestRunControllerTest
--------------------------------------------------------------------------------
-Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.219 s -- in no.fdk.harvestadmin.controller.HarvestRunControllerTest

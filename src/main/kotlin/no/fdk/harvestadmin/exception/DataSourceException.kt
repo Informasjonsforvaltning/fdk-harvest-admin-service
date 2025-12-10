@@ -22,4 +22,3 @@ class NotFoundException(
 class ForbiddenException(
     message: String,
 ) : DataSourceException(message, HttpStatus.FORBIDDEN)
-
