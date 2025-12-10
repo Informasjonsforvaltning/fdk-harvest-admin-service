@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: no.fdk.harvestadmin.service.HarvestRunServiceTest
--------------------------------------------------------------------------------
-Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.143 s -- in no.fdk.harvestadmin.service.HarvestRunServiceTest

@@ -10,4 +10,3 @@ class DataSourceTypeConverter : AttributeConverter<DataSourceType, String> {
 
     override fun convertToEntityAttribute(dbData: String?): DataSourceType? = dbData?.let { DataSourceType.fromString(it) }
 }
-

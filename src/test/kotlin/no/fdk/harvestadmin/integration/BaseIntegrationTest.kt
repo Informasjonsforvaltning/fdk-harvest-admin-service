@@ -56,4 +56,3 @@ abstract class BaseIntegrationTest {
         }
     }
 }
-
