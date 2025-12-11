@@ -4,10 +4,13 @@ permissions:
   packages: write
 
 on:
+  pull_request:
+    types: [ ready_for_review, opened, reopened, synchronize ]
+    branches:
+      - main
   push:
     branches:
       - main
-
 jobs:
   build-fdk-harvest-admin-service:
     name: Build when pull request is created
