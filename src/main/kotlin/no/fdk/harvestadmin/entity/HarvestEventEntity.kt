@@ -9,7 +9,7 @@ import jakarta.persistence.Table
 import java.time.Instant
 
 @Entity
-@Table(name = "harvest_progress_events")
+@Table(name = "harvest_events")
 data class HarvestEventEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
