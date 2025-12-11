@@ -77,8 +77,8 @@ data class HarvestPerformanceMetrics(
 @Schema(description = "Detailed information about a harvest run")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class HarvestRunDetails(
-    @Schema(description = "Run ID", example = "1")
-    val id: Long,
+    @Schema(description = "Run ID (UUID)", example = "123e4567-e89b-12d3-a456-426614174000")
+    val runId: String,
     @Schema(description = "Data source identifier", example = "123e4567-e89b-12d3-a456-426614174000")
     val dataSourceId: String,
     @Schema(description = "Data type", example = "dataset")

@@ -30,7 +30,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
             .perform(get("/internal/runs").param("status", "IN_PROGRESS"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].id").value(runDetails.id))
+            .andExpect(jsonPath("$[0].runId").value(runDetails.runId))
             .andExpect(jsonPath("$[0].dataSourceId").value(runDetails.dataSourceId))
             .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
     }
@@ -90,7 +90,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
             .perform(get("/internal/runs/$runId"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.id").value(runDetails.id))
+            .andExpect(jsonPath("$.runId").value(runDetails.runId))
             .andExpect(jsonPath("$.dataSourceId").value(runDetails.dataSourceId))
     }
 
@@ -265,13 +265,13 @@ class HarvestRunControllerTest : BaseControllerTest() {
     }
 
     private fun createHarvestRunDetails(
-        id: Long = 1L,
+        runId: String = UUID.randomUUID().toString(),
         dataSourceId: String = UUID.randomUUID().toString(),
         dataType: String = "dataset",
     ): HarvestRunDetails {
         val now = Instant.now()
         return HarvestRunDetails(
-            id = id,
+            runId = runId,
             dataSourceId = dataSourceId,
             dataType = dataType,
             runStartedAt = now,

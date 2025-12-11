@@ -183,8 +183,8 @@ class HarvestRunServiceTest {
 
         // Then
         assertEquals(2, runs.size)
-        assertEquals(run1.id, runs[0].id)
-        assertEquals(run2.id, runs[1].id)
+        assertEquals(run1.runId, runs[0].runId)
+        assertEquals(run2.runId, runs[1].runId)
     }
 
     @Test
@@ -321,7 +321,7 @@ class HarvestRunServiceTest {
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
         assertNotNull(run)
-        assertEquals(runEntity.id, run!!.id)
+        assertEquals(runEntity.runId, run!!.runId)
         assertEquals(runEntity.dataSourceId, run.dataSourceId)
     }
 
@@ -373,8 +373,8 @@ class HarvestRunServiceTest {
 
         // Then
         assertEquals(2, runs.size)
-        assertEquals(run1.id, runs[0].id)
-        assertEquals(run2.id, runs[1].id)
+        assertEquals(run1.runId, runs[0].runId)
+        assertEquals(run2.runId, runs[1].runId)
     }
 
     @Test

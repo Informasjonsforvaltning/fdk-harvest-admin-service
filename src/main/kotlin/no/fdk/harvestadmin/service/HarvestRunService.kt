@@ -535,7 +535,7 @@ class HarvestRunService(
         try {
             harvestRunRepository.findAllInProgress().map { run ->
                 HarvestRunDetails(
-                    id = run.id ?: 0L,
+                    runId = run.runId,
                     dataSourceId = run.dataSourceId,
                     dataType = run.dataType,
                     runStartedAt = run.runStartedAt,
@@ -714,7 +714,7 @@ class HarvestRunService(
             } else {
                 Pair(
                     HarvestRunDetails(
-                        id = run.id ?: 0L,
+                        runId = run.runId,
                         dataSourceId = run.dataSourceId,
                         dataType = run.dataType,
                         runStartedAt = run.runStartedAt,
@@ -764,7 +764,7 @@ class HarvestRunService(
 
             runs.take(limit).map { run ->
                 HarvestRunDetails(
-                    id = run.id ?: 0L,
+                    runId = run.runId,
                     dataSourceId = run.dataSourceId,
                     dataType = run.dataType,
                     runStartedAt = run.runStartedAt,
