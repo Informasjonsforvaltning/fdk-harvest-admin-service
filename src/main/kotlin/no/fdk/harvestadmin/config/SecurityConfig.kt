@@ -27,7 +27,7 @@ class SecurityConfig(
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        // Add API key filter for internal endpoints
+        // Add API key filter for all endpoints (temporary replacement for JWT)
         if (apiKey.isNotBlank()) {
             http.addFilterBefore(
                 ApiKeyAuthenticationFilter(apiKey),
@@ -39,23 +39,25 @@ class SecurityConfig(
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .oauth2ResourceServer { oauth2 ->
-                oauth2.jwt { jwt ->
-                    jwt
-                        .decoder(jwtDecoder())
-                        .jwtAuthenticationConverter { jwt ->
-                            // Validate audience
-                            val claims = jwt.claims
-                            val audience = claims["aud"] as? List<*> ?: emptyList<Any>()
-                            if (!audience.contains(tokenAudience)) {
-                                throw IllegalArgumentException("Invalid audience")
-                            }
-                            // Convert Jwt to JwtAuthenticationToken
-                            org.springframework.security.oauth2.server.resource.authentication
-                                .JwtAuthenticationToken(jwt)
-                        }
-                }
-            }.authorizeHttpRequests { authz ->
+            // Temporarily disabled OAuth2 JWT authentication
+            // .oauth2ResourceServer { oauth2 ->
+            //     oauth2.jwt { jwt ->
+            //         jwt
+            //             .decoder(jwtDecoder())
+            //             .jwtAuthenticationConverter { jwt ->
+            //                 // Validate audience
+            //                 val claims = jwt.claims
+            //                 val audience = claims["aud"] as? List<*> ?: emptyList<Any>()
+            //                 if (!audience.contains(tokenAudience)) {
+            //                     throw IllegalArgumentException("Invalid audience")
+            //                 }
+            //                 // Convert Jwt to JwtAuthenticationToken
+            //                 org.springframework.security.oauth2.server.resource.authentication
+            //                     .JwtAuthenticationToken(jwt)
+            //             }
+            //     }
+            // }
+            .authorizeHttpRequests { authz ->
                 authz
                     // Actuator endpoints - public
                     .requestMatchers("/actuator/**")
@@ -72,20 +74,18 @@ class SecurityConfig(
                     // Temporary: Create data source endpoint - public (POST only)
                     .requestMatchers(HttpMethod.POST, "/organizations/*/datasources")
                     .permitAll()
-                    // Internal endpoints - require API key
-                    .requestMatchers("/internal/**")
-                    .hasRole("API_USER")
-                    // All other endpoints - require OAuth2 authentication
+                    // All endpoints - require API key authentication (temporary replacement for JWT)
                     .anyRequest()
-                    .authenticated()
+                    .hasRole("API_USER")
             }.build()
     }
 
-    @Bean
-    fun jwtDecoder(): JwtDecoder {
-        val jwkSetUri = "$keycloakHost/realms/fdk/protocol/openid-connect/certs"
-        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build()
-    }
+    // Temporarily disabled - using API key authentication instead of JWT
+    // @Bean
+    // fun jwtDecoder(): JwtDecoder {
+    //     val jwkSetUri = "$keycloakHost/realms/fdk/protocol/openid-connect/certs"
+    //     return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build()
+    // }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {

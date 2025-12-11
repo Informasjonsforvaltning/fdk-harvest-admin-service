@@ -17,9 +17,16 @@ class ApiKeyAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        // Only process API key authentication for internal endpoints
+        // Process API key authentication for all endpoints (temporary replacement for JWT)
         val path = request.requestURI
-        if (path.startsWith("/internal/")) {
+        // Skip API key check for public endpoints
+        if (!path.startsWith("/actuator") &&
+            !path.startsWith("/swagger-ui") &&
+            !path.startsWith("/swagger-resources") &&
+            !path.startsWith("/v3/api-docs") &&
+            !path.startsWith("/api-docs") &&
+            !path.startsWith("/webjars")
+        ) {
             val requestApiKey = request.getHeader("X-API-KEY")
 
             if (requestApiKey != null && requestApiKey == apiKey) {

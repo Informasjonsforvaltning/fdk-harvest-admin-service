@@ -54,7 +54,7 @@ class DataSourceController(
     @Operation(
         summary = "Query for data sources",
         description = "Returns a collection of matching data sources",
-        security = [SecurityRequirement(name = "bearer-jwt")],
+        security = [SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
         value = [
@@ -96,7 +96,7 @@ class DataSourceController(
     @Operation(
         summary = "Query for data sources by organization",
         description = "Returns a collection of data sources for specified organization",
-        security = [SecurityRequirement(name = "bearer-jwt")],
+        security = [SecurityRequirement(name = "api-key")],
     )
     fun getOrgDataSources(
         @PathVariable org: String,
@@ -137,7 +137,7 @@ class DataSourceController(
     @Operation(
         summary = "Get a specific data source by id",
         description = "Returns a data source by id",
-        security = [SecurityRequirement(name = "bearer-jwt")],
+        security = [SecurityRequirement(name = "api-key")],
     )
     fun getDataSource(
         @PathVariable org: String,
@@ -168,7 +168,7 @@ class DataSourceController(
     @Operation(
         summary = "Create a new data source",
         description = "Creates a new data source for the specified organization",
-        security = [SecurityRequirement(name = "bearer-jwt")],
+        security = [SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
         value = [
@@ -234,7 +234,7 @@ class DataSourceController(
     @Operation(
         summary = "Update a specific data source by id",
         description = "Updates a data source by id",
-        security = [SecurityRequirement(name = "bearer-jwt")],
+        security = [SecurityRequirement(name = "api-key")],
     )
     fun updateDataSource(
         @PathVariable org: String,
@@ -277,7 +277,7 @@ class DataSourceController(
     @Operation(
         summary = "Delete a specific data source by id",
         description = "Deletes a data source by id",
-        security = [SecurityRequirement(name = "bearer-jwt")],
+        security = [SecurityRequirement(name = "api-key")],
     )
     fun deleteDataSource(
         @PathVariable org: String,
@@ -293,7 +293,7 @@ class DataSourceController(
     @Operation(
         summary = "Start harvesting for a data source",
         description = "Triggers harvesting for a specific data source",
-        security = [SecurityRequirement(name = "bearer-jwt")],
+        security = [SecurityRequirement(name = "api-key")],
     )
     fun startHarvesting(
         @PathVariable org: String,
