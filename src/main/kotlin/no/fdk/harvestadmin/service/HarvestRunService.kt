@@ -483,7 +483,9 @@ class HarvestRunService(
                     .ofPattern("yyyy-MM-dd HH:mm:ss Z")
                     .parse(dateString)
                     .let { temporalAccessor ->
-                        java.time.OffsetDateTime.from(temporalAccessor).toInstant()
+                        java.time.OffsetDateTime
+                            .from(temporalAccessor)
+                            .toInstant()
                     }
             } catch (e2: Exception) {
                 try {
