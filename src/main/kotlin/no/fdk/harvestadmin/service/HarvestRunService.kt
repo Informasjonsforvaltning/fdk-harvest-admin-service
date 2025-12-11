@@ -478,17 +478,27 @@ class HarvestRunService(
             Instant.parse(dateString)
         } catch (e: Exception) {
             try {
-                // Try parsing as "yyyy-MM-dd HH:mm:ss" format
-                java.time.LocalDateTime
-                    .parse(
-                        dateString,
-                        java.time.format.DateTimeFormatter
-                            .ofPattern("yyyy-MM-dd HH:mm:ss"),
-                    ).atZone(java.time.ZoneId.systemDefault())
-                    .toInstant()
+                // Try parsing as "yyyy-MM-dd HH:mm:ss Z" format (e.g., "2025-12-11 13:21:38 +0100")
+                java.time.format.DateTimeFormatter
+                    .ofPattern("yyyy-MM-dd HH:mm:ss Z")
+                    .parse(dateString)
+                    .let { temporalAccessor ->
+                        java.time.OffsetDateTime.from(temporalAccessor).toInstant()
+                    }
             } catch (e2: Exception) {
-                logger.warn("Could not parse date string: $dateString", e2)
-                null
+                try {
+                    // Try parsing as "yyyy-MM-dd HH:mm:ss" format (without timezone)
+                    java.time.LocalDateTime
+                        .parse(
+                            dateString,
+                            java.time.format.DateTimeFormatter
+                                .ofPattern("yyyy-MM-dd HH:mm:ss"),
+                        ).atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+                } catch (e3: Exception) {
+                    logger.warn("Could not parse date string: $dateString", e3)
+                    null
+                }
             }
         }
 
