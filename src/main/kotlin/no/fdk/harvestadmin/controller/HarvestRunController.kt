@@ -86,7 +86,7 @@ class HarvestRunController(
         ],
     )
     fun getRun(
-        @Parameter(description = "Harvest run ID (UUID)") @PathVariable runId: String,
+        @Parameter(description = "Harvest run ID (runId, UUID)") @PathVariable runId: String,
         authentication: Authentication?,
     ): ResponseEntity<Any> {
         val (run, httpStatus) = harvestRunService.getHarvestRun(runId)

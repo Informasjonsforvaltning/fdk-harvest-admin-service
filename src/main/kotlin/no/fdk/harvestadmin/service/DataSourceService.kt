@@ -220,7 +220,7 @@ class DataSourceService(
                     runId = runId,
                     dataSourceId = id,
                     dataSourceUrl = dataSource.url,
-                    dataType = dataSource.dataType.name,
+                    dataType = dataSource.dataType.value,
                     acceptHeader = dataSource.acceptHeader!!,
                     publisherId = dataSource.publisherId,
                     timestamp = 0L,
