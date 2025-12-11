@@ -716,7 +716,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "never",
+            "showPoints": "auto",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -736,7 +736,7 @@
               }
             ]
           },
-          "unit": "ops"
+          "unit": "ms"
         },
         "overrides": []
       },
@@ -746,10 +746,10 @@
         "x": 0,
         "y": 24
       },
-      "id": 8,
+      "id": 10,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": ["mean", "max", "lastNotNull"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -765,12 +765,144 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "sum(rate(harvest_resources_processed_total[5m])) by (datatype, phase)",
-          "legendFormat": "{{datatype}} - {{phase}}",
+          "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
+          "legendFormat": "{{datatype}} - Total (p50)",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
+          "legendFormat": "{{datatype}} - Total (p95)",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "histogram_quantile(0.99, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
+          "legendFormat": "{{datatype}} - Total (p99)",
+          "refId": "C"
         }
       ],
-      "title": "Resource Processing Rate by Phase and Data Type",
+      "title": "Total Processing Time per Run",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "sum"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "increase(harvest_run_resources_total_sum[5m]) / increase(harvest_run_resources_total_count[5m])",
+          "legendFormat": "{{datatype}} - Avg Total Resources per Run",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "increase(harvest_run_resources_processed_sum[5m]) / increase(harvest_run_resources_processed_count[5m])",
+          "legendFormat": "{{datatype}} - Avg Processed Resources per Run",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(increase(harvest_run_resources_total_sum[5m])) by (datatype)",
+          "legendFormat": "{{datatype}} - Total Resources (sum)",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(increase(harvest_run_resources_processed_sum[5m])) by (datatype)",
+          "legendFormat": "{{datatype}} - Processed Resources (sum)",
+          "refId": "D"
+        }
+      ],
+      "title": "Resources Processed per Run",
       "type": "timeseries"
     },
     {
@@ -809,7 +941,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 32
       },
       "id": 9,
       "options": {
