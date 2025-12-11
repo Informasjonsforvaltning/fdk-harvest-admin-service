@@ -88,7 +88,7 @@ app:
     admin-permission: ${ADMIN_PERMISSION:admin}
     write-permission: ${WRITE_PERMISSION:write}
     api-key: ${API_KEY:}
-    keycloak-host: ${SSO_AUTH_URI:https://auth.test.fellesdatakatalog.digdir.no/auth}
+    keycloak-host: ${SSO_AUTH_URI:https://auth.test.fellesdatakatalog.digdir.no}
   cors:
     origin-patterns: ${CORS_ORIGIN_PATTERNS:*}
   kafka:
