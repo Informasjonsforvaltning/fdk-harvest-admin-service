@@ -85,7 +85,7 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
         Thread.sleep(3000)
 
         // Then: Verify event was persisted
-        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByTimestampDesc(dataSourceId)
+        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByCreatedAtDesc(dataSourceId)
         assertNotNull(persistedEvents)
         assertEquals(1, persistedEvents.size)
         assertEquals(dataSourceId, persistedEvents[0].dataSourceId)
@@ -140,7 +140,7 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
         Thread.sleep(5000)
 
         // Then: Verify all events were persisted
-        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByTimestampDesc(dataSourceId)
+        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByCreatedAtDesc(dataSourceId)
         // Note: INITIATING events are skipped by the processor, so we expect 2 events
         assertEquals(2, persistedEvents.size)
         // Verify both events exist (order may vary due to async processing)
@@ -178,7 +178,7 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
         Thread.sleep(3000)
 
         // Then: Verify event was persisted with resource counts
-        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByTimestampDesc(dataSourceId)
+        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByCreatedAtDesc(dataSourceId)
         assertEquals(1, persistedEvents.size)
         assertEquals(10, persistedEvents[0].changedResourcesCount)
         assertEquals(5, persistedEvents[0].unchangedResourcesCount)
@@ -213,7 +213,7 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
         Thread.sleep(3000)
 
         // Then: Verify event was persisted with error message
-        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByTimestampDesc(dataSourceId)
+        val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByCreatedAtDesc(dataSourceId)
         assertEquals(1, persistedEvents.size)
         assertEquals(errorMessage, persistedEvents[0].errorMessage)
         println("✅ Harvest event with error message successfully persisted")
@@ -258,7 +258,7 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
             Thread.sleep(3000)
 
             // Then: Verify the event was stored in the database
-            val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByTimestampDesc(dataSourceId)
+            val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByCreatedAtDesc(dataSourceId)
             assertNotNull(persistedEvents)
             assertEquals(1, persistedEvents.size)
             assertEquals(dataSourceId, persistedEvents[0].dataSourceId)

@@ -32,26 +32,25 @@ class HarvestRunService(
     @Transactional
     fun persistEvent(event: HarvestEvent) {
         try {
-            // Get run to use runStartedAt as fallback for timestamp
             val runId = event.runId?.toString()
-            val dataSourceId = event.dataSourceId.toString()
+            if (runId == null) {
+                logger.warn("Cannot process harvest event: runId is required. phase=${event.phase}")
+                return
+            }
+
+            val currentRun = harvestRunRepository.findByRunId(runId)
+
+            // Use dataSourceId from event if available (INITIATING phase), otherwise from the found run
+            val effectiveDataSourceId = event.dataSourceId?.toString() ?: currentRun?.dataSourceId
+            if (effectiveDataSourceId == null) {
+                logger.warn("Cannot process harvest event: no dataSourceId available. phase=${event.phase}, runId=$runId")
+                return
+            }
             val dataType = event.dataType.name
-            val currentRun =
-                runId?.let { harvestRunRepository.findByRunId(it) }
-                    ?: harvestRunRepository.findCurrentRun(dataSourceId, dataType)
-
-            // Use the runId from the found run if event doesn't have one
-            val eventRunId = runId ?: currentRun?.runId
-
-            // Use startTime if available, otherwise fallback to runStartedAt or current time
-            val eventTimestamp =
-                event.startTime?.let { parseDateTime(it)?.toEpochMilli() }
-                    ?: currentRun?.runStartedAt?.toEpochMilli()
-                    ?: System.currentTimeMillis()
 
             // Check if this resource has already been processed for this phase (before saving)
             val isDuplicate =
-                eventRunId?.let { runIdValue ->
+                runId.let { runIdValue ->
                     when {
                         event.fdkId != null -> {
                             harvestEventRepository.existsByRunIdAndEventTypeAndFdkId(
@@ -74,14 +73,13 @@ class HarvestRunService(
             val entity =
                 HarvestEventEntity(
                     eventType = event.phase.name,
-                    dataSourceId = dataSourceId,
-                    runId = eventRunId,
+                    dataSourceId = effectiveDataSourceId,
+                    runId = runId,
                     dataType = dataType,
                     dataSourceUrl = event.dataSourceUrl?.toString(),
                     acceptHeader = event.acceptHeader?.toString(),
                     fdkId = event.fdkId?.toString(),
                     resourceUri = event.resourceUri?.toString(),
-                    timestamp = eventTimestamp,
                     startTime = event.startTime?.toString(),
                     endTime = event.endTime?.toString(),
                     errorMessage = event.errorMessage?.toString(),
@@ -93,7 +91,12 @@ class HarvestRunService(
 
             // Update or create harvest run (consolidated state tracking)
             // Pass isDuplicate flag to avoid double-counting
-            updateHarvestRun(event, isDuplicate)
+            // Only update run if it exists
+            if (currentRun != null) {
+                updateHarvestRun(event, isDuplicate)
+            } else {
+                logger.debug("Skipping run update: harvest run not found for runId: $runId")
+            }
 
             logger.debug("Persisted harvest event: phase=${event.phase}, dataSourceId=${event.dataSourceId}, fdkId=${event.fdkId}")
         } catch (e: Exception) {
@@ -106,27 +109,17 @@ class HarvestRunService(
         event: HarvestEvent,
         isDuplicate: Boolean = false,
     ) {
-        val dataSourceId = event.dataSourceId.toString()
-        val dataType = event.dataType.name
         val runId = event.runId?.toString()
+        if (runId == null) {
+            logger.warn("Cannot update harvest run: runId is required. phase=${event.phase}")
+            return
+        }
 
-        // Find run by runId if available, otherwise fall back to finding current run
-        val currentRun =
-            if (runId != null) {
-                harvestRunRepository.findByRunId(runId) ?: run {
-                    // This shouldn't happen for trigger events (run should already exist)
-                    // But handle it gracefully for other events
-                    if (event.phase.name == "INITIATING") {
-                        null // Trigger events should have the run created beforehand
-                    } else {
-                        // For non-trigger events, try to find current run
-                        harvestRunRepository.findCurrentRun(dataSourceId, dataType)
-                    }
-                }
-            } else {
-                // Fallback: find the most recent run that's in progress (for backward compatibility)
-                harvestRunRepository.findCurrentRun(dataSourceId, dataType)
-            }
+        val currentRun = harvestRunRepository.findByRunId(runId)
+        if (currentRun == null) {
+            logger.warn("Cannot find harvest run with runId: $runId, phase=${event.phase}")
+            return
+        }
 
         if (currentRun != null) {
             val oldStatus = currentRun.status
@@ -483,12 +476,12 @@ class HarvestRunService(
             val staleRuns = harvestRunRepository.findStaleRuns(staleBefore)
 
             if (staleRuns.isNotEmpty()) {
-                logger.warn("Found ${staleRuns.size} stale harvest run(s) that haven't been updated in ${staleTimeoutMinutes} minutes")
+                logger.warn("Found ${staleRuns.size} stale harvest run(s) that haven't been updated in $staleTimeoutMinutes minutes")
                 staleRuns.forEach { run ->
                     val updatedRun =
                         run.copy(
                             status = "FAILED",
-                            errorMessage = "Harvest run timed out - no events received for ${staleTimeoutMinutes} minutes",
+                            errorMessage = "Harvest run timed out - no events received for $staleTimeoutMinutes minutes",
                             runEndedAt = run.updatedAt,
                             updatedAt = Instant.now(),
                         )

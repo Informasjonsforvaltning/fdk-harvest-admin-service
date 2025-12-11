@@ -83,8 +83,7 @@ class HarvestMetricsService(
         Gauge
             .builder("harvest.runs.current") {
                 harvestRunRepository.findAllInProgress().size.toDouble()
-            }
-            .description("Current number of in-progress harvest runs")
+            }.description("Current number of in-progress harvest runs")
             .register(meterRegistry)
     }
 
@@ -195,5 +194,4 @@ class HarvestMetricsService(
                 .record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS)
         }
     }
-
 }
