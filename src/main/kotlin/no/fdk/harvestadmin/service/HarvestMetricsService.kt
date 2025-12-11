@@ -52,11 +52,12 @@ class HarvestMetricsService(
             .description("Total number of harvest runs failed")
             .register(meterRegistry)
 
-    // Timers for phase durations
+    // Timers for phase durations (records in seconds for Prometheus)
     private val phaseDurationTimer: Timer.Builder =
         Timer
             .builder("harvest.phase.duration")
-            .description("Duration of harvest phases in milliseconds")
+            .description("Duration of harvest phases in seconds")
+            .publishPercentileHistogram()
 
     // Resource processing metrics
     private val resourcesProcessedCounter: Counter.Builder =
@@ -77,13 +78,31 @@ class HarvestMetricsService(
             .description("Number of processed resources per run")
             .baseUnit("resources")
 
-    // Gauge for current runs - registered at startup
+    // Gauges for current runs and progress - registered at startup
     @PostConstruct
     fun registerCurrentRunsGauge() {
         Gauge
             .builder("harvest.runs.current") {
                 harvestRunRepository.findAllInProgress().size.toDouble()
             }.description("Current number of in-progress harvest runs")
+            .register(meterRegistry)
+            
+        // Register gauge for total processed resources across all in-progress runs
+        Gauge
+            .builder("harvest.runs.processed_resources") {
+                harvestRunRepository.findAllInProgress()
+                    .sumOf { it.processedResources?.toLong() ?: 0L }
+                    .toDouble()
+            }.description("Total processed resources across all in-progress runs")
+            .register(meterRegistry)
+            
+        // Register gauge for total resources across all in-progress runs
+        Gauge
+            .builder("harvest.runs.total_resources") {
+                harvestRunRepository.findAllInProgress()
+                    .sumOf { it.totalResources?.toLong() ?: 0L }
+                    .toDouble()
+            }.description("Total resources across all in-progress runs")
             .register(meterRegistry)
     }
 
@@ -112,11 +131,13 @@ class HarvestMetricsService(
                         .between(start, end)
                         .toMillis()
 
+                // Convert milliseconds to seconds for Timer
+                val durationSeconds = durationMs / 1000.0
                 phaseDurationTimer
                     .tag("phase", event.phase.name)
                     .tag("datatype", event.dataType.name)
                     .register(meterRegistry)
-                    .record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .record(durationSeconds, java.util.concurrent.TimeUnit.SECONDS)
             } catch (e: Exception) {
                 // Ignore parsing errors
             }
@@ -131,13 +152,14 @@ class HarvestMetricsService(
         if (run.status == "COMPLETED") {
             runsCompletedCounter.increment()
 
-            // Record total duration
+            // Record total duration (convert ms to seconds)
             if (run.runStartedAt != null && run.totalDurationMs != null) {
+                val totalDurationSeconds = run.totalDurationMs!! / 1000.0
                 phaseDurationTimer
                     .tag("phase", "TOTAL")
                     .tag("datatype", run.dataType)
                     .register(meterRegistry)
-                    .record(run.totalDurationMs!!, java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .record(totalDurationSeconds, java.util.concurrent.TimeUnit.SECONDS)
             }
 
             // Record individual phase durations
@@ -187,11 +209,44 @@ class HarvestMetricsService(
         dataType: String,
     ) {
         if (durationMs != null && durationMs > 0) {
+            // Convert milliseconds to seconds for Timer
+            val durationSeconds = durationMs / 1000.0
             phaseDurationTimer
                 .tag("phase", phase)
                 .tag("datatype", dataType)
                 .register(meterRegistry)
-                .record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .record(durationSeconds, java.util.concurrent.TimeUnit.SECONDS)
+        }
+    }
+    
+    // Record phase duration during run (when phase completes)
+    fun recordPhaseDurationDuringRun(
+        phase: String,
+        durationMs: Long,
+        dataType: String,
+    ) {
+        val durationSeconds = durationMs / 1000.0
+        phaseDurationTimer
+            .tag("phase", phase)
+            .tag("datatype", dataType)
+            .register(meterRegistry)
+            .record(durationSeconds, java.util.concurrent.TimeUnit.SECONDS)
+    }
+    
+    // Record resource counts during run (for in-progress runs)
+    fun recordRunResourceCounts(run: HarvestRunEntity) {
+        if (run.totalResources != null && run.totalResources > 0) {
+            totalResourcesHistogram
+                .tag("datatype", run.dataType)
+                .register(meterRegistry)
+                .record(run.totalResources.toDouble())
+        }
+
+        if (run.processedResources != null && run.processedResources > 0) {
+            processedResourcesHistogram
+                .tag("datatype", run.dataType)
+                .register(meterRegistry)
+                .record(run.processedResources.toDouble())
         }
     }
 }
