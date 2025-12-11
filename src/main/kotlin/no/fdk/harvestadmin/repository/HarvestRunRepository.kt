@@ -99,4 +99,10 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
 
     @Query("SELECT h FROM HarvestRunEntity h WHERE h.status = 'COMPLETED' ORDER BY h.runStartedAt DESC")
     fun findLastAllCompletedRuns(pageable: Pageable): List<HarvestRunEntity>
+
+    // Find stale runs (IN_PROGRESS runs that haven't been updated recently)
+    @Query(
+        "SELECT h FROM HarvestRunEntity h WHERE h.status = 'IN_PROGRESS' AND h.updatedAt < :staleBefore",
+    )
+    fun findStaleRuns(@Param("staleBefore") staleBefore: Instant): List<HarvestRunEntity>
 }
