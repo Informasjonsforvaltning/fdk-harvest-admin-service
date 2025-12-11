@@ -11,8 +11,10 @@ import no.fdk.harvestadmin.model.ResourceCounts
 import no.fdk.harvestadmin.repository.HarvestEventRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -23,6 +25,7 @@ class HarvestRunService(
     private val harvestEventRepository: HarvestEventRepository,
     private val harvestRunRepository: HarvestRunRepository,
     private val harvestMetricsService: HarvestMetricsService,
+    @Value("\${app.harvest.stale-timeout-minutes:30}") private val staleTimeoutMinutes: Long,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -470,6 +473,34 @@ class HarvestRunService(
                 }.keys
 
         return resourcesByFdkId.size + resourcesByUri.size
+    }
+
+    @Scheduled(fixedDelayString = "\${app.harvest.stale-check-interval-ms:300000}", initialDelay = 60000)
+    @Transactional
+    fun markStaleRunsAsFailed() {
+        try {
+            val staleBefore = Instant.now().minus(staleTimeoutMinutes, ChronoUnit.MINUTES)
+            val staleRuns = harvestRunRepository.findStaleRuns(staleBefore)
+
+            if (staleRuns.isNotEmpty()) {
+                logger.warn("Found ${staleRuns.size} stale harvest run(s) that haven't been updated in ${staleTimeoutMinutes} minutes")
+                staleRuns.forEach { run ->
+                    val updatedRun =
+                        run.copy(
+                            status = "FAILED",
+                            errorMessage = "Harvest run timed out - no events received for ${staleTimeoutMinutes} minutes",
+                            runEndedAt = run.updatedAt,
+                            updatedAt = Instant.now(),
+                        )
+                    harvestRunRepository.save(updatedRun)
+                    logger.info("Marked stale harvest run ${run.runId} as FAILED (last updated: ${run.updatedAt})")
+                    // Record metrics for failed run
+                    harvestMetricsService.recordRunCompleted(updatedRun)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Error marking stale runs as failed", e)
+        }
     }
 
     private fun parseDateTime(dateString: String): Instant? =

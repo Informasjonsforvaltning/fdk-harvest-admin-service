@@ -96,6 +96,9 @@ app:
       harvest-events: ${KAFKA_HARVEST_EVENTS_TOPIC:harvest-events}
   openapi:
     server-url: ${OPENAPI_SERVER_URL:}
+  harvest:
+    stale-timeout-minutes: ${HARVEST_STALE_TIMEOUT_MINUTES:30}
+    stale-check-interval-ms: ${HARVEST_STALE_CHECK_INTERVAL_MS:300000}
 
 # Resilience4j Circuit Breaker configuration
 resilience4j:
