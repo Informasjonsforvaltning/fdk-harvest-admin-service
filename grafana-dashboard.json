@@ -870,7 +870,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "increase(harvest_run_resources_total_sum[5m]) / increase(harvest_run_resources_total_count[5m])",
+          "expr": "rate(harvest_run_resources_total_sum[5m]) / rate(harvest_run_resources_total_count[5m])",
           "legendFormat": "{{datatype}} - Avg Total Resources per Run",
           "refId": "A"
         },
@@ -879,7 +879,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "increase(harvest_run_resources_processed_sum[5m]) / increase(harvest_run_resources_processed_count[5m])",
+          "expr": "rate(harvest_run_resources_processed_sum[5m]) / rate(harvest_run_resources_processed_count[5m])",
           "legendFormat": "{{datatype}} - Avg Processed Resources per Run",
           "refId": "B"
         },
@@ -888,8 +888,8 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "sum(increase(harvest_run_resources_total_sum[5m])) by (datatype)",
-          "legendFormat": "{{datatype}} - Total Resources (sum)",
+          "expr": "sum(rate(harvest_run_resources_total_sum[5m])) by (datatype)",
+          "legendFormat": "{{datatype}} - Total Resources (rate)",
           "refId": "C"
         },
         {
@@ -897,8 +897,8 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "sum(increase(harvest_run_resources_processed_sum[5m])) by (datatype)",
-          "legendFormat": "{{datatype}} - Processed Resources (sum)",
+          "expr": "sum(rate(harvest_run_resources_processed_sum[5m])) by (datatype)",
+          "legendFormat": "{{datatype}} - Processed Resources (rate)",
           "refId": "D"
         }
       ],
@@ -968,6 +968,118 @@
       ],
       "title": "Success Rate",
       "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "id": 12,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "harvest_runs_total_resources",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Resources (In Progress)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "id": 13,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "harvest_runs_processed_resources",
+          "refId": "A"
+        }
+      ],
+      "title": "Processed Resources (In Progress)",
+      "type": "stat"
     }
   ],
   "refresh": "30s",

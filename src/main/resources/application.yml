@@ -62,6 +62,15 @@ management:
         # Liveness: /actuator/health/liveness
         # Readiness: /actuator/health/readiness
         # General health: /actuator/health
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        harvest.phase.duration: true
+      percentiles:
+        harvest.phase.duration: 0.5, 0.95, 0.99
 
 logging:
   level:

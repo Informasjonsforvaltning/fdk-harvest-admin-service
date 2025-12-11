@@ -126,6 +126,18 @@ class HarvestRunService(
             val updatedRun = updateRunWithEvent(currentRun, event, isDuplicate)
             val savedRun = harvestRunRepository.save(updatedRun)
 
+            // Record phase duration if this phase just completed (has endTime)
+            val eventStartTime = event.startTime?.let { parseDateTime(it) }
+            val eventEndTime = event.endTime?.let { parseDateTime(it) }
+            if (eventStartTime != null && eventEndTime != null) {
+                val phaseDurationMs = ChronoUnit.MILLIS.between(eventStartTime, eventEndTime)
+                harvestMetricsService.recordPhaseDurationDuringRun(
+                    event.phase.name,
+                    phaseDurationMs,
+                    savedRun.dataType,
+                )
+            }
+
             // Record metrics if status changed
             if (oldStatus != savedRun.status) {
                 harvestMetricsService.recordRunCompleted(savedRun)
@@ -149,6 +161,11 @@ class HarvestRunService(
                         1,
                     )
                 }
+            }
+            
+            // Record resource counts during run (not just at completion)
+            if (savedRun.totalResources != null && savedRun.totalResources > 0) {
+                harvestMetricsService.recordRunResourceCounts(savedRun)
             }
         }
     }
