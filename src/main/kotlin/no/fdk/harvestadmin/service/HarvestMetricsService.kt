@@ -4,13 +4,16 @@ import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
+import jakarta.annotation.PostConstruct
 import no.fdk.harvest.HarvestEvent
 import no.fdk.harvestadmin.entity.HarvestRunEntity
+import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.springframework.stereotype.Service
 
 @Service
 class HarvestMetricsService(
     private val meterRegistry: MeterRegistry,
+    private val harvestRunRepository: HarvestRunRepository,
 ) {
     // Counters for harvest events
     private val eventsProcessedCounter: Counter =
@@ -61,7 +64,29 @@ class HarvestMetricsService(
             .builder("harvest.resources.processed")
             .description("Number of resources processed")
 
-    // Gauge for current runs - will be registered dynamically
+    // Resource count metrics (histograms for per-run values)
+    private val totalResourcesHistogram: io.micrometer.core.instrument.DistributionSummary.Builder =
+        io.micrometer.core.instrument.DistributionSummary
+            .builder("harvest.run.resources.total")
+            .description("Total number of resources per run")
+            .baseUnit("resources")
+
+    private val processedResourcesHistogram: io.micrometer.core.instrument.DistributionSummary.Builder =
+        io.micrometer.core.instrument.DistributionSummary
+            .builder("harvest.run.resources.processed")
+            .description("Number of processed resources per run")
+            .baseUnit("resources")
+
+    // Gauge for current runs - registered at startup
+    @PostConstruct
+    fun registerCurrentRunsGauge() {
+        Gauge
+            .builder("harvest.runs.current") {
+                harvestRunRepository.findAllInProgress().size.toDouble()
+            }
+            .description("Current number of in-progress harvest runs")
+            .register(meterRegistry)
+    }
 
     fun recordEventProcessed(event: HarvestEvent) {
         eventsProcessedCounter.increment()
@@ -125,6 +150,21 @@ class HarvestMetricsService(
             recordPhaseDuration("AI_SEARCH_PROCESSING", run.aiSearchProcessingDurationMs, run.dataType)
             recordPhaseDuration("RESOURCE_PROCESSING", run.apiProcessingDurationMs, run.dataType)
             recordPhaseDuration("SPARQL_PROCESSING", run.sparqlProcessingDurationMs, run.dataType)
+
+            // Record resource counts
+            if (run.totalResources != null && run.totalResources > 0) {
+                totalResourcesHistogram
+                    .tag("datatype", run.dataType)
+                    .register(meterRegistry)
+                    .record(run.totalResources.toDouble())
+            }
+
+            if (run.processedResources != null && run.processedResources > 0) {
+                processedResourcesHistogram
+                    .tag("datatype", run.dataType)
+                    .register(meterRegistry)
+                    .record(run.processedResources.toDouble())
+            }
         } else if (run.status == "FAILED") {
             runsFailedCounter.increment()
         }
@@ -156,11 +196,4 @@ class HarvestMetricsService(
         }
     }
 
-    fun updateCurrentRunsCount(count: Long) {
-        // Register or update the gauge with current count
-        Gauge
-            .builder("harvest.runs.current") { count }
-            .description("Current number of in-progress harvest runs")
-            .register(meterRegistry)
-    }
 }
