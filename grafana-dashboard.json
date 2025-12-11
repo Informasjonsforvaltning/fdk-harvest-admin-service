@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -99,7 +99,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "harvest_runs_started_total",
           "legendFormat": "Started",
@@ -108,7 +108,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "harvest_runs_completed_total",
           "legendFormat": "Completed",
@@ -117,7 +117,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "harvest_runs_failed_total",
           "legendFormat": "Failed",
@@ -130,7 +130,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -179,7 +179,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "harvest_runs_current",
           "refId": "A"
@@ -191,7 +191,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -265,7 +265,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "rate(harvest_events_processed_total[5m])",
           "legendFormat": "Events/sec",
@@ -278,7 +278,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -352,7 +352,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"INITIATING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - INIT (p50)",
@@ -361,7 +361,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"HARVESTING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - HARVESTING (p50)",
@@ -370,7 +370,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"REASONING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - REASONING (p50)",
@@ -379,7 +379,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"RDF_PARSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - RDF_PARSING (p50)",
@@ -388,7 +388,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - TOTAL (p50)",
@@ -401,7 +401,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -475,7 +475,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"SEARCH_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - SEARCH_PROCESSING (p95)",
@@ -484,7 +484,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"AI_SEARCH_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - AI_SEARCH_PROCESSING (p95)",
@@ -493,7 +493,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"RESOURCE_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - RESOURCE_PROCESSING (p95)",
@@ -502,7 +502,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"SPARQL_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - SPARQL_PROCESSING (p95)",
@@ -515,7 +515,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -589,7 +589,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "sum(rate(harvest_events_by_phase_total[5m])) by (phase)",
           "legendFormat": "{{phase}}",
@@ -602,7 +602,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -676,7 +676,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "sum(rate(harvest_events_by_datatype_total[5m])) by (datatype)",
           "legendFormat": "{{datatype}}",
@@ -689,7 +689,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -763,7 +763,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "sum(rate(harvest_resources_processed_total[5m])) by (datatype, phase)",
           "legendFormat": "{{datatype}} - {{phase}}",
@@ -776,7 +776,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -828,7 +828,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "Prometheus"
           },
           "expr": "harvest_runs_completed_total / (harvest_runs_completed_total + harvest_runs_failed_total + 0.0001)",
           "refId": "A"
@@ -856,4 +856,3 @@
   "version": 1,
   "weekStart": ""
 }
-
