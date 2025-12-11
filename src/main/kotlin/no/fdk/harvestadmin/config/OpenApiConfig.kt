@@ -24,7 +24,7 @@ class OpenApiConfig(
             when {
                 !serverUrl.isNullOrBlank() && serverUrl.startsWith("http") -> serverUrl
                 !serverUrl.isNullOrBlank() -> "http://localhost:$serverUrl"
-                else -> "http://localhost:$serverPort"
+                else -> "/" // Use relative URL to use current domain
             }
 
         return OpenAPI()

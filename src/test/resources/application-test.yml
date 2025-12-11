@@ -48,6 +48,6 @@ app:
     admin-permission: admin
     write-permission: write
     api-key: test-api-key
-    keycloak-host: https://auth.staging.fellesdatakatalog.digdir.no/auth
+    keycloak-host: https://auth.test.fellesdatakatalog.digdir.no
 
 
