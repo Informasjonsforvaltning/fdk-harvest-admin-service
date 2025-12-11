@@ -22,8 +22,7 @@
     },
     {
       "name": "runId",
-      "type": ["null", "string"],
-      "default": null,
+      "type": "string",      
       "doc": "Unique identifier (UUID) for the harvest run this event belongs to"
     },
     {
