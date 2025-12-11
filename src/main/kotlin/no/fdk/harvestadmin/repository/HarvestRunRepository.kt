@@ -104,5 +104,7 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
     @Query(
         "SELECT h FROM HarvestRunEntity h WHERE h.status = 'IN_PROGRESS' AND h.updatedAt < :staleBefore",
     )
-    fun findStaleRuns(@Param("staleBefore") staleBefore: Instant): List<HarvestRunEntity>
+    fun findStaleRuns(
+        @Param("staleBefore") staleBefore: Instant,
+    ): List<HarvestRunEntity>
 }

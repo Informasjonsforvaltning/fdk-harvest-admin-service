@@ -39,7 +39,7 @@ class HarvestRunServiceTest {
 
     @BeforeEach
     fun setUp() {
-        harvestRunService = HarvestRunService(harvestEventRepository, harvestRunRepository, harvestMetricsService)
+        harvestRunService = HarvestRunService(harvestEventRepository, harvestRunRepository, harvestMetricsService, 30L)
     }
 
     @Test
