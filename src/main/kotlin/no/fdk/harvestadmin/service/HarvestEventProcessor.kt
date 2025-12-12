@@ -2,6 +2,7 @@ package no.fdk.harvestadmin.service
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import no.fdk.harvest.HarvestEvent
+import no.fdk.harvestadmin.repository.HarvestRunRepository
 import no.fdk.harvestadmin.service.HarvestRunService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service
 class HarvestEventProcessor(
     private val harvestRunService: HarvestRunService,
     private val harvestMetricsService: HarvestMetricsService,
+    private val harvestRunRepository: HarvestRunRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -22,10 +24,18 @@ class HarvestEventProcessor(
                 return
             }
 
+            // Check run status before processing to avoid recording metrics for completed runs
+            val runId = event.runId?.toString()
+            val currentRun = runId?.let { harvestRunRepository.findByRunId(it) }
+            val isRunInProgress = currentRun?.status == "IN_PROGRESS"
+
             harvestRunService.persistEvent(event)
 
-            // Record metrics
-            harvestMetricsService.recordEventProcessed(event)
+            // Only record event metrics if the run is still IN_PROGRESS
+            // This prevents recording metrics for late-arriving events after a run has completed
+            if (isRunInProgress) {
+                harvestMetricsService.recordEventProcessed(event)
+            }
 
             logger.debug("Successfully processed harvest event: phase=${event.phase}, dataSourceId=${event.dataSourceId}")
         } catch (e: Exception) {

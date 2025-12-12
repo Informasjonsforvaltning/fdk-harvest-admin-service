@@ -126,50 +126,54 @@ class HarvestRunService(
             val updatedRun = updateRunWithEvent(currentRun, event, isDuplicate)
             val savedRun = harvestRunRepository.save(updatedRun)
 
-            // Record phase duration if this phase just completed (has endTime)
-            val eventStartTime = event.startTime?.let { parseDateTime(it) }
-            val eventEndTime = event.endTime?.let { parseDateTime(it) }
-            if (eventStartTime != null && eventEndTime != null) {
-                val phaseDurationMs = ChronoUnit.MILLIS.between(eventStartTime, eventEndTime)
-                harvestMetricsService.recordPhaseDurationDuringRun(
-                    event.phase.name,
-                    phaseDurationMs,
-                    savedRun.dataType,
-                )
-            }
-
-            // Record metrics if status changed
-            if (oldStatus != savedRun.status) {
-                harvestMetricsService.recordRunCompleted(savedRun)
-            }
-
-            // Record resources processed if applicable
-            if (savedRun.processedResources != null && savedRun.processedResources > 0) {
-                val resourceProcessingPhases =
-                    listOf(
-                        "REASONING",
-                        "RDF_PARSING",
-                        "RESOURCE_PROCESSING",
-                        "SEARCH_PROCESSING",
-                        "AI_SEARCH_PROCESSING",
-                        "SPARQL_PROCESSING",
-                    )
-                if (event.phase.name in resourceProcessingPhases) {
-                    harvestMetricsService.recordResourcesProcessed(
-                        savedRun.dataType,
+            // Only record ongoing metrics if the run was still IN_PROGRESS when the event arrived
+            // This prevents recording metrics for late-arriving events after a run has completed
+            if (oldStatus == "IN_PROGRESS") {
+                // Record phase duration if this phase just completed (has endTime)
+                val eventStartTime = event.startTime?.let { parseDateTime(it) }
+                val eventEndTime = event.endTime?.let { parseDateTime(it) }
+                if (eventStartTime != null && eventEndTime != null) {
+                    val phaseDurationMs = ChronoUnit.MILLIS.between(eventStartTime, eventEndTime)
+                    harvestMetricsService.recordPhaseDurationDuringRun(
                         event.phase.name,
-                        1,
+                        phaseDurationMs,
+                        savedRun.dataType,
                     )
+                }
+
+                // Record resources processed if applicable
+                if (savedRun.processedResources != null && savedRun.processedResources > 0) {
+                    val resourceProcessingPhases =
+                        listOf(
+                            "REASONING",
+                            "RDF_PARSING",
+                            "RESOURCE_PROCESSING",
+                            "SEARCH_PROCESSING",
+                            "AI_SEARCH_PROCESSING",
+                            "SPARQL_PROCESSING",
+                        )
+                    if (event.phase.name in resourceProcessingPhases) {
+                        harvestMetricsService.recordResourcesProcessed(
+                            savedRun.dataType,
+                            event.phase.name,
+                            1,
+                        )
+                    }
+                }
+
+                // Record resource counts during run (not just at completion)
+                // Record whenever we have resource data (total, processed, or partially processed)
+                if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
+                    (savedRun.processedResources != null && savedRun.processedResources > 0) ||
+                    (savedRun.partiallyProcessedResources != null)
+                ) {
+                    harvestMetricsService.recordRunResourceCounts(savedRun)
                 }
             }
 
-            // Record resource counts during run (not just at completion)
-            // Record whenever we have resource data (total, processed, or partially processed)
-            if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
-                (savedRun.processedResources != null && savedRun.processedResources > 0) ||
-                (savedRun.partiallyProcessedResources != null)
-            ) {
-                harvestMetricsService.recordRunResourceCounts(savedRun)
+            // Record metrics if status changed (always record completion/failure metrics)
+            if (oldStatus != savedRun.status) {
+                harvestMetricsService.recordRunCompleted(savedRun)
             }
         }
     }
