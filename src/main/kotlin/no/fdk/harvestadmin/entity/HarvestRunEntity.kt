@@ -35,6 +35,8 @@ data class HarvestRunEntity(
     val processedResources: Int? = null,
     @Column(name = "remaining_resources")
     val remainingResources: Int? = null,
+    @Column(name = "partially_processed_resources")
+    val partiallyProcessedResources: Int? = null,
     // Phase timings (in milliseconds)
     @Column(name = "init_duration_ms")
     val initDurationMs: Long? = null,

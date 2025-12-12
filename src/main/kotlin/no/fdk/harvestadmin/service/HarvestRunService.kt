@@ -164,9 +164,10 @@ class HarvestRunService(
             }
 
             // Record resource counts during run (not just at completion)
-            // Record whenever we have resource data (total or processed)
+            // Record whenever we have resource data (total, processed, or partially processed)
             if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
-                (savedRun.processedResources != null && savedRun.processedResources > 0)
+                (savedRun.processedResources != null && savedRun.processedResources > 0) ||
+                (savedRun.partiallyProcessedResources != null)
             ) {
                 harvestMetricsService.recordRunResourceCounts(savedRun)
             }
@@ -188,6 +189,7 @@ class HarvestRunService(
         val totalResources = calculateTotalResources(event, run)
         val processedResources = calculateProcessedResources(event, run, totalResources, isDuplicate)
         val remainingResources = totalResources?.let { total -> processedResources?.let { processed -> total - processed } }
+        val partiallyProcessedResources = calculatePartiallyProcessedResources(event, run, totalResources, processedResources, isDuplicate)
 
         var updatedRun =
             run.copy(
@@ -198,6 +200,7 @@ class HarvestRunService(
                 totalResources = totalResources,
                 processedResources = processedResources,
                 remainingResources = remainingResources,
+                partiallyProcessedResources = partiallyProcessedResources,
                 updatedAt = Instant.now(),
             )
 
@@ -275,12 +278,27 @@ class HarvestRunService(
 
         // Update resource counts from extraction event (when changedResourcesCount is set)
         if (event.changedResourcesCount != null || event.unchangedResourcesCount != null || event.removedResourcesCount != null) {
+            val newTotalResources =
+                event.changedResourcesCount?.toInt()?.plus(event.unchangedResourcesCount?.toInt() ?: 0)?.plus(
+                    event.removedResourcesCount?.toInt() ?: 0,
+                )
+            val newRemainingResources =
+                newTotalResources?.let { total ->
+                    updatedRun.processedResources?.let { processed -> total - processed }
+                }
+            val newPartiallyProcessedResources =
+                calculatePartiallyProcessedResources(
+                    event,
+                    updatedRun,
+                    newTotalResources,
+                    updatedRun.processedResources,
+                    isDuplicate,
+                )
             updatedRun =
                 updatedRun.copy(
-                    totalResources =
-                        event.changedResourcesCount?.toInt()?.plus(event.unchangedResourcesCount?.toInt() ?: 0)?.plus(
-                            event.removedResourcesCount?.toInt() ?: 0,
-                        ),
+                    totalResources = newTotalResources,
+                    remainingResources = newRemainingResources,
+                    partiallyProcessedResources = newPartiallyProcessedResources,
                     changedResourcesCount = event.changedResourcesCount?.toInt(),
                     unchangedResourcesCount = event.unchangedResourcesCount?.toInt(),
                     removedResourcesCount = event.removedResourcesCount?.toInt(),
@@ -294,18 +312,22 @@ class HarvestRunService(
         // Check if harvest is complete (when all phases have endTime)
         val isComplete = checkIfAllPhasesComplete(run.runId, event)
         if (isComplete && run.runEndedAt == null) {
-            // Use the latest endTime from any phase as the run end time
-            val latestEndTime = getLatestEndTime(run.runId) ?: endTime
-            val totalDuration =
-                if (run.runStartedAt != null && latestEndTime != null) {
-                    ChronoUnit.MILLIS.between(run.runStartedAt, latestEndTime)
+            // Calculate total duration as the sum of all phase durations
+            val totalDuration = calculateTotalDurationFromPhases(updatedRun)
+
+            // Calculate runEndedAt based on totalDuration to ensure consistency
+            // This ensures runEndedAt - runStartedAt = totalDurationMs
+            val calculatedEndTime =
+                if (run.runStartedAt != null && totalDuration != null) {
+                    run.runStartedAt.plusMillis(totalDuration)
                 } else {
-                    null
+                    // Fallback to latest endTime if we can't calculate from durations
+                    getLatestEndTime(run.runId) ?: endTime
                 }
 
             updatedRun =
                 updatedRun.copy(
-                    runEndedAt = latestEndTime,
+                    runEndedAt = calculatedEndTime,
                     totalDurationMs = totalDuration,
                 )
         }
@@ -454,6 +476,53 @@ class HarvestRunService(
         return currentProcessed
     }
 
+    private fun calculatePartiallyProcessedResources(
+        event: HarvestEvent,
+        existingRun: HarvestRunEntity?,
+        totalResources: Int?,
+        processedResources: Int?,
+        isDuplicate: Boolean = false,
+    ): Int? {
+        // If total resources is not set yet, we can't calculate partially processed
+        if (totalResources == null) {
+            return existingRun?.partiallyProcessedResources
+        }
+
+        // Resource processing phases
+        val resourceProcessingPhases =
+            listOf(
+                "REASONING",
+                "RDF_PARSING",
+                "RESOURCE_PROCESSING",
+                "SEARCH_PROCESSING",
+                "AI_SEARCH_PROCESSING",
+                "SPARQL_PROCESSING",
+            )
+
+        // Only calculate if this is one of the resource processing phases
+        if (event.phase.name in resourceProcessingPhases && !isDuplicate) {
+            val runId = event.runId?.toString() ?: existingRun?.runId
+            if (runId != null) {
+                // Count resources that have completed at least one phase
+                val resourcesWithAtLeastOnePhase = countResourcesWithAtLeastOnePhase(runId, resourceProcessingPhases)
+
+                // Partially processed = resources with at least 1 phase - fully processed resources
+                val processed = processedResources ?: 0
+                return maxOf(0, resourcesWithAtLeastOnePhase - processed)
+            }
+        }
+
+        // For other phases, recalculate if we have the data
+        val runId = existingRun?.runId
+        if (runId != null && totalResources != null) {
+            val resourcesWithAtLeastOnePhase = countResourcesWithAtLeastOnePhase(runId, resourceProcessingPhases)
+            val processed = processedResources ?: 0
+            return maxOf(0, resourcesWithAtLeastOnePhase - processed)
+        }
+
+        return existingRun?.partiallyProcessedResources
+    }
+
     private fun countResourcesWithAllPhases(
         runId: String,
         requiredPhases: List<String>,
@@ -484,6 +553,34 @@ class HarvestRunService(
                     // Check if this resource has events for all required phases
                     events.map { it.eventType }.toSet().containsAll(requiredPhases)
                 }.keys
+
+        return resourcesByFdkId.size + resourcesByUri.size
+    }
+
+    private fun countResourcesWithAtLeastOnePhase(
+        runId: String,
+        resourceProcessingPhases: List<String>,
+    ): Int {
+        // Get all events for this run that are in the resource processing phases
+        val allResourceEvents =
+            resourceProcessingPhases.flatMap { phase ->
+                harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
+            }
+
+        // Group by resource identifier (fdkId takes precedence over resourceUri)
+        val resourcesByFdkId =
+            allResourceEvents
+                .filter { it.fdkId != null }
+                .groupBy { it.fdkId!! }
+                .keys
+
+        // Resources identified by URI (excluding those already counted by fdkId)
+        val fdkIds = resourcesByFdkId.toSet()
+        val resourcesByUri =
+            allResourceEvents
+                .filter { it.resourceUri != null && (it.fdkId == null || !fdkIds.contains(it.fdkId)) }
+                .groupBy { it.resourceUri!! }
+                .keys
 
         return resourcesByFdkId.size + resourcesByUri.size
     }
@@ -574,10 +671,13 @@ class HarvestRunService(
                         totalResources = run.totalResources,
                         processedResources = run.processedResources,
                         remainingResources = run.remainingResources,
+                        partiallyProcessedResources = run.partiallyProcessedResources,
                         changedResourcesCount = run.changedResourcesCount,
                         unchangedResourcesCount = run.unchangedResourcesCount,
                         removedResourcesCount = run.removedResourcesCount,
                         status = run.status,
+                        createdAt = run.createdAt,
+                        updatedAt = run.updatedAt,
                     )
                 }
 
@@ -614,9 +714,12 @@ class HarvestRunService(
                             changedResourcesCount = run.changedResourcesCount,
                             unchangedResourcesCount = run.unchangedResourcesCount,
                             removedResourcesCount = run.removedResourcesCount,
+                            partiallyProcessedResources = run.partiallyProcessedResources,
                         ),
                     status = run.status,
                     errorMessage = run.errorMessage,
+                    createdAt = run.createdAt,
+                    updatedAt = run.updatedAt,
                 )
             }
         } catch (e: Exception) {
@@ -793,9 +896,12 @@ class HarvestRunService(
                                 changedResourcesCount = run.changedResourcesCount,
                                 unchangedResourcesCount = run.unchangedResourcesCount,
                                 removedResourcesCount = run.removedResourcesCount,
+                                partiallyProcessedResources = run.partiallyProcessedResources,
                             ),
                         status = run.status,
                         errorMessage = run.errorMessage,
+                        createdAt = run.createdAt,
+                        updatedAt = run.updatedAt,
                     ),
                     HttpStatus.OK,
                 )
@@ -806,51 +912,57 @@ class HarvestRunService(
         }
 
     fun getHarvestRuns(
-        dataSourceId: String,
+        dataSourceId: String? = null,
         dataType: String? = null,
+        status: String? = null,
+        offset: Int = 0,
         limit: Int = 50,
-    ): List<HarvestRunDetails> =
+    ): Pair<List<HarvestRunDetails>, Long> =
         try {
-            val runs =
-                if (dataType != null) {
-                    harvestRunRepository.findByDataSourceIdAndDataTypeOrderByRunStartedAtDesc(dataSourceId, dataType)
-                } else {
-                    harvestRunRepository.findByDataSourceIdOrderByRunStartedAtDesc(dataSourceId)
-                }
+            // Calculate page number from offset (Spring Data uses 0-indexed page numbers)
+            val page = if (limit > 0) offset / limit else 0
+            val pageable = PageRequest.of(page, limit)
+            val runs = harvestRunRepository.findRunsWithFilters(dataSourceId, dataType, status, pageable)
+            val totalCount = harvestRunRepository.countRunsWithFilters(dataSourceId, dataType, status)
 
-            runs.take(limit).map { run ->
-                HarvestRunDetails(
-                    runId = run.runId,
-                    dataSourceId = run.dataSourceId,
-                    dataType = run.dataType,
-                    runStartedAt = run.runStartedAt,
-                    runEndedAt = run.runEndedAt,
-                    totalDurationMs = run.totalDurationMs,
-                    phaseDurations =
-                        PhaseDurations(
-                            initDurationMs = run.initDurationMs,
-                            harvestDurationMs = run.harvestDurationMs,
-                            reasoningDurationMs = run.reasoningDurationMs,
-                            rdfParsingDurationMs = run.rdfParsingDurationMs,
-                            searchProcessingDurationMs = run.searchProcessingDurationMs,
-                            aiSearchProcessingDurationMs = run.aiSearchProcessingDurationMs,
-                            apiProcessingDurationMs = run.apiProcessingDurationMs,
-                            sparqlProcessingDurationMs = run.sparqlProcessingDurationMs,
-                        ),
-                    resourceCounts =
-                        ResourceCounts(
-                            totalResources = run.totalResources,
-                            changedResourcesCount = run.changedResourcesCount,
-                            unchangedResourcesCount = run.unchangedResourcesCount,
-                            removedResourcesCount = run.removedResourcesCount,
-                        ),
-                    status = run.status,
-                    errorMessage = run.errorMessage,
-                )
-            }
+            val runDetails =
+                runs.map { run ->
+                    HarvestRunDetails(
+                        runId = run.runId,
+                        dataSourceId = run.dataSourceId,
+                        dataType = run.dataType,
+                        runStartedAt = run.runStartedAt,
+                        runEndedAt = run.runEndedAt,
+                        totalDurationMs = run.totalDurationMs,
+                        phaseDurations =
+                            PhaseDurations(
+                                initDurationMs = run.initDurationMs,
+                                harvestDurationMs = run.harvestDurationMs,
+                                reasoningDurationMs = run.reasoningDurationMs,
+                                rdfParsingDurationMs = run.rdfParsingDurationMs,
+                                searchProcessingDurationMs = run.searchProcessingDurationMs,
+                                aiSearchProcessingDurationMs = run.aiSearchProcessingDurationMs,
+                                apiProcessingDurationMs = run.apiProcessingDurationMs,
+                                sparqlProcessingDurationMs = run.sparqlProcessingDurationMs,
+                            ),
+                        resourceCounts =
+                            ResourceCounts(
+                                totalResources = run.totalResources,
+                                changedResourcesCount = run.changedResourcesCount,
+                                unchangedResourcesCount = run.unchangedResourcesCount,
+                                removedResourcesCount = run.removedResourcesCount,
+                                partiallyProcessedResources = run.partiallyProcessedResources,
+                            ),
+                        status = run.status,
+                        errorMessage = run.errorMessage,
+                        createdAt = run.createdAt,
+                        updatedAt = run.updatedAt,
+                    )
+                }
+            Pair(runDetails, totalCount)
         } catch (e: Exception) {
-            logger.error("Error getting harvest runs for dataSourceId: $dataSourceId, dataType: $dataType", e)
-            emptyList()
+            logger.error("Error getting harvest runs for dataSourceId: $dataSourceId, dataType: $dataType, status: $status", e)
+            Pair(emptyList(), 0L)
         }
 
     private fun <T> calculateAverage(
@@ -863,5 +975,33 @@ class HarvestRunService(
         } else {
             null
         }
+    }
+
+    /**
+     * Calculate total duration as the sum of all phase durations.
+     * This includes: INITIATING, HARVESTING, REASONING, RDF_PARSING,
+     * SEARCH_PROCESSING, AI_SEARCH_PROCESSING, RESOURCE_PROCESSING, SPARQL_PROCESSING
+     */
+    private fun calculateTotalDurationFromPhases(run: HarvestRunEntity): Long? {
+        val initDuration = run.initDurationMs ?: 0L
+        val harvestDuration = run.harvestDurationMs ?: 0L
+        val reasoningDuration = run.reasoningDurationMs ?: 0L
+        val rdfParsingDuration = run.rdfParsingDurationMs ?: 0L
+        val searchProcessingDuration = run.searchProcessingDurationMs ?: 0L
+        val aiSearchProcessingDuration = run.aiSearchProcessingDurationMs ?: 0L
+        val resourceProcessingDuration = run.apiProcessingDurationMs ?: 0L
+        val sparqlProcessingDuration = run.sparqlProcessingDurationMs ?: 0L
+
+        val total =
+            initDuration +
+                harvestDuration +
+                reasoningDuration +
+                rdfParsingDuration +
+                searchProcessingDuration +
+                aiSearchProcessingDuration +
+                resourceProcessingDuration +
+                sparqlProcessingDuration
+
+        return if (total > 0) total else null
     }
 }

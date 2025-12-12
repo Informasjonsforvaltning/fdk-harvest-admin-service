@@ -362,17 +362,27 @@ class HarvestRunServiceTest {
                 status = "COMPLETED",
             )
         whenever(
-            harvestRunRepository.findByDataSourceIdAndDataTypeOrderByRunStartedAtDesc(
-                dataSourceId,
-                "dataset",
+            harvestRunRepository.findRunsWithFilters(
+                eq(dataSourceId),
+                eq("dataset"),
+                eq(null),
+                any(),
             ),
         ).thenReturn(listOf(run1, run2))
+        whenever(
+            harvestRunRepository.countRunsWithFilters(
+                eq(dataSourceId),
+                eq("dataset"),
+                eq(null),
+            ),
+        ).thenReturn(2L)
 
         // When
-        val runs = harvestRunService.getHarvestRuns(dataSourceId, "dataset", 50)
+        val (runs, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, "dataset", null, 0, 50)
 
         // Then
         assertEquals(2, runs.size)
+        assertEquals(2L, totalCount)
         assertEquals(run1.runId, runs[0].runId)
         assertEquals(run2.runId, runs[1].runId)
     }
@@ -393,16 +403,26 @@ class HarvestRunServiceTest {
                 )
             }
         whenever(
-            harvestRunRepository.findByDataSourceIdAndDataTypeOrderByRunStartedAtDesc(
-                dataSourceId,
-                "dataset",
+            harvestRunRepository.findRunsWithFilters(
+                eq(dataSourceId),
+                eq("dataset"),
+                eq(null),
+                any(),
             ),
-        ).thenReturn(runs)
+        ).thenReturn(runs.take(5))
+        whenever(
+            harvestRunRepository.countRunsWithFilters(
+                eq(dataSourceId),
+                eq("dataset"),
+                eq(null),
+            ),
+        ).thenReturn(10L)
 
         // When
-        val limitedRuns = harvestRunService.getHarvestRuns(dataSourceId, "dataset", 5)
+        val (limitedRuns, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, "dataset", null, 0, 5)
 
         // Then
         assertEquals(5, limitedRuns.size)
+        assertEquals(10L, totalCount)
     }
 }

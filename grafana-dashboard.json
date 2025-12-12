@@ -870,7 +870,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "increase(harvest_run_resources_total_sum[6h]) / increase(harvest_run_resources_total_count[6h])",
+          "expr": "increase(harvest_run_resources_total_sum[24h]) / increase(harvest_run_resources_total_count[24h])",
           "legendFormat": "{{datatype}} - Avg Total Resources per Run",
           "refId": "A"
         },
@@ -879,7 +879,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "increase(harvest_run_resources_processed_sum[6h]) / increase(harvest_run_resources_processed_count[6h])",
+          "expr": "increase(harvest_run_resources_processed_sum[24h]) / increase(harvest_run_resources_processed_count[24h])",
           "legendFormat": "{{datatype}} - Avg Processed Resources per Run",
           "refId": "B"
         },
@@ -888,7 +888,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "sum(increase(harvest_run_resources_total_sum[6h])) by (datatype)",
+          "expr": "sum(increase(harvest_run_resources_total_sum[24h])) by (datatype)",
           "legendFormat": "{{datatype}} - Total Resources (increase)",
           "refId": "C"
         },
@@ -897,8 +897,8 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "sum(increase(harvest_run_resources_processed_sum[6h])) by (datatype)",
-          "legendFormat": "{{datatype}} - Processed Resources (increase 6h)",
+          "expr": "sum(increase(harvest_run_resources_processed_sum[24h])) by (datatype)",
+          "legendFormat": "{{datatype}} - Processed Resources (increase 24h)",
           "refId": "D"
         },
         {
@@ -918,6 +918,42 @@
           "expr": "sum(harvest_run_resources_processed_count) by (datatype)",
           "legendFormat": "{{datatype}} - Processed Resources (total count)",
           "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(harvest_run_resources_processed_sum) by (datatype) / sum(harvest_run_resources_processed_count) by (datatype)",
+          "legendFormat": "{{datatype}} - Avg Processed Resources per Run (from total)",
+          "refId": "I"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "increase(harvest_run_resources_partially_processed_sum[24h]) / increase(harvest_run_resources_partially_processed_count[24h])",
+          "legendFormat": "{{datatype}} - Avg Partially Processed Resources per Run",
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(increase(harvest_run_resources_partially_processed_sum[24h])) by (datatype)",
+          "legendFormat": "{{datatype}} - Partially Processed Resources (increase 24h)",
+          "refId": "H"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(harvest_run_resources_partially_processed_sum) by (datatype)",
+          "legendFormat": "{{datatype}} - Partially Processed Resources (total sum)",
+          "refId": "I"
         }
       ],
       "title": "Resources Processed per Run",
