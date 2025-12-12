@@ -67,7 +67,7 @@ class OpenApiConfig(
                             .description("API key for internal endpoints"),
                     ),
             ).addSecurityItem(
-                SecurityRequirement().addList("bearer-jwt"),
+                SecurityRequirement().addList("api-key"),
             )
     }
 }
