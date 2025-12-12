@@ -765,7 +765,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
+          "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[30m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - Total (p50)",
           "refId": "A"
         },
@@ -774,7 +774,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
+          "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[30m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - Total (p95)",
           "refId": "B"
         },
@@ -783,7 +783,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
+          "expr": "histogram_quantile(0.99, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[30m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - Total (p99)",
           "refId": "C"
         }
@@ -870,7 +870,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "rate(harvest_run_resources_total_sum[5m]) / rate(harvest_run_resources_total_count[5m])",
+          "expr": "increase(harvest_run_resources_total_sum[6h]) / increase(harvest_run_resources_total_count[6h])",
           "legendFormat": "{{datatype}} - Avg Total Resources per Run",
           "refId": "A"
         },
@@ -879,7 +879,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "rate(harvest_run_resources_processed_sum[5m]) / rate(harvest_run_resources_processed_count[5m])",
+          "expr": "increase(harvest_run_resources_processed_sum[6h]) / increase(harvest_run_resources_processed_count[6h])",
           "legendFormat": "{{datatype}} - Avg Processed Resources per Run",
           "refId": "B"
         },
@@ -888,8 +888,8 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "sum(rate(harvest_run_resources_total_sum[5m])) by (datatype)",
-          "legendFormat": "{{datatype}} - Total Resources (rate)",
+          "expr": "sum(increase(harvest_run_resources_total_sum[6h])) by (datatype)",
+          "legendFormat": "{{datatype}} - Total Resources (increase)",
           "refId": "C"
         },
         {
@@ -897,9 +897,27 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "sum(rate(harvest_run_resources_processed_sum[5m])) by (datatype)",
-          "legendFormat": "{{datatype}} - Processed Resources (rate)",
+          "expr": "sum(increase(harvest_run_resources_processed_sum[6h])) by (datatype)",
+          "legendFormat": "{{datatype}} - Processed Resources (increase 6h)",
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(harvest_run_resources_processed_sum) by (datatype)",
+          "legendFormat": "{{datatype}} - Processed Resources (total sum)",
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(harvest_run_resources_processed_count) by (datatype)",
+          "legendFormat": "{{datatype}} - Processed Resources (total count)",
+          "refId": "F"
         }
       ],
       "title": "Resources Processed per Run",
@@ -1075,10 +1093,20 @@
             "uid": "Prometheus"
           },
           "expr": "harvest_runs_processed_resources",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "In Progress"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "harvest_runs_all_processed_resources",
+          "refId": "B",
+          "legendFormat": "All (In Progress + Completed)"
         }
       ],
-      "title": "Processed Resources (In Progress)",
+      "title": "Processed Resources",
       "type": "stat"
     }
   ],
