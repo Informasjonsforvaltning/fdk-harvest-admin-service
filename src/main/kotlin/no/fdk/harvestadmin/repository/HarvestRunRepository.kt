@@ -37,6 +37,37 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
     @Query("SELECT h FROM HarvestRunEntity h WHERE h.status = 'IN_PROGRESS' ORDER BY h.updatedAt DESC")
     fun findAllInProgress(): List<HarvestRunEntity>
 
+    // Flexible query for listing runs with filters and pagination
+    @Query(
+        """
+        SELECT h FROM HarvestRunEntity h 
+        WHERE (:dataSourceId IS NULL OR h.dataSourceId = :dataSourceId)
+        AND (:dataType IS NULL OR h.dataType = :dataType)
+        AND (:status IS NULL OR h.status = :status)
+        ORDER BY h.runStartedAt DESC
+        """,
+    )
+    fun findRunsWithFilters(
+        @Param("dataSourceId") dataSourceId: String?,
+        @Param("dataType") dataType: String?,
+        @Param("status") status: String?,
+        pageable: Pageable,
+    ): List<HarvestRunEntity>
+
+    @Query(
+        """
+        SELECT COUNT(h) FROM HarvestRunEntity h 
+        WHERE (:dataSourceId IS NULL OR h.dataSourceId = :dataSourceId)
+        AND (:dataType IS NULL OR h.dataType = :dataType)
+        AND (:status IS NULL OR h.status = :status)
+        """,
+    )
+    fun countRunsWithFilters(
+        @Param("dataSourceId") dataSourceId: String?,
+        @Param("dataType") dataType: String?,
+        @Param("status") status: String?,
+    ): Long
+
     @Query(
         "SELECT h FROM HarvestRunEntity h WHERE h.dataSourceId = :dataSourceId AND h.dataType = :dataType AND h.status = 'COMPLETED' AND h.runStartedAt >= :startDate ORDER BY h.runStartedAt DESC",
     )

@@ -29,6 +29,8 @@ data class HarvestCurrentState(
     val processedResources: Int?,
     @Schema(description = "Number of remaining resources")
     val remainingResources: Int?,
+    @Schema(description = "Number of partially processed resources (resources that have completed at least one phase but not all phases)")
+    val partiallyProcessedResources: Int?,
     @Schema(description = "Number of changed resources")
     val changedResourcesCount: Int?,
     @Schema(description = "Number of unchanged resources")
@@ -37,6 +39,10 @@ data class HarvestCurrentState(
     val removedResourcesCount: Int?,
     @Schema(description = "Harvest status", example = "IN_PROGRESS", allowableValues = ["IN_PROGRESS", "COMPLETED", "FAILED"])
     val status: String, // IN_PROGRESS, DONE, ERROR
+    @Schema(description = "When the harvest run was created")
+    val createdAt: Instant?,
+    @Schema(description = "When the harvest run was last updated")
+    val updatedAt: Instant?,
 )
 
 @Schema(description = "Performance metrics for harvest runs")
@@ -97,6 +103,10 @@ data class HarvestRunDetails(
     val status: String,
     @Schema(description = "Error message if harvest failed")
     val errorMessage: String?,
+    @Schema(description = "When the harvest run was created")
+    val createdAt: Instant?,
+    @Schema(description = "When the harvest run was last updated")
+    val updatedAt: Instant?,
 )
 
 @Schema(description = "Duration of each harvest phase in milliseconds")
@@ -131,4 +141,9 @@ data class ResourceCounts(
     val unchangedResourcesCount: Int?,
     @Schema(description = "Number of removed resources", example = "5")
     val removedResourcesCount: Int?,
+    @Schema(
+        description = "Number of partially processed resources (resources that have completed at least one phase but not all phases)",
+        example = "15",
+    )
+    val partiallyProcessedResources: Int?,
 )
