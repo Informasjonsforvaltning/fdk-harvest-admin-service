@@ -106,6 +106,31 @@ class HarvestMetricsService(
                     .toDouble()
             }.description("Total resources across all in-progress runs")
             .register(meterRegistry)
+
+        // Register gauge for processed resources from completed runs (last 24 hours)
+        Gauge
+            .builder("harvest.runs.completed.processed_resources") {
+                val oneDayAgo = java.time.Instant.now().minus(24, java.time.temporal.ChronoUnit.HOURS)
+                harvestRunRepository
+                    .findAllCompletedRuns(oneDayAgo)
+                    .sumOf { it.processedResources?.toLong() ?: 0L }
+                    .toDouble()
+            }.description("Total processed resources from completed runs in last 24 hours")
+            .register(meterRegistry)
+
+        // Register gauge for total processed resources (in-progress + completed in last 24h)
+        Gauge
+            .builder("harvest.runs.all.processed_resources") {
+                val inProgress = harvestRunRepository
+                    .findAllInProgress()
+                    .sumOf { it.processedResources?.toLong() ?: 0L }
+                val oneDayAgo = java.time.Instant.now().minus(24, java.time.temporal.ChronoUnit.HOURS)
+                val completed = harvestRunRepository
+                    .findAllCompletedRuns(oneDayAgo)
+                    .sumOf { it.processedResources?.toLong() ?: 0L }
+                (inProgress + completed).toDouble()
+            }.description("Total processed resources (in-progress + completed in last 24h)")
+            .register(meterRegistry)
     }
 
     fun recordEventProcessed(event: HarvestEvent) {

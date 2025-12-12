@@ -164,7 +164,10 @@ class HarvestRunService(
             }
 
             // Record resource counts during run (not just at completion)
-            if (savedRun.totalResources != null && savedRun.totalResources > 0) {
+            // Record whenever we have resource data (total or processed)
+            if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
+                (savedRun.processedResources != null && savedRun.processedResources > 0)
+            ) {
                 harvestMetricsService.recordRunResourceCounts(savedRun)
             }
         }
