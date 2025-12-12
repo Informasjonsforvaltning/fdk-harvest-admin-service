@@ -28,6 +28,7 @@ class HarvestMetricsService(
             else -> dataType.lowercase() // Fallback to lowercase
         }
     }
+
     // Counters for harvest events
     private val eventsProcessedCounter: Counter =
         Counter
