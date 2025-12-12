@@ -15,6 +15,19 @@ class HarvestMetricsService(
     private val meterRegistry: MeterRegistry,
     private val harvestRunRepository: HarvestRunRepository,
 ) {
+    // Normalize dataType to lowercase for consistent Prometheus labels
+    private fun normalizeDataType(dataType: String): String {
+        // Convert to lowercase and handle special cases
+        return when (dataType.lowercase()) {
+            "concept" -> "concept"
+            "dataset" -> "dataset"
+            "informationmodel", "information_model" -> "informationmodel"
+            "dataservice", "data_service" -> "dataservice"
+            "publicservice", "public_service" -> "publicservice"
+            "event" -> "event"
+            else -> dataType.lowercase() // Fallback to lowercase
+        }
+    }
     // Counters for harvest events
     private val eventsProcessedCounter: Counter =
         Counter
@@ -150,7 +163,7 @@ class HarvestMetricsService(
         // Initialize DistributionSummary metrics to ensure they're always exposed
         // This ensures harvest_run_resources_total_sum and harvest_run_resources_processed_sum
         // are available in Prometheus even before any data is recorded
-        val dataTypes = listOf("concept", "dataset", "informationmodel", "dataservice", "publicService", "event")
+        val dataTypes = listOf("concept", "dataset", "informationmodel", "dataservice", "publicservice", "event")
         dataTypes.forEach { dataType ->
             // Initialize totalResourcesHistogram with 0 to ensure metric exists
             totalResourcesHistogram
@@ -183,7 +196,7 @@ class HarvestMetricsService(
 
         // Record event by data type
         eventsByDataTypeCounter
-            .tag("datatype", event.dataType.name)
+            .tag("datatype", normalizeDataType(event.dataType.name))
             .register(meterRegistry)
             .increment()
 
@@ -201,7 +214,7 @@ class HarvestMetricsService(
                 val duration = java.time.Duration.ofMillis(durationMs)
                 phaseDurationTimer
                     .tag("phase", event.phase.name)
-                    .tag("datatype", event.dataType.name)
+                    .tag("datatype", normalizeDataType(event.dataType.name))
                     .register(meterRegistry)
                     .record(duration)
             } catch (e: Exception) {
@@ -223,7 +236,7 @@ class HarvestMetricsService(
                 val totalDuration = java.time.Duration.ofMillis(run.totalDurationMs!!)
                 phaseDurationTimer
                     .tag("phase", "TOTAL")
-                    .tag("datatype", run.dataType)
+                    .tag("datatype", normalizeDataType(run.dataType))
                     .register(meterRegistry)
                     .record(totalDuration)
             }
@@ -241,14 +254,14 @@ class HarvestMetricsService(
             // Record resource counts
             if (run.totalResources != null && run.totalResources > 0) {
                 totalResourcesHistogram
-                    .tag("datatype", run.dataType)
+                    .tag("datatype", normalizeDataType(run.dataType))
                     .register(meterRegistry)
                     .record(run.totalResources.toDouble())
             }
 
             if (run.processedResources != null && run.processedResources > 0) {
                 processedResourcesHistogram
-                    .tag("datatype", run.dataType)
+                    .tag("datatype", normalizeDataType(run.dataType))
                     .register(meterRegistry)
                     .record(run.processedResources.toDouble())
             }
@@ -256,7 +269,7 @@ class HarvestMetricsService(
             // Record partially processed resources (resources that have completed at least one phase)
             if (run.partiallyProcessedResources != null) {
                 partiallyProcessedResourcesHistogram
-                    .tag("datatype", run.dataType)
+                    .tag("datatype", normalizeDataType(run.dataType))
                     .register(meterRegistry)
                     .record(run.partiallyProcessedResources.toDouble())
             }
@@ -271,7 +284,7 @@ class HarvestMetricsService(
         count: Int,
     ) {
         resourcesProcessedCounter
-            .tag("datatype", dataType)
+            .tag("datatype", normalizeDataType(dataType))
             .tag("phase", phase)
             .register(meterRegistry)
             .increment(count.toDouble())
@@ -287,7 +300,7 @@ class HarvestMetricsService(
             val duration = java.time.Duration.ofMillis(durationMs)
             phaseDurationTimer
                 .tag("phase", phase)
-                .tag("datatype", dataType)
+                .tag("datatype", normalizeDataType(dataType))
                 .register(meterRegistry)
                 .record(duration)
         }
@@ -302,7 +315,7 @@ class HarvestMetricsService(
         val duration = java.time.Duration.ofMillis(durationMs)
         phaseDurationTimer
             .tag("phase", phase)
-            .tag("datatype", dataType)
+            .tag("datatype", normalizeDataType(dataType))
             .register(meterRegistry)
             .record(duration)
     }
@@ -311,14 +324,14 @@ class HarvestMetricsService(
     fun recordRunResourceCounts(run: HarvestRunEntity) {
         if (run.totalResources != null && run.totalResources > 0) {
             totalResourcesHistogram
-                .tag("datatype", run.dataType)
+                .tag("datatype", normalizeDataType(run.dataType))
                 .register(meterRegistry)
                 .record(run.totalResources.toDouble())
         }
 
         if (run.processedResources != null && run.processedResources > 0) {
             processedResourcesHistogram
-                .tag("datatype", run.dataType)
+                .tag("datatype", normalizeDataType(run.dataType))
                 .register(meterRegistry)
                 .record(run.processedResources.toDouble())
         }
@@ -326,7 +339,7 @@ class HarvestMetricsService(
         // Record partially processed resources (resources that have completed at least one phase) during run
         if (run.partiallyProcessedResources != null) {
             partiallyProcessedResourcesHistogram
-                .tag("datatype", run.dataType)
+                .tag("datatype", normalizeDataType(run.dataType))
                 .register(meterRegistry)
                 .record(run.partiallyProcessedResources.toDouble())
         }
