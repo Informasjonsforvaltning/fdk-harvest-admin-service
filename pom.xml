@@ -88,7 +88,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <version>11.7.2</version>
+            <version>11.19.0</version>
         </dependency>
         
         <!-- JSON Processing -->
