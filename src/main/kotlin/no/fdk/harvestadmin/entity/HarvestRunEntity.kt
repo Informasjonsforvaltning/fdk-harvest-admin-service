@@ -35,6 +35,23 @@ data class HarvestRunEntity(
     val processedResources: Int? = null,
     @Column(name = "remaining_resources")
     val remainingResources: Int? = null,
+    // Phase event counts
+    @Column(name = "initiating_events_count")
+    val initiatingEventsCount: Int? = null,
+    @Column(name = "harvesting_events_count")
+    val harvestingEventsCount: Int? = null,
+    @Column(name = "reasoning_events_count")
+    val reasoningEventsCount: Int? = null,
+    @Column(name = "rdf_parsing_events_count")
+    val rdfParsingEventsCount: Int? = null,
+    @Column(name = "resource_processing_events_count")
+    val resourceProcessingEventsCount: Int? = null,
+    @Column(name = "search_processing_events_count")
+    val searchProcessingEventsCount: Int? = null,
+    @Column(name = "ai_search_processing_events_count")
+    val aiSearchProcessingEventsCount: Int? = null,
+    @Column(name = "sparql_processing_events_count")
+    val sparqlProcessingEventsCount: Int? = null,
     // Phase timings (in milliseconds)
     @Column(name = "init_duration_ms")
     val initDurationMs: Long? = null,

@@ -28,11 +28,12 @@ class KafkaHarvestEventConsumerTest {
     fun `should process harvest event from Kafka`() {
         // Given
         val dataSourceId = UUID.randomUUID().toString()
+        val runId = UUID.randomUUID().toString()
         val event =
             HarvestEvent
                 .newBuilder()
                 .setPhase(HarvestPhase.HARVESTING)
-                .setRunId(null)
+                .setRunId(runId)
                 .setDataSourceId(dataSourceId)
                 .setDataType(no.fdk.harvest.DataType.dataset)
                 .setStartTime(null)

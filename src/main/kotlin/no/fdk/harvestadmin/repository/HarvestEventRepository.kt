@@ -6,9 +6,9 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface HarvestEventRepository : JpaRepository<HarvestEventEntity, Long> {
-    fun findByDataSourceIdOrderByTimestampDesc(dataSourceId: String): List<HarvestEventEntity>
+    fun findByDataSourceIdOrderByCreatedAtDesc(dataSourceId: String): List<HarvestEventEntity>
 
-    fun findByFdkIdOrderByTimestampDesc(fdkId: String): List<HarvestEventEntity>
+    fun findByFdkIdOrderByCreatedAtDesc(fdkId: String): List<HarvestEventEntity>
 
     fun findByRunIdAndEventTypeAndEndTimeIsNotNull(
         runId: String,
@@ -36,4 +36,19 @@ interface HarvestEventRepository : JpaRepository<HarvestEventEntity, Long> {
         runId: String,
         resourceUri: String,
     ): List<HarvestEventEntity>
+
+    fun countByRunIdAndEventType(
+        runId: String,
+        eventType: String,
+    ): Long
+
+    fun findByRunIdAndEventType(
+        runId: String,
+        eventType: String,
+    ): List<HarvestEventEntity>
+
+    fun countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
+        runId: String,
+        eventType: String,
+    ): Long
 }

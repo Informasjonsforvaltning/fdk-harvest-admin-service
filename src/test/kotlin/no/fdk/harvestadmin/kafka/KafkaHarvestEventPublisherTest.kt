@@ -35,11 +35,12 @@ class KafkaHarvestEventPublisherTest {
     fun `should publish harvest event successfully`() {
         // Given
         val dataSourceId = UUID.randomUUID().toString()
+        val runId = UUID.randomUUID().toString()
         val event =
             HarvestEvent
                 .newBuilder()
                 .setPhase(HarvestPhase.HARVESTING)
-                .setRunId(null)
+                .setRunId(runId)
                 .setDataSourceId(dataSourceId)
                 .setDataType(no.fdk.harvest.DataType.dataset)
                 .setStartTime(null)
@@ -72,11 +73,12 @@ class KafkaHarvestEventPublisherTest {
     fun `should throw exception when Kafka send fails`() {
         // Given
         val dataSourceId = UUID.randomUUID().toString()
+        val runId = UUID.randomUUID().toString()
         val event =
             HarvestEvent
                 .newBuilder()
                 .setPhase(HarvestPhase.HARVESTING)
-                .setRunId(null)
+                .setRunId(runId)
                 .setDataSourceId(dataSourceId)
                 .setDataType(no.fdk.harvest.DataType.dataset)
                 .setStartTime(null)

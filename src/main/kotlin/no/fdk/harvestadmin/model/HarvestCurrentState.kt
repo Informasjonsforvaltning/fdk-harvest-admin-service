@@ -29,6 +29,8 @@ data class HarvestCurrentState(
     val processedResources: Int?,
     @Schema(description = "Number of remaining resources")
     val remainingResources: Int?,
+    @Schema(description = "Event counts per phase")
+    val phaseEventCounts: PhaseEventCounts?,
     @Schema(description = "Number of changed resources")
     val changedResourcesCount: Int?,
     @Schema(description = "Number of unchanged resources")
@@ -37,6 +39,10 @@ data class HarvestCurrentState(
     val removedResourcesCount: Int?,
     @Schema(description = "Harvest status", example = "IN_PROGRESS", allowableValues = ["IN_PROGRESS", "COMPLETED", "FAILED"])
     val status: String, // IN_PROGRESS, DONE, ERROR
+    @Schema(description = "When the harvest run was created")
+    val createdAt: Instant?,
+    @Schema(description = "When the harvest run was last updated")
+    val updatedAt: Instant?,
 )
 
 @Schema(description = "Performance metrics for harvest runs")
@@ -77,8 +83,8 @@ data class HarvestPerformanceMetrics(
 @Schema(description = "Detailed information about a harvest run")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class HarvestRunDetails(
-    @Schema(description = "Run ID", example = "1")
-    val id: Long,
+    @Schema(description = "Run ID (UUID)", example = "123e4567-e89b-12d3-a456-426614174000")
+    val runId: String,
     @Schema(description = "Data source identifier", example = "123e4567-e89b-12d3-a456-426614174000")
     val dataSourceId: String,
     @Schema(description = "Data type", example = "dataset")
@@ -97,6 +103,10 @@ data class HarvestRunDetails(
     val status: String,
     @Schema(description = "Error message if harvest failed")
     val errorMessage: String?,
+    @Schema(description = "When the harvest run was created")
+    val createdAt: Instant?,
+    @Schema(description = "When the harvest run was last updated")
+    val updatedAt: Instant?,
 )
 
 @Schema(description = "Duration of each harvest phase in milliseconds")
@@ -131,4 +141,27 @@ data class ResourceCounts(
     val unchangedResourcesCount: Int?,
     @Schema(description = "Number of removed resources", example = "5")
     val removedResourcesCount: Int?,
+    @Schema(description = "Event counts per phase")
+    val phaseEventCounts: PhaseEventCounts?,
+)
+
+@Schema(description = "Event counts per harvest phase")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class PhaseEventCounts(
+    @Schema(description = "Number of INITIATING events", example = "1")
+    val initiatingEventsCount: Int?,
+    @Schema(description = "Number of HARVESTING events", example = "1")
+    val harvestingEventsCount: Int?,
+    @Schema(description = "Number of REASONING events", example = "100")
+    val reasoningEventsCount: Int?,
+    @Schema(description = "Number of RDF_PARSING events", example = "100")
+    val rdfParsingEventsCount: Int?,
+    @Schema(description = "Number of RESOURCE_PROCESSING events", example = "100")
+    val resourceProcessingEventsCount: Int?,
+    @Schema(description = "Number of SEARCH_PROCESSING events", example = "100")
+    val searchProcessingEventsCount: Int?,
+    @Schema(description = "Number of AI_SEARCH_PROCESSING events", example = "100")
+    val aiSearchProcessingEventsCount: Int?,
+    @Schema(description = "Number of SPARQL_PROCESSING events", example = "100")
+    val sparqlProcessingEventsCount: Int?,
 )

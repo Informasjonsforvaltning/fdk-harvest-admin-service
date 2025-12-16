@@ -28,14 +28,16 @@ class HarvestRunController(
     @GetMapping
     @Operation(
         summary = "List harvest runs (internal)",
-        description = "Returns a list of harvest runs. Can be filtered by dataSourceId, dataType, and status.",
+        description =
+            "Returns a paginated list of harvest runs sorted by runStartedAt (descending). " +
+                "Can be filtered by dataSourceId, dataType, and status.",
         security = [SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "List of harvest runs",
+                description = "Paginated list of harvest runs",
                 content = [
                     Content(
                         mediaType = "application/json",
@@ -49,25 +51,47 @@ class HarvestRunController(
         @Parameter(description = "Filter by data source ID") @RequestParam(required = false) dataSourceId: String?,
         @Parameter(description = "Filter by data type") @RequestParam(required = false) dataType: String?,
         @Parameter(description = "Filter by status (IN_PROGRESS, COMPLETED, FAILED)") @RequestParam(required = false) status: String?,
+        @Parameter(description = "Number of records to skip (for pagination)") @RequestParam(required = false, defaultValue = "0") offset:
+            Int,
         @Parameter(description = "Maximum number of runs to return") @RequestParam(required = false, defaultValue = "50") limit: Int,
         authentication: Authentication?,
-    ): ResponseEntity<List<no.fdk.harvestadmin.model.HarvestRunDetails>> =
-        when {
-            status == "IN_PROGRESS" && dataSourceId == null && dataType == null -> {
-                // Get all in-progress runs
-                val runs = harvestRunService.getAllInProgressStates()
-                ResponseEntity.ok(runs)
-            }
-            dataSourceId != null -> {
-                // Get runs for a specific data source
-                val runs = harvestRunService.getHarvestRuns(dataSourceId, dataType, limit)
-                ResponseEntity.ok(runs)
-            }
-            else -> {
-                // For now, return empty list if no dataSourceId (could be extended to support global listing)
-                ResponseEntity.ok(emptyList())
-            }
+    ): ResponseEntity<Map<String, Any>> {
+        // Validate status if provided
+        if (status != null && !listOf("IN_PROGRESS", "COMPLETED", "FAILED").contains(status)) {
+            return ResponseEntity.badRequest().body(
+                mapOf(
+                    "error" to "Invalid status. Must be one of: IN_PROGRESS, COMPLETED, FAILED",
+                ),
+            )
         }
+
+        // Validate pagination parameters
+        if (offset < 0) {
+            return ResponseEntity.badRequest().body(
+                mapOf(
+                    "error" to "offset must be >= 0",
+                ),
+            )
+        }
+        if (limit <= 0 || limit > 1000) {
+            return ResponseEntity.badRequest().body(
+                mapOf(
+                    "error" to "limit must be between 1 and 1000",
+                ),
+            )
+        }
+
+        val (runs, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, dataType, status, offset, limit)
+
+        return ResponseEntity.ok(
+            mapOf(
+                "runs" to runs,
+                "total" to totalCount,
+                "offset" to offset,
+                "limit" to limit,
+            ),
+        )
+    }
 
     @GetMapping("/{runId}")
     @Operation(
@@ -86,7 +110,7 @@ class HarvestRunController(
         ],
     )
     fun getRun(
-        @Parameter(description = "Harvest run ID (UUID)") @PathVariable runId: String,
+        @Parameter(description = "Harvest run ID (runId, UUID)") @PathVariable runId: String,
         authentication: Authentication?,
     ): ResponseEntity<Any> {
         val (run, httpStatus) = harvestRunService.getHarvestRun(runId)

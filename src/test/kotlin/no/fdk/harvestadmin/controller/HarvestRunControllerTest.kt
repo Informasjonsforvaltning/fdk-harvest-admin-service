@@ -23,16 +23,19 @@ class HarvestRunControllerTest : BaseControllerTest() {
     fun `should list all in-progress runs`() {
         // Given
         val runDetails = createHarvestRunDetails()
-        whenever(harvestRunService.getAllInProgressStates()).thenReturn(listOf(runDetails))
+        whenever(
+            harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), eq("IN_PROGRESS"), any(), any()),
+        ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
         mockMvc
             .perform(get("/internal/runs").param("status", "IN_PROGRESS"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].id").value(runDetails.id))
-            .andExpect(jsonPath("$[0].dataSourceId").value(runDetails.dataSourceId))
-            .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
+            .andExpect(jsonPath("$.runs[0].runId").value(runDetails.runId))
+            .andExpect(jsonPath("$.runs[0].dataSourceId").value(runDetails.dataSourceId))
+            .andExpect(jsonPath("$.runs[0].status").value("IN_PROGRESS"))
+            .andExpect(jsonPath("$.total").value(1))
     }
 
     @Test
@@ -40,14 +43,17 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val dataSourceId = UUID.randomUUID().toString()
         val runDetails = createHarvestRunDetails(dataSourceId = dataSourceId)
-        whenever(harvestRunService.getHarvestRuns(eq(dataSourceId), anyOrNull(), any())).thenReturn(listOf(runDetails))
+        whenever(
+            harvestRunService.getHarvestRuns(eq(dataSourceId), anyOrNull(), anyOrNull(), any(), any()),
+        ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
         mockMvc
             .perform(get("/internal/runs").param("dataSourceId", dataSourceId))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].dataSourceId").value(dataSourceId))
+            .andExpect(jsonPath("$.runs[0].dataSourceId").value(dataSourceId))
+            .andExpect(jsonPath("$.total").value(1))
     }
 
     @Test
@@ -56,7 +62,9 @@ class HarvestRunControllerTest : BaseControllerTest() {
         val dataSourceId = UUID.randomUUID().toString()
         val dataType = "dataset"
         val runDetails = createHarvestRunDetails(dataSourceId = dataSourceId, dataType = dataType)
-        whenever(harvestRunService.getHarvestRuns(eq(dataSourceId), anyOrNull(), any())).thenReturn(listOf(runDetails))
+        whenever(
+            harvestRunService.getHarvestRuns(eq(dataSourceId), eq(dataType), anyOrNull(), any(), any()),
+        ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
         mockMvc
@@ -65,17 +73,22 @@ class HarvestRunControllerTest : BaseControllerTest() {
                     .param("dataSourceId", dataSourceId)
                     .param("dataType", dataType),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$[0].dataSourceId").value(dataSourceId))
-            .andExpect(jsonPath("$[0].dataType").value(dataType))
+            .andExpect(jsonPath("$.runs[0].dataSourceId").value(dataSourceId))
+            .andExpect(jsonPath("$.runs[0].dataType").value(dataType))
+            .andExpect(jsonPath("$.total").value(1))
     }
 
     @Test
     fun `should return empty list when no filters provided`() {
+        // Given
+        whenever(harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), anyOrNull(), any(), any())).thenReturn(Pair(emptyList(), 0L))
+
         // When/Then
         mockMvc
             .perform(get("/internal/runs"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$").isEmpty)
+            .andExpect(jsonPath("$.runs").isEmpty)
+            .andExpect(jsonPath("$.total").value(0))
     }
 
     @Test
@@ -90,7 +103,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
             .perform(get("/internal/runs/$runId"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.id").value(runDetails.id))
+            .andExpect(jsonPath("$.runId").value(runDetails.runId))
             .andExpect(jsonPath("$.dataSourceId").value(runDetails.dataSourceId))
     }
 
@@ -265,13 +278,13 @@ class HarvestRunControllerTest : BaseControllerTest() {
     }
 
     private fun createHarvestRunDetails(
-        id: Long = 1L,
+        runId: String = UUID.randomUUID().toString(),
         dataSourceId: String = UUID.randomUUID().toString(),
         dataType: String = "dataset",
     ): HarvestRunDetails {
         val now = Instant.now()
         return HarvestRunDetails(
-            id = id,
+            runId = runId,
             dataSourceId = dataSourceId,
             dataType = dataType,
             runStartedAt = now,
@@ -294,7 +307,10 @@ class HarvestRunControllerTest : BaseControllerTest() {
                     changedResourcesCount = null,
                     unchangedResourcesCount = null,
                     removedResourcesCount = null,
+                    phaseEventCounts = null,
                 ),
+            createdAt = now,
+            updatedAt = now,
             status = "IN_PROGRESS",
             errorMessage = null,
         )

@@ -9,7 +9,7 @@ import jakarta.persistence.Table
 import java.time.Instant
 
 @Entity
-@Table(name = "harvest_progress_events")
+@Table(name = "harvest_events")
 data class HarvestEventEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,8 +30,6 @@ data class HarvestEventEntity(
     val fdkId: String? = null,
     @Column(name = "resource_uri", length = 2048)
     val resourceUri: String? = null,
-    @Column(name = "timestamp", nullable = false)
-    val timestamp: Long,
     @Column(name = "start_time", length = 255)
     val startTime: String? = null,
     @Column(name = "end_time", length = 255)
