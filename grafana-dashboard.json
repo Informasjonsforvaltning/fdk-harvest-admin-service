@@ -331,7 +331,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 8
       },
@@ -390,96 +390,9 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
-          "legendFormat": "{{datatype}} - TOTAL (p50)",
-          "refId": "E"
-        }
-      ],
-      "title": "Phase Durations (p50) by Data Type",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "p95", "p99"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"SEARCH_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - SEARCH_PROCESSING (p95)",
-          "refId": "A"
+          "refId": "E"
         },
         {
           "datasource": {
@@ -488,7 +401,7 @@
           },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"AI_SEARCH_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - AI_SEARCH_PROCESSING (p95)",
-          "refId": "B"
+          "refId": "F"
         },
         {
           "datasource": {
@@ -497,7 +410,7 @@
           },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"RESOURCE_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - RESOURCE_PROCESSING (p95)",
-          "refId": "C"
+          "refId": "G"
         },
         {
           "datasource": {
@@ -506,10 +419,19 @@
           },
           "expr": "histogram_quantile(0.95, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"SPARQL_PROCESSING\"}[5m])) by (le, datatype)) * 1000",
           "legendFormat": "{{datatype}} - SPARQL_PROCESSING (p95)",
-          "refId": "D"
+          "refId": "H"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(harvest_phase_duration_seconds_bucket{phase=\"TOTAL\"}[5m])) by (le, datatype)) * 1000",
+          "legendFormat": "{{datatype}} - TOTAL (p50)",
+          "refId": "I"
         }
       ],
-      "title": "Parallel Processing Phases Duration (p95)",
+      "title": "Phase Durations - Sequential & Parallel (by Data Type)",
       "type": "timeseries"
     },
     {
@@ -953,7 +875,7 @@
           },
           "expr": "sum(harvest_run_resources_partially_processed_sum) by (datatype)",
           "legendFormat": "{{datatype}} - Partially Processed Resources (total sum)",
-          "refId": "I"
+          "refId": "J"
         }
       ],
       "title": "Resources Processed per Run",

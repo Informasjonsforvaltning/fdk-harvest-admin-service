@@ -36,4 +36,14 @@ interface HarvestEventRepository : JpaRepository<HarvestEventEntity, Long> {
         runId: String,
         resourceUri: String,
     ): List<HarvestEventEntity>
+
+    fun countByRunIdAndEventType(
+        runId: String,
+        eventType: String,
+    ): Long
+
+    fun findByRunIdAndEventType(
+        runId: String,
+        eventType: String,
+    ): List<HarvestEventEntity>
 }

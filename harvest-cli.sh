@@ -200,15 +200,21 @@ list_data_sources() {
     fi
     
     info "Found $count data source(s):\n"
-    printf "%-36s %-20s %-15s %-30s %s\n" "ID" "Data Type" "Source Type" "Publisher" "URL"
-    printf "%s\n" "$(printf '%.0s-' {1..120})"
+    printf "%-36s %-35s %-20s %-15s %-30s %s\n" "ID" "Description" "Data Type" "Source Type" "Publisher" "URL"
+    printf "%s\n" "$(printf '%.0s-' {1..160})"
     
-    echo "$data_sources_json" | jq -r '.[] | "\(.id // "N/A")\t\(.dataType)\t\(.dataSourceType)\t\(.publisherId)\t\(.url)"' | \
-    while IFS=$'\t' read -r id dtype stype publisher url; do
+    echo "$data_sources_json" | jq -r '.[] | "\(.id // "N/A")\t\(.description // "N/A")\t\(.dataType)\t\(.dataSourceType)\t\(.publisherId)\t\(.url)"' | \
+    while IFS=$'\t' read -r id description dtype stype publisher url; do
+        if [ ${#description} -gt 33 ]; then
+            description="${description:0:30}..."
+        fi
+        if [ -z "$description" ] || [ "$description" = "null" ]; then
+            description="N/A"
+        fi
         if [ ${#url} -gt 50 ]; then
             url="${url:0:47}..."
         fi
-        printf "%-36s %-20s %-15s %-30s %s\n" "$id" "$dtype" "$stype" "$publisher" "$url"
+        printf "%-36s %-35s %-20s %-15s %-30s %s\n" "$id" "$description" "$dtype" "$stype" "$publisher" "$url"
     done
 }
 
@@ -253,7 +259,16 @@ Status: \(.status // "UNKNOWN")
 Current Phase: \(.currentPhase // "N/A")
 \(if .phaseStartedAt then "Phase Started At: \(.phaseStartedAt)" else "" end)
 \(if .errorMessage then "Error: \(.errorMessage)" else "" end)
-\(if .totalResources then "Total Resources: \(.totalResources)\nProcessed: \(.processedResources // 0)\nRemaining: \(.remainingResources // 0)" + (if .partiallyProcessedResources and .partiallyProcessedResources > 0 then "\nPartially Processed: \(.partiallyProcessedResources)" else "" end) else "" end)
+\(if .totalResources then "Total Resources: \(.totalResources)\nProcessed: \(.processedResources // 0)\nRemaining: \(.remainingResources // 0)" else "" end)
+\(if .phaseEventCounts then "Phase Event Counts:
+  Initiating: \(.phaseEventCounts.initiatingEventsCount // 0)
+  Harvesting: \(.phaseEventCounts.harvestingEventsCount // 0)
+  Reasoning: \(.phaseEventCounts.reasoningEventsCount // 0)
+  RDF Parsing: \(.phaseEventCounts.rdfParsingEventsCount // 0)
+  Resource Processing: \(.phaseEventCounts.resourceProcessingEventsCount // 0)
+  Search Processing: \(.phaseEventCounts.searchProcessingEventsCount // 0)
+  AI Search Processing: \(.phaseEventCounts.aiSearchProcessingEventsCount // 0)
+  SPARQL Processing: \(.phaseEventCounts.sparqlProcessingEventsCount // 0)" else "" end)
 Last Updated: \(.updatedAt)
 ---"'
 }
@@ -306,7 +321,15 @@ Resource Counts:
   Changed: \(.resourceCounts.changedResourcesCount // "N/A")
   Unchanged: \(.resourceCounts.unchangedResourcesCount // "N/A")
   Removed: \(.resourceCounts.removedResourcesCount // "N/A")
-  Partially Processed: \(.resourceCounts.partiallyProcessedResources // "N/A")
+\(if .resourceCounts.phaseEventCounts then "Phase Event Counts:
+  Initiating: \(.resourceCounts.phaseEventCounts.initiatingEventsCount // "N/A")
+  Harvesting: \(.resourceCounts.phaseEventCounts.harvestingEventsCount // "N/A")
+  Reasoning: \(.resourceCounts.phaseEventCounts.reasoningEventsCount // "N/A")
+  RDF Parsing: \(.resourceCounts.phaseEventCounts.rdfParsingEventsCount // "N/A")
+  Resource Processing: \(.resourceCounts.phaseEventCounts.resourceProcessingEventsCount // "N/A")
+  Search Processing: \(.resourceCounts.phaseEventCounts.searchProcessingEventsCount // "N/A")
+  AI Search Processing: \(.resourceCounts.phaseEventCounts.aiSearchProcessingEventsCount // "N/A")
+  SPARQL Processing: \(.resourceCounts.phaseEventCounts.sparqlProcessingEventsCount // "N/A")" else "" end)
 \(if .errorMessage then "Error: \(.errorMessage)" else "" end)
 Created: \(.createdAt)
 Updated: \(.updatedAt)"'

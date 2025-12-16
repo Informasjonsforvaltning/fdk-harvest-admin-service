@@ -473,6 +473,21 @@ class HarvestRunServiceDurationTest {
             harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(eq(runId), eq("RESOURCE_PROCESSING")),
         ).thenReturn(listOf(mockEvent))
         // SPARQL_PROCESSING is the current phase, so it will be checked from the event itself
+        // Mock findByRunIdAndEventType for SPARQL_PROCESSING since getLatestEventForResource will call it
+        // when the event has no fdkId or resourceUri
+        val sparqlEvent =
+            HarvestEventEntity(
+                id = 2L,
+                eventType = "SPARQL_PROCESSING",
+                dataSourceId = existingRun.dataSourceId,
+                runId = runId,
+                dataType = existingRun.dataType,
+                startTime = harvestingEnd.toString(),
+                endTime = harvestingEnd.plusSeconds(30).toString(),
+            )
+        whenever(
+            harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SPARQL_PROCESSING")),
+        ).thenReturn(listOf(sparqlEvent))
 
         val event =
             HarvestEvent
@@ -556,6 +571,21 @@ class HarvestRunServiceDurationTest {
             harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(eq(runId), eq("RESOURCE_PROCESSING")),
         ).thenReturn(listOf(mockEvent))
         // SPARQL_PROCESSING is the current phase, so it will be checked from the event itself
+        // Mock findByRunIdAndEventType for SPARQL_PROCESSING since getLatestEventForResource will call it
+        // when the event has no fdkId or resourceUri
+        val sparqlEvent =
+            HarvestEventEntity(
+                id = 2L,
+                eventType = "SPARQL_PROCESSING",
+                dataSourceId = existingRun.dataSourceId,
+                runId = runId,
+                dataType = existingRun.dataType,
+                startTime = baseTime.plusSeconds(1000).toString(),
+                endTime = baseTime.plusSeconds(1030).toString(),
+            )
+        whenever(
+            harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SPARQL_PROCESSING")),
+        ).thenReturn(listOf(sparqlEvent))
 
         val event =
             HarvestEvent
@@ -721,6 +751,21 @@ class HarvestRunServiceDurationTest {
             harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(eq(runId), eq("RESOURCE_PROCESSING")),
         ).thenReturn(listOf(mockEvent))
         // SPARQL_PROCESSING is the current phase, so it will be checked from the event itself
+        // Mock findByRunIdAndEventType for SPARQL_PROCESSING since getLatestEventForResource will call it
+        // when the event has no fdkId or resourceUri
+        val sparqlEvent =
+            HarvestEventEntity(
+                id = 2L,
+                eventType = "SPARQL_PROCESSING",
+                dataSourceId = existingRun.dataSourceId,
+                runId = runId,
+                dataType = existingRun.dataType,
+                startTime = baseTime.plusSeconds(1000).toString(),
+                endTime = baseTime.plusSeconds(1030).toString(),
+            )
+        whenever(
+            harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SPARQL_PROCESSING")),
+        ).thenReturn(listOf(sparqlEvent))
 
         val event =
             HarvestEvent

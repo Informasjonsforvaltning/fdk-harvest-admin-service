@@ -29,8 +29,8 @@ data class HarvestCurrentState(
     val processedResources: Int?,
     @Schema(description = "Number of remaining resources")
     val remainingResources: Int?,
-    @Schema(description = "Number of partially processed resources (resources that have completed at least one phase but not all phases)")
-    val partiallyProcessedResources: Int?,
+    @Schema(description = "Event counts per phase")
+    val phaseEventCounts: PhaseEventCounts?,
     @Schema(description = "Number of changed resources")
     val changedResourcesCount: Int?,
     @Schema(description = "Number of unchanged resources")
@@ -141,9 +141,27 @@ data class ResourceCounts(
     val unchangedResourcesCount: Int?,
     @Schema(description = "Number of removed resources", example = "5")
     val removedResourcesCount: Int?,
-    @Schema(
-        description = "Number of partially processed resources (resources that have completed at least one phase but not all phases)",
-        example = "15",
-    )
-    val partiallyProcessedResources: Int?,
+    @Schema(description = "Event counts per phase")
+    val phaseEventCounts: PhaseEventCounts?,
+)
+
+@Schema(description = "Event counts per harvest phase")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class PhaseEventCounts(
+    @Schema(description = "Number of INITIATING events", example = "1")
+    val initiatingEventsCount: Int?,
+    @Schema(description = "Number of HARVESTING events", example = "1")
+    val harvestingEventsCount: Int?,
+    @Schema(description = "Number of REASONING events", example = "100")
+    val reasoningEventsCount: Int?,
+    @Schema(description = "Number of RDF_PARSING events", example = "100")
+    val rdfParsingEventsCount: Int?,
+    @Schema(description = "Number of RESOURCE_PROCESSING events", example = "100")
+    val resourceProcessingEventsCount: Int?,
+    @Schema(description = "Number of SEARCH_PROCESSING events", example = "100")
+    val searchProcessingEventsCount: Int?,
+    @Schema(description = "Number of AI_SEARCH_PROCESSING events", example = "100")
+    val aiSearchProcessingEventsCount: Int?,
+    @Schema(description = "Number of SPARQL_PROCESSING events", example = "100")
+    val sparqlProcessingEventsCount: Int?,
 )

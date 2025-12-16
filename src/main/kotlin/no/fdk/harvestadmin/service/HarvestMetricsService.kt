@@ -92,13 +92,6 @@ class HarvestMetricsService(
             .description("Number of processed resources per run")
             .baseUnit("resources")
 
-    private val partiallyProcessedResourcesHistogram: io.micrometer.core.instrument.DistributionSummary.Builder =
-        io.micrometer.core.instrument.DistributionSummary
-            .builder("harvest.run.resources.partially_processed")
-            .description(
-                "Number of partially processed resources per run (resources that have completed at least one phase but not all phases)",
-            ).baseUnit("resources")
-
     // Gauges for current runs and progress - registered at startup
     @PostConstruct
     fun registerCurrentRunsGauge() {
@@ -174,12 +167,6 @@ class HarvestMetricsService(
 
             // Initialize processedResourcesHistogram with 0 to ensure metric exists
             processedResourcesHistogram
-                .tag("datatype", dataType)
-                .register(meterRegistry)
-                .record(0.0)
-
-            // Initialize partiallyProcessedResourcesHistogram with 0 to ensure metric exists
-            partiallyProcessedResourcesHistogram
                 .tag("datatype", dataType)
                 .register(meterRegistry)
                 .record(0.0)
@@ -266,14 +253,6 @@ class HarvestMetricsService(
                     .register(meterRegistry)
                     .record(run.processedResources.toDouble())
             }
-
-            // Record partially processed resources (resources that have completed at least one phase)
-            if (run.partiallyProcessedResources != null) {
-                partiallyProcessedResourcesHistogram
-                    .tag("datatype", normalizeDataType(run.dataType))
-                    .register(meterRegistry)
-                    .record(run.partiallyProcessedResources.toDouble())
-            }
         } else if (run.status == "FAILED") {
             runsFailedCounter.increment()
         }
@@ -335,14 +314,6 @@ class HarvestMetricsService(
                 .tag("datatype", normalizeDataType(run.dataType))
                 .register(meterRegistry)
                 .record(run.processedResources.toDouble())
-        }
-
-        // Record partially processed resources (resources that have completed at least one phase) during run
-        if (run.partiallyProcessedResources != null) {
-            partiallyProcessedResourcesHistogram
-                .tag("datatype", normalizeDataType(run.dataType))
-                .register(meterRegistry)
-                .record(run.partiallyProcessedResources.toDouble())
         }
     }
 }
