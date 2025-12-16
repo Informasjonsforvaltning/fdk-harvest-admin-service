@@ -24,22 +24,13 @@ class HarvestEventProcessor(
                 return
             }
 
-            // Check run status before processing to avoid recording metrics for completed runs
-            val runId = event.runId?.toString()
-            val currentRun = runId?.let { harvestRunRepository.findByRunId(it) }
-            val isRunInProgress = currentRun?.status == "IN_PROGRESS"
-
             harvestRunService.persistEvent(event)
 
-            // Only record event metrics if the run is still IN_PROGRESS
-            // This prevents recording metrics for late-arriving events after a run has completed
-            if (isRunInProgress) {
-                harvestMetricsService.recordEventProcessed(event)
-            }
+            harvestMetricsService.recordEventProcessed(event)
 
-            logger.debug("Successfully processed harvest event: phase=${event.phase}, dataSourceId=${event.dataSourceId}")
+            logger.debug("Successfully processed harvest event: phase=${event.phase}, runId=${event.runId}")
         } catch (e: Exception) {
-            logger.error("Error processing harvest event: phase=${event.phase}, dataSourceId=${event.dataSourceId}", e)
+            logger.error("Error processing harvest event: phase=${event.phase}, runId=${event.runId}", e)
             throw e
         }
     }

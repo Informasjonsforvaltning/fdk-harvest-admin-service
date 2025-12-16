@@ -32,3 +32,5 @@ CREATE INDEX idx_harvest_events_data_source_type_event_type ON harvest_events(da
 CREATE INDEX idx_harvest_events_data_source_type_created_at ON harvest_events(data_source_id, data_type, created_at DESC);
 CREATE INDEX idx_harvest_events_data_source_event_type_created_at ON harvest_events(data_source_id, event_type, created_at DESC);
 
+
+

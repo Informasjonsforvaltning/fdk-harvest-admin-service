@@ -56,6 +56,7 @@ class KafkaConfig(
         val factory = ConcurrentKafkaListenerContainerFactory<String, HarvestEvent>()
         factory.consumerFactory = consumerFactory()
         factory.containerProperties.ackMode = ContainerProperties.AckMode.RECORD
+        factory.setConcurrency(4)
         return factory
     }
 }

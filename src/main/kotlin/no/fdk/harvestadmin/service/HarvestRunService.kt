@@ -48,7 +48,8 @@ class HarvestRunService(
             }
             val dataType = event.dataType.name
 
-            // Check if this resource has already been processed for this phase (before saving)
+            // Check if this resource has already been processed for this phase (for logging only)
+            // We no longer persist isDuplicate - we use the latest event approach instead
             val isDuplicate =
                 runId.let { runIdValue ->
                     when {
@@ -70,6 +71,12 @@ class HarvestRunService(
                     }
                 } ?: false
 
+            if (isDuplicate) {
+                logger.debug(
+                    "Duplicate event detected for phase=${event.phase}, runId=$runId, fdkId=${event.fdkId}, resourceUri=${event.resourceUri}. Using latest event approach.",
+                )
+            }
+
             val entity =
                 HarvestEventEntity(
                     eventType = event.phase.name,
@@ -90,25 +97,21 @@ class HarvestRunService(
             harvestEventRepository.save(entity)
 
             // Update or create harvest run (consolidated state tracking)
-            // Pass isDuplicate flag to avoid double-counting
             // Only update run if it exists
             if (currentRun != null) {
-                updateHarvestRun(event, isDuplicate)
+                updateHarvestRun(event)
             } else {
                 logger.debug("Skipping run update: harvest run not found for runId: $runId")
             }
 
-            logger.debug("Persisted harvest event: phase=${event.phase}, dataSourceId=${event.dataSourceId}, fdkId=${event.fdkId}")
+            logger.debug("Persisted harvest event: phase=${event.phase}, rundId=${event.runId}, fdkId=${event.fdkId}")
         } catch (e: Exception) {
-            logger.error("Error persisting harvest event: phase=${event.phase}, dataSourceId=${event.dataSourceId}", e)
+            logger.error("Error persisting harvest event: phase=${event.phase}, runId=${event.runId}", e)
             throw e
         }
     }
 
-    private fun updateHarvestRun(
-        event: HarvestEvent,
-        isDuplicate: Boolean = false,
-    ) {
+    private fun updateHarvestRun(event: HarvestEvent) {
         val runId = event.runId?.toString()
         if (runId == null) {
             logger.warn("Cannot update harvest run: runId is required. phase=${event.phase}")
@@ -123,7 +126,7 @@ class HarvestRunService(
 
         if (currentRun != null) {
             val oldStatus = currentRun.status
-            val updatedRun = updateRunWithEvent(currentRun, event, isDuplicate)
+            val updatedRun = updateRunWithEvent(currentRun, event)
             val savedRun = harvestRunRepository.save(updatedRun)
 
             // Only record ongoing metrics if the run was still IN_PROGRESS when the event arrived
@@ -162,10 +165,9 @@ class HarvestRunService(
                 }
 
                 // Record resource counts during run (not just at completion)
-                // Record whenever we have resource data (total, processed, or partially processed)
+                // Record whenever we have resource data (total or processed)
                 if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
-                    (savedRun.processedResources != null && savedRun.processedResources > 0) ||
-                    (savedRun.partiallyProcessedResources != null)
+                    (savedRun.processedResources != null && savedRun.processedResources > 0)
                 ) {
                     harvestMetricsService.recordRunResourceCounts(savedRun)
                 }
@@ -181,7 +183,6 @@ class HarvestRunService(
     private fun updateRunWithEvent(
         run: HarvestRunEntity,
         event: HarvestEvent,
-        isDuplicate: Boolean = false,
     ): HarvestRunEntity {
         val startTime = event.startTime?.let { parseDateTime(it) }
         val endTime = event.endTime?.let { parseDateTime(it) }
@@ -191,9 +192,9 @@ class HarvestRunService(
 
         // Calculate resource counts
         val totalResources = calculateTotalResources(event, run)
-        val processedResources = calculateProcessedResources(event, run, totalResources, isDuplicate)
+        val processedResources = calculateProcessedResources(event, run, totalResources)
         val remainingResources = totalResources?.let { total -> processedResources?.let { processed -> total - processed } }
-        val partiallyProcessedResources = calculatePartiallyProcessedResources(event, run, totalResources, processedResources, isDuplicate)
+        val phaseEventCounts = calculatePhaseEventCounts(run.runId)
 
         var updatedRun =
             run.copy(
@@ -204,7 +205,14 @@ class HarvestRunService(
                 totalResources = totalResources,
                 processedResources = processedResources,
                 remainingResources = remainingResources,
-                partiallyProcessedResources = partiallyProcessedResources,
+                initiatingEventsCount = phaseEventCounts["INITIATING"]?.toInt(),
+                harvestingEventsCount = phaseEventCounts["HARVESTING"]?.toInt(),
+                reasoningEventsCount = phaseEventCounts["REASONING"]?.toInt(),
+                rdfParsingEventsCount = phaseEventCounts["RDF_PARSING"]?.toInt(),
+                resourceProcessingEventsCount = phaseEventCounts["RESOURCE_PROCESSING"]?.toInt(),
+                searchProcessingEventsCount = phaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
+                aiSearchProcessingEventsCount = phaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
+                sparqlProcessingEventsCount = phaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
                 updatedAt = Instant.now(),
             )
 
@@ -290,19 +298,19 @@ class HarvestRunService(
                 newTotalResources?.let { total ->
                     updatedRun.processedResources?.let { processed -> total - processed }
                 }
-            val newPartiallyProcessedResources =
-                calculatePartiallyProcessedResources(
-                    event,
-                    updatedRun,
-                    newTotalResources,
-                    updatedRun.processedResources,
-                    isDuplicate,
-                )
+            val updatedPhaseEventCounts = calculatePhaseEventCounts(updatedRun.runId)
             updatedRun =
                 updatedRun.copy(
                     totalResources = newTotalResources,
                     remainingResources = newRemainingResources,
-                    partiallyProcessedResources = newPartiallyProcessedResources,
+                    initiatingEventsCount = updatedPhaseEventCounts["INITIATING"]?.toInt(),
+                    harvestingEventsCount = updatedPhaseEventCounts["HARVESTING"]?.toInt(),
+                    reasoningEventsCount = updatedPhaseEventCounts["REASONING"]?.toInt(),
+                    rdfParsingEventsCount = updatedPhaseEventCounts["RDF_PARSING"]?.toInt(),
+                    resourceProcessingEventsCount = updatedPhaseEventCounts["RESOURCE_PROCESSING"]?.toInt(),
+                    searchProcessingEventsCount = updatedPhaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
+                    aiSearchProcessingEventsCount = updatedPhaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
+                    sparqlProcessingEventsCount = updatedPhaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
                     changedResourcesCount = event.changedResourcesCount?.toInt(),
                     unchangedResourcesCount = event.unchangedResourcesCount?.toInt(),
                     removedResourcesCount = event.removedResourcesCount?.toInt(),
@@ -311,13 +319,13 @@ class HarvestRunService(
 
         // Update status
         val status = determineStatus(event, run, updatedRun)
-        updatedRun = updatedRun.copy(status = status)
+        var finalUpdatedRun = updatedRun.copy(status = status)
 
         // Check if harvest is complete (when all phases have endTime)
         val isComplete = checkIfAllPhasesComplete(run.runId, event)
         if (isComplete && run.runEndedAt == null) {
             // Calculate total duration as the sum of all phase durations
-            val totalDuration = calculateTotalDurationFromPhases(updatedRun)
+            val totalDuration = calculateTotalDurationFromPhases(finalUpdatedRun)
 
             // Calculate runEndedAt based on totalDuration to ensure consistency
             // This ensures runEndedAt - runStartedAt = totalDurationMs
@@ -329,14 +337,20 @@ class HarvestRunService(
                     getLatestEndTime(run.runId) ?: endTime
                 }
 
-            updatedRun =
-                updatedRun.copy(
+            finalUpdatedRun =
+                finalUpdatedRun.copy(
                     runEndedAt = calculatedEndTime,
                     totalDurationMs = totalDuration,
                 )
         }
 
-        return updatedRun
+        // Clear errorMessage when run successfully completes (status is COMPLETED and current event has no error)
+        // This handles the case where a retry fixed the issue but the old errorMessage persisted
+        if (finalUpdatedRun.status == "COMPLETED" && event.errorMessage == null) {
+            finalUpdatedRun = finalUpdatedRun.copy(errorMessage = null)
+        }
+
+        return finalUpdatedRun
     }
 
     private fun determineStatus(
@@ -344,11 +358,14 @@ class HarvestRunService(
         existingRun: HarvestRunEntity?,
         updatedRun: HarvestRunEntity,
     ): String {
+        // If current event has an error, mark as FAILED
         if (event.errorMessage != null) {
             return "FAILED"
         }
         // Check if all phases are complete
         if (checkIfAllPhasesComplete(updatedRun.runId, event)) {
+            // Mark as COMPLETED - errorMessage will be cleared later if the run completes successfully
+            // This handles the case where a retry fixed the issue but the old errorMessage persisted
             return "COMPLETED"
         }
         return existingRun?.status ?: "IN_PROGRESS"
@@ -371,15 +388,93 @@ class HarvestRunService(
                 "SPARQL_PROCESSING",
             )
 
-        // Check each required phase has an event with endTime
+        // Check each required phase has an event with endTime and no errorMessage
+        // When there are duplicates, always use the latest event to determine the correct state
         return requiredPhases.all { phase ->
             if (phase == currentEvent.phase.name) {
-                // For current phase, check if current event has endTime
-                currentEvent.endTime != null
+                // For current phase, get all events for this resource and check if current event is the latest
+                // and has endTime with no errorMessage
+                val latestEvent = getLatestEventForResource(runId, currentEvent, phase)
+                latestEvent?.endTime != null && latestEvent.errorMessage == null
             } else {
-                // For other phases, check database for events with endTime
-                harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase).isNotEmpty()
+                // For other phases, get all events with endTime and find the latest for each resource
+                // Then verify all latest events have no errorMessage
+                val phaseEvents = harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
+                val latestEvents = getLatestEventsForPhase(phaseEvents)
+                latestEvents.isNotEmpty() && latestEvents.none { it.errorMessage != null }
             }
+        }
+    }
+
+    /**
+     * Get the latest event for the current event's resource in the given phase.
+     * The current event should already be saved, so we query for all events including it.
+     * When there are duplicates, we want to use the latest event to determine state.
+     */
+    private fun getLatestEventForResource(
+        runId: String,
+        currentEvent: HarvestEvent,
+        phase: String,
+    ): HarvestEventEntity? {
+        // Get all events for this phase and resource identifier
+        // The current event should already be saved, so it will be included in the query
+        val allEvents =
+            when {
+                currentEvent.fdkId != null -> {
+                    harvestEventRepository
+                        .findByRunIdAndFdkId(runId, currentEvent.fdkId.toString())
+                        .filter { it.eventType == phase }
+                }
+                currentEvent.resourceUri != null -> {
+                    harvestEventRepository
+                        .findByRunIdAndResourceUri(runId, currentEvent.resourceUri.toString())
+                        .filter { it.eventType == phase }
+                }
+                else -> {
+                    // For phases without resource identifiers (like HARVESTING), get all events for this phase
+                    harvestEventRepository.findByRunIdAndEventType(runId, phase)
+                }
+            }
+
+        // Find the latest event by createdAt (most recent event wins)
+        return allEvents.maxByOrNull { it.createdAt }
+    }
+
+    /**
+     * Get the latest event for each unique resource in a phase.
+     * Groups events by resource identifier (fdkId or resourceUri) and returns the latest event for each.
+     * For events without resource identifiers (like HARVESTING phase), returns the single latest event.
+     */
+    private fun getLatestEventsForPhase(phaseEvents: List<HarvestEventEntity>): List<HarvestEventEntity> {
+        if (phaseEvents.isEmpty()) {
+            return emptyList()
+        }
+
+        // Check if all events have resource identifiers
+        val allHaveResourceIds = phaseEvents.all { it.fdkId != null || it.resourceUri != null }
+
+        if (!allHaveResourceIds) {
+            // For phases without resource identifiers (like HARVESTING), just return the latest event overall
+            val latestEvent = phaseEvents.maxByOrNull { it.createdAt }
+            return if (latestEvent != null) listOf(latestEvent) else emptyList()
+        }
+
+        // Group events by resource identifier
+        val eventsByResource = mutableMapOf<String, MutableList<HarvestEventEntity>>()
+
+        phaseEvents.forEach { event ->
+            val resourceKey =
+                when {
+                    event.fdkId != null -> "fdkId:${event.fdkId}"
+                    event.resourceUri != null -> "resourceUri:${event.resourceUri}"
+                    else -> "noResource:${event.id}" // Should not happen if allHaveResourceIds is true
+                }
+            eventsByResource.getOrPut(resourceKey) { mutableListOf() }.add(event)
+        }
+
+        // For each resource, get the latest event by createdAt
+        return eventsByResource.values.mapNotNull { events ->
+            events.maxByOrNull { it.createdAt }
         }
     }
 
@@ -421,7 +516,6 @@ class HarvestRunService(
         event: HarvestEvent,
         existingRun: HarvestRunEntity?,
         totalResources: Int?,
-        isDuplicate: Boolean = false,
     ): Int? {
         // If total resources is not set yet, we can't calculate processed
         if (totalResources == null) {
@@ -442,12 +536,14 @@ class HarvestRunService(
             )
 
         // Only check for resource completion if this is one of the resource processing phases
-        if (event.phase.name in resourceProcessingPhases && !isDuplicate) {
+        // Use latest event approach - only process if this is the latest event for this resource/phase
+        if (event.phase.name in resourceProcessingPhases) {
             val runId = event.runId?.toString() ?: existingRun?.runId
             if (runId != null) {
                 // Check if this resource has now completed all phases
                 val resourceIdentifier = event.fdkId?.toString() ?: event.resourceUri?.toString()
                 if (resourceIdentifier != null) {
+                    // Get all events for this resource and find the latest for each phase
                     val resourceEvents =
                         when {
                             event.fdkId != null -> {
@@ -459,8 +555,16 @@ class HarvestRunService(
                             else -> emptyList()
                         }
 
-                    // Get unique phases that this resource has events for
-                    val completedPhases = resourceEvents.map { it.eventType }.toSet()
+                    // Group by phase and get the latest event for each phase (by createdAt)
+                    val latestEventsByPhase =
+                        resourceEvents
+                            .groupBy { it.eventType }
+                            .mapValues { (_, events) -> events.maxByOrNull { it.createdAt } }
+                            .values
+                            .filterNotNull()
+
+                    // Get unique phases that this resource has latest events for
+                    val completedPhases = latestEventsByPhase.map { it.eventType }.toSet()
 
                     // Check if all resource processing phases are now complete for this resource
                     val allPhasesComplete = resourceProcessingPhases.all { phase -> completedPhases.contains(phase) }
@@ -480,21 +584,11 @@ class HarvestRunService(
         return currentProcessed
     }
 
-    private fun calculatePartiallyProcessedResources(
-        event: HarvestEvent,
-        existingRun: HarvestRunEntity?,
-        totalResources: Int?,
-        processedResources: Int?,
-        isDuplicate: Boolean = false,
-    ): Int? {
-        // If total resources is not set yet, we can't calculate partially processed
-        if (totalResources == null) {
-            return existingRun?.partiallyProcessedResources
-        }
-
-        // Resource processing phases
-        val resourceProcessingPhases =
+    private fun calculatePhaseEventCounts(runId: String): Map<String, Long> {
+        val phases =
             listOf(
+                "INITIATING",
+                "HARVESTING",
                 "REASONING",
                 "RDF_PARSING",
                 "RESOURCE_PROCESSING",
@@ -503,28 +597,9 @@ class HarvestRunService(
                 "SPARQL_PROCESSING",
             )
 
-        // Only calculate if this is one of the resource processing phases
-        if (event.phase.name in resourceProcessingPhases && !isDuplicate) {
-            val runId = event.runId?.toString() ?: existingRun?.runId
-            if (runId != null) {
-                // Count resources that have completed at least one phase
-                val resourcesWithAtLeastOnePhase = countResourcesWithAtLeastOnePhase(runId, resourceProcessingPhases)
-
-                // Partially processed = resources with at least 1 phase - fully processed resources
-                val processed = processedResources ?: 0
-                return maxOf(0, resourcesWithAtLeastOnePhase - processed)
-            }
+        return phases.associateWith { phase ->
+            harvestEventRepository.countByRunIdAndEventType(runId, phase)
         }
-
-        // For other phases, recalculate if we have the data
-        val runId = existingRun?.runId
-        if (runId != null && totalResources != null) {
-            val resourcesWithAtLeastOnePhase = countResourcesWithAtLeastOnePhase(runId, resourceProcessingPhases)
-            val processed = processedResources ?: 0
-            return maxOf(0, resourcesWithAtLeastOnePhase - processed)
-        }
-
-        return existingRun?.partiallyProcessedResources
     }
 
     private fun countResourcesWithAllPhases(
@@ -537,56 +612,32 @@ class HarvestRunService(
                 harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
             }
 
-        // Group by resource identifier (fdkId takes precedence over resourceUri)
-        val resourcesByFdkId =
+        // Group by resource identifier and get the latest event for each resource/phase combination
+        // This ensures we use the latest event when there are duplicates
+        val latestEventsByResourceAndPhase =
             allResourceEvents
-                .filter { it.fdkId != null }
-                .groupBy { it.fdkId!! }
-                .filter { (_, events) ->
-                    // Check if this resource has events for all required phases
-                    events.map { it.eventType }.toSet().containsAll(requiredPhases)
-                }.keys
+                .groupBy { event ->
+                    when {
+                        event.fdkId != null -> "fdkId:${event.fdkId}"
+                        event.resourceUri != null -> "resourceUri:${event.resourceUri}"
+                        else -> "noResource:${event.id}"
+                    }
+                }.mapValues { (_, events) ->
+                    events
+                        .groupBy { it.eventType }
+                        .mapValues { (_, phaseEvents) -> phaseEvents.maxByOrNull { it.createdAt } }
+                        .values
+                        .filterNotNull()
+                }
 
-        // Resources identified by URI (excluding those already counted by fdkId)
-        val fdkIds = resourcesByFdkId.toSet()
-        val resourcesByUri =
-            allResourceEvents
-                .filter { it.resourceUri != null && (it.fdkId == null || !fdkIds.contains(it.fdkId)) }
-                .groupBy { it.resourceUri!! }
-                .filter { (_, events) ->
-                    // Check if this resource has events for all required phases
-                    events.map { it.eventType }.toSet().containsAll(requiredPhases)
-                }.keys
-
-        return resourcesByFdkId.size + resourcesByUri.size
-    }
-
-    private fun countResourcesWithAtLeastOnePhase(
-        runId: String,
-        resourceProcessingPhases: List<String>,
-    ): Int {
-        // Get all events for this run that are in the resource processing phases
-        val allResourceEvents =
-            resourceProcessingPhases.flatMap { phase ->
-                harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
+        // Count resources that have latest events for all required phases
+        val resourcesWithAllPhases =
+            latestEventsByResourceAndPhase.values.count { latestEvents ->
+                val phases = latestEvents.map { it.eventType }.toSet()
+                phases.containsAll(requiredPhases)
             }
 
-        // Group by resource identifier (fdkId takes precedence over resourceUri)
-        val resourcesByFdkId =
-            allResourceEvents
-                .filter { it.fdkId != null }
-                .groupBy { it.fdkId!! }
-                .keys
-
-        // Resources identified by URI (excluding those already counted by fdkId)
-        val fdkIds = resourcesByFdkId.toSet()
-        val resourcesByUri =
-            allResourceEvents
-                .filter { it.resourceUri != null && (it.fdkId == null || !fdkIds.contains(it.fdkId)) }
-                .groupBy { it.resourceUri!! }
-                .keys
-
-        return resourcesByFdkId.size + resourcesByUri.size
+        return resourcesWithAllPhases
     }
 
     @Scheduled(fixedDelayString = "\${app.harvest.stale-check-interval-ms:300000}", initialDelay = 60000)
@@ -675,7 +726,17 @@ class HarvestRunService(
                         totalResources = run.totalResources,
                         processedResources = run.processedResources,
                         remainingResources = run.remainingResources,
-                        partiallyProcessedResources = run.partiallyProcessedResources,
+                        phaseEventCounts =
+                            no.fdk.harvestadmin.model.PhaseEventCounts(
+                                initiatingEventsCount = run.initiatingEventsCount,
+                                harvestingEventsCount = run.harvestingEventsCount,
+                                reasoningEventsCount = run.reasoningEventsCount,
+                                rdfParsingEventsCount = run.rdfParsingEventsCount,
+                                resourceProcessingEventsCount = run.resourceProcessingEventsCount,
+                                searchProcessingEventsCount = run.searchProcessingEventsCount,
+                                aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
+                                sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
+                            ),
                         changedResourcesCount = run.changedResourcesCount,
                         unchangedResourcesCount = run.unchangedResourcesCount,
                         removedResourcesCount = run.removedResourcesCount,
@@ -718,7 +779,17 @@ class HarvestRunService(
                             changedResourcesCount = run.changedResourcesCount,
                             unchangedResourcesCount = run.unchangedResourcesCount,
                             removedResourcesCount = run.removedResourcesCount,
-                            partiallyProcessedResources = run.partiallyProcessedResources,
+                            phaseEventCounts =
+                                no.fdk.harvestadmin.model.PhaseEventCounts(
+                                    initiatingEventsCount = run.initiatingEventsCount,
+                                    harvestingEventsCount = run.harvestingEventsCount,
+                                    reasoningEventsCount = run.reasoningEventsCount,
+                                    rdfParsingEventsCount = run.rdfParsingEventsCount,
+                                    resourceProcessingEventsCount = run.resourceProcessingEventsCount,
+                                    searchProcessingEventsCount = run.searchProcessingEventsCount,
+                                    aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
+                                    sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
+                                ),
                         ),
                     status = run.status,
                     errorMessage = run.errorMessage,
@@ -900,7 +971,17 @@ class HarvestRunService(
                                 changedResourcesCount = run.changedResourcesCount,
                                 unchangedResourcesCount = run.unchangedResourcesCount,
                                 removedResourcesCount = run.removedResourcesCount,
-                                partiallyProcessedResources = run.partiallyProcessedResources,
+                                phaseEventCounts =
+                                    no.fdk.harvestadmin.model.PhaseEventCounts(
+                                        initiatingEventsCount = run.initiatingEventsCount,
+                                        harvestingEventsCount = run.harvestingEventsCount,
+                                        reasoningEventsCount = run.reasoningEventsCount,
+                                        rdfParsingEventsCount = run.rdfParsingEventsCount,
+                                        resourceProcessingEventsCount = run.resourceProcessingEventsCount,
+                                        searchProcessingEventsCount = run.searchProcessingEventsCount,
+                                        aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
+                                        sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
+                                    ),
                             ),
                         status = run.status,
                         errorMessage = run.errorMessage,
@@ -955,7 +1036,17 @@ class HarvestRunService(
                                 changedResourcesCount = run.changedResourcesCount,
                                 unchangedResourcesCount = run.unchangedResourcesCount,
                                 removedResourcesCount = run.removedResourcesCount,
-                                partiallyProcessedResources = run.partiallyProcessedResources,
+                                phaseEventCounts =
+                                    no.fdk.harvestadmin.model.PhaseEventCounts(
+                                        initiatingEventsCount = run.initiatingEventsCount,
+                                        harvestingEventsCount = run.harvestingEventsCount,
+                                        reasoningEventsCount = run.reasoningEventsCount,
+                                        rdfParsingEventsCount = run.rdfParsingEventsCount,
+                                        resourceProcessingEventsCount = run.resourceProcessingEventsCount,
+                                        searchProcessingEventsCount = run.searchProcessingEventsCount,
+                                        aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
+                                        sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
+                                    ),
                             ),
                         status = run.status,
                         errorMessage = run.errorMessage,
