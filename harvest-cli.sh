@@ -40,17 +40,24 @@ info() {
 curl_cmd() {
     local method="$1"
     local url="$2"
-    local headers=()
-    
-    if [ -n "$API_KEY" ]; then
-        headers+=("-H" "X-API-KEY: $API_KEY")
-    fi
+    local curl_args=()
     
     if [ "$method" = "POST" ]; then
-        curl -s -w "\n%{http_code}" -X POST "${headers[@]}" "$url" || error "Failed to connect to $BASE_URL"
+        curl_args+=("-X" "POST")
     else
-        curl -s -w "\n%{http_code}" -X GET "${headers[@]}" "$url" || error "Failed to connect to $BASE_URL"
+        curl_args+=("-X" "GET")
     fi
+    
+    if [ -n "$API_KEY" ]; then
+        curl_args+=("-H" "X-API-KEY: $API_KEY")
+    fi
+    
+    curl_args+=("-s" "-w" "\n%{http_code}" "$url")
+    
+    # Temporarily disable unbound variable check for array expansion
+    set +u
+    curl "${curl_args[@]}" || error "Failed to connect to $BASE_URL"
+    set -u
 }
 
 # Parse HTTP response
@@ -58,6 +65,11 @@ parse_response() {
     local response="$1"
     local http_code=$(echo "$response" | tail -n1)
     local body=$(echo "$response" | sed '$d')
+    
+    # Check if http_code is a valid number
+    if [ -z "$http_code" ] || ! [ "$http_code" -eq "$http_code" ] 2>/dev/null; then
+        error "Invalid HTTP response: $response"
+    fi
     
     if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
         echo "$body"
@@ -131,6 +143,11 @@ trigger_harvest_all() {
     
     local count=$(echo "$data_sources_json" | jq '. | length')
     
+    # Check if count is a valid number
+    if [ -z "$count" ] || ! [ "$count" -eq "$count" ] 2>/dev/null; then
+        error "Failed to parse data sources JSON"
+    fi
+    
     if [ "$count" -eq 0 ]; then
         warning "No data sources found for organization: $org"
         return 0
@@ -194,6 +211,11 @@ list_data_sources() {
     
     local count=$(echo "$data_sources_json" | jq '. | length')
     
+    # Check if count is a valid number
+    if [ -z "$count" ] || ! [ "$count" -eq "$count" ] 2>/dev/null; then
+        error "Failed to parse data sources JSON"
+    fi
+    
     if [ "$count" -eq 0 ]; then
         info "No data sources found."
         return 0
@@ -246,6 +268,11 @@ get_status() {
     fi
     
     local count=$(echo "$status_json" | jq '. | length')
+    
+    # Check if count is a valid number
+    if [ -z "$count" ] || ! [ "$count" -eq "$count" ] 2>/dev/null; then
+        error "Failed to parse status JSON"
+    fi
     
     if [ "$count" -eq 0 ]; then
         info "No harvest status found for data source: $datasource_id"
@@ -373,6 +400,11 @@ list_runs() {
         local runs=$(echo "$runs_json" | jq '.runs // []')
         local count=$(echo "$runs" | jq '. | length')
         
+        # Check if count is a valid number
+        if [ -z "$count" ] || ! [ "$count" -eq "$count" ] 2>/dev/null; then
+            error "Failed to parse runs JSON"
+        fi
+        
         if [ "$count" -eq 0 ]; then
             info "No harvest runs found."
             return 0
@@ -384,6 +416,11 @@ list_runs() {
         local runs="$runs_json"
         local count=$(echo "$runs" | jq '. | length')
         local total="$count"
+        
+        # Check if count is a valid number
+        if [ -z "$count" ] || ! [ "$count" -eq "$count" ] 2>/dev/null; then
+            error "Failed to parse runs JSON"
+        fi
         
         if [ "$count" -eq 0 ]; then
             info "No harvest runs found."

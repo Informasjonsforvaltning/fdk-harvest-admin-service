@@ -342,6 +342,13 @@ class HarvestRunService(
                     runEndedAt = calculatedEndTime,
                     totalDurationMs = totalDuration,
                 )
+        } else if (finalUpdatedRun.status == "COMPLETED") {
+            // Recalculate totalDurationMs whenever phase durations are updated for completed runs
+            // This handles late-arriving events that update phase durations after completion
+            val totalDuration = calculateTotalDurationFromPhases(finalUpdatedRun)
+            if (totalDuration != null) {
+                finalUpdatedRun = finalUpdatedRun.copy(totalDurationMs = totalDuration)
+            }
         }
 
         // Clear errorMessage when run successfully completes (status is COMPLETED and current event has no error)
@@ -388,20 +395,37 @@ class HarvestRunService(
                 "SPARQL_PROCESSING",
             )
 
-        // Check each required phase has an event with endTime and no errorMessage
-        // When there are duplicates, always use the latest event to determine the correct state
+        // Get the run to access resource counts
+        val run = harvestRunRepository.findByRunId(runId) ?: return false
+        val expectedResourceCount = (run.changedResourcesCount ?: 0) + (run.removedResourcesCount ?: 0)
+
+        // Phases without resource identifiers (like HARVESTING) - just check that there's at least one event with endTime and no errorMessage
+        val phasesWithoutResourceIds = listOf("HARVESTING")
+
+        // Check each required phase
         return requiredPhases.all { phase ->
-            if (phase == currentEvent.phase.name) {
-                // For current phase, get all events for this resource and check if current event is the latest
-                // and has endTime with no errorMessage
-                val latestEvent = getLatestEventForResource(runId, currentEvent, phase)
-                latestEvent?.endTime != null && latestEvent.errorMessage == null
+            if (phase in phasesWithoutResourceIds) {
+                // For phases without resource identifiers, just check that there's at least one event with endTime and no errorMessage
+                val count = harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(runId, phase)
+                count > 0
             } else {
-                // For other phases, get all events with endTime and find the latest for each resource
-                // Then verify all latest events have no errorMessage
-                val phaseEvents = harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
-                val latestEvents = getLatestEventsForPhase(phaseEvents)
-                latestEvents.isNotEmpty() && latestEvents.none { it.errorMessage != null }
+                // For phases with resource identifiers, count events with endTime and no errorMessage
+                // Use latest events per resource to handle duplicates
+                // Get all events for the phase (not just those with endTime) to find the true latest per resource
+                val allPhaseEvents = harvestEventRepository.findByRunIdAndEventType(runId, phase)
+                val latestEvents = getLatestEventsForPhase(allPhaseEvents)
+
+                // Filter to only events with endTime and no errorMessage
+                val completedEvents = latestEvents.filter { it.endTime != null && it.errorMessage == null }
+
+                // Verify that the count of completed events equals changed + removed count
+                // Only check if we have resource counts available
+                if (expectedResourceCount > 0) {
+                    completedEvents.size == expectedResourceCount
+                } else {
+                    // If no resource counts available yet, just check that there's at least one completed event
+                    completedEvents.isNotEmpty()
+                }
             }
         }
     }

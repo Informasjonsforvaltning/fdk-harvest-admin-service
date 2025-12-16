@@ -203,7 +203,7 @@ class DataSourceService(
                     .setFdkId(null)
                     .setResourceUri(null)
                     .setStartTime(timestamp.toString())
-                    .setEndTime(null)
+                    .setEndTime(timestamp.toString())
                     .setErrorMessage(null)
                     .setChangedResourcesCount(null)
                     .setUnchangedResourcesCount(null)
