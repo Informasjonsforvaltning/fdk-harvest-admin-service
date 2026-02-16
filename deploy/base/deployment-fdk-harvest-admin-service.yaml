@@ -2,20 +2,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  creationTimestamp: null
   name: fdk-harvest-admin-service
   labels:
-    app: fdk-harvest-admin-service
+    fdk.service: fdk-harvest-admin-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fdk-harvest-admin-service
+      fdk.service: fdk-harvest-admin-service
   strategy:
-    type: Recreate
+    type: RollingUpdate
   template:
     metadata:
+      creationTimestamp: null
       labels:
-        app: fdk-harvest-admin-service
+        fdk.service: fdk-harvest-admin-service
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
