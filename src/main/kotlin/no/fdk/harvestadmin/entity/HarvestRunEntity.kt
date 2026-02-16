@@ -76,10 +76,12 @@ data class HarvestRunEntity(
     val totalResources: Int? = null,
     @Column(name = "changed_resources_count")
     val changedResourcesCount: Int? = null,
-    @Column(name = "unchanged_resources_count")
-    val unchangedResourcesCount: Int? = null,
     @Column(name = "removed_resources_count")
     val removedResourcesCount: Int? = null,
+    @Column(name = "remove_all")
+    val removeAll: Boolean? = null,
+    @Column(name = "forced")
+    val forced: Boolean? = null,
     // Status
     @Column(name = "status", nullable = false, length = 50)
     val status: String, // COMPLETED, FAILED, IN_PROGRESS

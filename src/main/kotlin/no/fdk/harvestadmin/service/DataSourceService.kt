@@ -160,6 +160,8 @@ class DataSourceService(
     fun startHarvesting(
         id: String,
         org: String,
+        removeAll: Boolean? = null,
+        forced: Boolean? = null,
     ) {
         val dataSource =
             dataSourceRepository
@@ -184,6 +186,8 @@ class DataSourceService(
                     dataType = dataSource.dataType.name,
                     runStartedAt = timestamp,
                     status = "IN_PROGRESS",
+                    removeAll = removeAll,
+                    forced = forced,
                 )
             val savedRun = harvestRunRepository.save(run)
 
@@ -206,8 +210,9 @@ class DataSourceService(
                     .setEndTime(timestamp.toString())
                     .setErrorMessage(null)
                     .setChangedResourcesCount(null)
-                    .setUnchangedResourcesCount(null)
                     .setRemovedResourcesCount(null)
+                    .setRemoveAll(removeAll)
+                    .setForced(forced ?: false)
                     .build()
             harvestRunService.persistEvent(triggerEvent)
 

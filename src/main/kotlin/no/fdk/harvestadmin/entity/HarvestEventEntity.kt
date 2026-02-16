@@ -38,8 +38,6 @@ data class HarvestEventEntity(
     val errorMessage: String? = null,
     @Column(name = "changed_resources_count")
     val changedResourcesCount: Int? = null,
-    @Column(name = "unchanged_resources_count")
-    val unchangedResourcesCount: Int? = null,
     @Column(name = "removed_resources_count")
     val removedResourcesCount: Int? = null,
     @Column(name = "created_at", nullable = false, updatable = false)

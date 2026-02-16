@@ -4,6 +4,15 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant
 
+@Schema(description = "Request body for starting a harvest run")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class StartHarvestRequest(
+    @Schema(description = "If true, mark all resources for the data source as deleted (INITIATING only)")
+    val removeAll: Boolean? = null,
+    @Schema(description = "If true, force an update even if resources have not changed (INITIATING only)")
+    val forced: Boolean? = null,
+)
+
 @Schema(description = "Current state of a harvest run")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class HarvestCurrentState(
@@ -33,10 +42,12 @@ data class HarvestCurrentState(
     val phaseEventCounts: PhaseEventCounts?,
     @Schema(description = "Number of changed resources")
     val changedResourcesCount: Int?,
-    @Schema(description = "Number of unchanged resources")
-    val unchangedResourcesCount: Int?,
     @Schema(description = "Number of removed resources")
     val removedResourcesCount: Int?,
+    @Schema(description = "If true, all resources for the data source are marked as deleted (INITIATING only)")
+    val removeAll: Boolean? = null,
+    @Schema(description = "If true, forces an update even if resources have not changed (INITIATING only)")
+    val forced: Boolean? = null,
     @Schema(description = "Harvest status", example = "IN_PROGRESS", allowableValues = ["IN_PROGRESS", "COMPLETED", "FAILED"])
     val status: String, // IN_PROGRESS, DONE, ERROR
     @Schema(description = "When the harvest run was created")
@@ -99,6 +110,10 @@ data class HarvestRunDetails(
     val phaseDurations: PhaseDurations,
     @Schema(description = "Resource counts")
     val resourceCounts: ResourceCounts,
+    @Schema(description = "If true, all resources for the data source were marked as deleted (INITIATING only)")
+    val removeAll: Boolean? = null,
+    @Schema(description = "If true, harvest was forced even if resources had not changed (INITIATING only)")
+    val forced: Boolean? = null,
     @Schema(description = "Harvest status", example = "COMPLETED", allowableValues = ["IN_PROGRESS", "COMPLETED", "FAILED"])
     val status: String,
     @Schema(description = "Error message if harvest failed")
@@ -137,8 +152,6 @@ data class ResourceCounts(
     val totalResources: Int?,
     @Schema(description = "Number of changed resources", example = "10")
     val changedResourcesCount: Int?,
-    @Schema(description = "Number of unchanged resources", example = "85")
-    val unchangedResourcesCount: Int?,
     @Schema(description = "Number of removed resources", example = "5")
     val removedResourcesCount: Int?,
     @Schema(description = "Event counts per phase")

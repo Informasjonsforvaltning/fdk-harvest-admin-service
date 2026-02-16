@@ -292,16 +292,17 @@ class DataSourceController(
     @PostMapping("/organizations/{org}/datasources/{id}/start-harvesting")
     @Operation(
         summary = "Start harvesting for a data source",
-        description = "Triggers harvesting for a specific data source",
+        description = "Triggers harvesting. Optional body: removeAll (mark all as deleted), forced (force update).",
         security = [SecurityRequirement(name = "api-key")],
     )
     fun startHarvesting(
         @PathVariable org: String,
         @PathVariable id: String,
+        @RequestBody(required = false) request: no.fdk.harvestadmin.model.StartHarvestRequest?,
         authentication: Authentication?,
     ): ResponseEntity<Void> {
         validateOrgId(org)
-        dataSourceService.startHarvesting(id, org)
+        dataSourceService.startHarvesting(id, org, request?.removeAll, request?.forced)
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 
