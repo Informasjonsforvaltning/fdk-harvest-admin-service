@@ -42,7 +42,6 @@ class KafkaHarvestEventConsumerTest {
                 .setFdkId(null)
                 .setResourceUri(null)
                 .setChangedResourcesCount(null)
-                .setUnchangedResourcesCount(null)
                 .setRemovedResourcesCount(null)
                 .build()
 

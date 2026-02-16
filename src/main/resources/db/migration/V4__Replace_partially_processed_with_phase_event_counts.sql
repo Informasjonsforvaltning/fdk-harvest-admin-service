@@ -11,3 +11,6 @@ ALTER TABLE harvest_runs ADD COLUMN search_processing_events_count INTEGER DEFAU
 ALTER TABLE harvest_runs ADD COLUMN ai_search_processing_events_count INTEGER DEFAULT 0;
 ALTER TABLE harvest_runs ADD COLUMN sparql_processing_events_count INTEGER DEFAULT 0;
 
+
+
+

@@ -91,7 +91,6 @@ class HarvestRunService(
                     endTime = event.endTime?.toString(),
                     errorMessage = event.errorMessage?.toString(),
                     changedResourcesCount = event.changedResourcesCount?.let { it.toInt() },
-                    unchangedResourcesCount = event.unchangedResourcesCount?.let { it.toInt() },
                     removedResourcesCount = event.removedResourcesCount?.let { it.toInt() },
                 )
             harvestEventRepository.save(entity)
@@ -196,6 +195,10 @@ class HarvestRunService(
         val remainingResources = totalResources?.let { total -> processedResources?.let { processed -> total - processed } }
         val phaseEventCounts = calculatePhaseEventCounts(run.runId)
 
+        // For INITIATING, capture removeAll and forced from the event
+        val removeAll = if (event.phase.name == "INITIATING") event.removeAll else run.removeAll
+        val forced = if (event.phase.name == "INITIATING") event.forced else run.forced
+
         var updatedRun =
             run.copy(
                 currentPhase = currentPhase,
@@ -213,6 +216,8 @@ class HarvestRunService(
                 searchProcessingEventsCount = phaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
                 aiSearchProcessingEventsCount = phaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
                 sparqlProcessingEventsCount = phaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
+                removeAll = removeAll,
+                forced = forced,
                 updatedAt = Instant.now(),
             )
 
@@ -289,15 +294,13 @@ class HarvestRunService(
         }
 
         // Update resource counts from extraction event (when changedResourcesCount is set)
-        if (event.changedResourcesCount != null || event.unchangedResourcesCount != null || event.removedResourcesCount != null) {
+        if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
             val newTotalResources =
-                event.changedResourcesCount?.toInt()?.plus(event.unchangedResourcesCount?.toInt() ?: 0)?.plus(
+                (event.changedResourcesCount?.toInt() ?: 0).plus(
                     event.removedResourcesCount?.toInt() ?: 0,
                 )
             val newRemainingResources =
-                newTotalResources?.let { total ->
-                    updatedRun.processedResources?.let { processed -> total - processed }
-                }
+                updatedRun.processedResources?.let { processed -> newTotalResources - processed }
             val updatedPhaseEventCounts = calculatePhaseEventCounts(updatedRun.runId)
             updatedRun =
                 updatedRun.copy(
@@ -312,7 +315,6 @@ class HarvestRunService(
                     aiSearchProcessingEventsCount = updatedPhaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
                     sparqlProcessingEventsCount = updatedPhaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
                     changedResourcesCount = event.changedResourcesCount?.toInt(),
-                    unchangedResourcesCount = event.unchangedResourcesCount?.toInt(),
                     removedResourcesCount = event.removedResourcesCount?.toInt(),
                 )
         }
@@ -527,11 +529,10 @@ class HarvestRunService(
         existingRun: HarvestRunEntity?,
     ): Int? {
         // Calculate total when resource counts are provided
-        if (event.changedResourcesCount != null || event.unchangedResourcesCount != null || event.removedResourcesCount != null) {
+        if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
             val changed = event.changedResourcesCount?.toInt() ?: 0
-            val unchanged = event.unchangedResourcesCount?.toInt() ?: 0
             val removed = event.removedResourcesCount?.toInt() ?: 0
-            return changed + unchanged + removed
+            return changed + removed
         }
         return existingRun?.totalResources
     }
@@ -762,8 +763,9 @@ class HarvestRunService(
                                 sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
                             ),
                         changedResourcesCount = run.changedResourcesCount,
-                        unchangedResourcesCount = run.unchangedResourcesCount,
                         removedResourcesCount = run.removedResourcesCount,
+                        removeAll = run.removeAll,
+                        forced = run.forced,
                         status = run.status,
                         createdAt = run.createdAt,
                         updatedAt = run.updatedAt,
@@ -801,7 +803,6 @@ class HarvestRunService(
                         ResourceCounts(
                             totalResources = run.totalResources,
                             changedResourcesCount = run.changedResourcesCount,
-                            unchangedResourcesCount = run.unchangedResourcesCount,
                             removedResourcesCount = run.removedResourcesCount,
                             phaseEventCounts =
                                 no.fdk.harvestadmin.model.PhaseEventCounts(
@@ -815,6 +816,8 @@ class HarvestRunService(
                                     sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
                                 ),
                         ),
+                    removeAll = run.removeAll,
+                    forced = run.forced,
                     status = run.status,
                     errorMessage = run.errorMessage,
                     createdAt = run.createdAt,
@@ -993,7 +996,6 @@ class HarvestRunService(
                             ResourceCounts(
                                 totalResources = run.totalResources,
                                 changedResourcesCount = run.changedResourcesCount,
-                                unchangedResourcesCount = run.unchangedResourcesCount,
                                 removedResourcesCount = run.removedResourcesCount,
                                 phaseEventCounts =
                                     no.fdk.harvestadmin.model.PhaseEventCounts(
@@ -1007,6 +1009,8 @@ class HarvestRunService(
                                         sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
                                     ),
                             ),
+                        removeAll = run.removeAll,
+                        forced = run.forced,
                         status = run.status,
                         errorMessage = run.errorMessage,
                         createdAt = run.createdAt,
@@ -1058,7 +1062,6 @@ class HarvestRunService(
                             ResourceCounts(
                                 totalResources = run.totalResources,
                                 changedResourcesCount = run.changedResourcesCount,
-                                unchangedResourcesCount = run.unchangedResourcesCount,
                                 removedResourcesCount = run.removedResourcesCount,
                                 phaseEventCounts =
                                     no.fdk.harvestadmin.model.PhaseEventCounts(
@@ -1072,6 +1075,8 @@ class HarvestRunService(
                                         sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
                                     ),
                             ),
+                        removeAll = run.removeAll,
+                        forced = run.forced,
                         status = run.status,
                         errorMessage = run.errorMessage,
                         createdAt = run.createdAt,

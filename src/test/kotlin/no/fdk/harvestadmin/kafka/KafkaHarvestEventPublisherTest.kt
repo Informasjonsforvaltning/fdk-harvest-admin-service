@@ -49,7 +49,6 @@ class KafkaHarvestEventPublisherTest {
                 .setFdkId(null)
                 .setResourceUri(null)
                 .setChangedResourcesCount(null)
-                .setUnchangedResourcesCount(null)
                 .setRemovedResourcesCount(null)
                 .build()
 
@@ -87,7 +86,6 @@ class KafkaHarvestEventPublisherTest {
                 .setFdkId(null)
                 .setResourceUri(null)
                 .setChangedResourcesCount(null)
-                .setUnchangedResourcesCount(null)
                 .setRemovedResourcesCount(null)
                 .build()
 

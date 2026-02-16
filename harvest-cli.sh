@@ -346,7 +346,6 @@ Phase Durations:
 Resource Counts:
   Total: \(.resourceCounts.totalResources // "N/A")
   Changed: \(.resourceCounts.changedResourcesCount // "N/A")
-  Unchanged: \(.resourceCounts.unchangedResourcesCount // "N/A")
   Removed: \(.resourceCounts.removedResourcesCount // "N/A")
 \(if .resourceCounts.phaseEventCounts then "Phase Event Counts:
   Initiating: \(.resourceCounts.phaseEventCounts.initiatingEventsCount // "N/A")

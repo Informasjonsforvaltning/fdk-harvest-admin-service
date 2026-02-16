@@ -166,7 +166,6 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
                 .setRunId(runId)
                 .setDataType(no.fdk.harvest.DataType.concept)
                 .setChangedResourcesCount(10)
-                .setUnchangedResourcesCount(5)
                 .setRemovedResourcesCount(2)
                 .build()
 
@@ -181,7 +180,6 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
         val persistedEvents = harvestEventRepository.findByDataSourceIdOrderByCreatedAtDesc(dataSourceId)
         assertEquals(1, persistedEvents.size)
         assertEquals(10, persistedEvents[0].changedResourcesCount)
-        assertEquals(5, persistedEvents[0].unchangedResourcesCount)
         assertEquals(2, persistedEvents[0].removedResourcesCount)
         println("✅ Harvest event with resource counts successfully persisted")
     }

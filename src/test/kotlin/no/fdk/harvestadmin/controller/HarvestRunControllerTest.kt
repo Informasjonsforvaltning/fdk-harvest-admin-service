@@ -305,7 +305,6 @@ class HarvestRunControllerTest : BaseControllerTest() {
                 ResourceCounts(
                     totalResources = null,
                     changedResourcesCount = null,
-                    unchangedResourcesCount = null,
                     removedResourcesCount = null,
                     phaseEventCounts = null,
                 ),
