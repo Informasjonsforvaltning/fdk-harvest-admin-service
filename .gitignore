@@ -80,6 +80,9 @@ application-local.properties
 .env
 .env.local
 
+# Python venv (e.g. scripts/migrate-mongo-to-postgres)
+.venv/
+
 # Test reports
 test-results/
 *.test-result.xml
