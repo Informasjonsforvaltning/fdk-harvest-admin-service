@@ -242,6 +242,7 @@ class KafkaIntegrationTest : BaseIntegrationTest() {
                 put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
                 put("value.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer")
                 put("schema.registry.url", "http://${schemaRegistryContainer.host}:${schemaRegistryContainer.getMappedPort(8081)}")
+                put("value.subject.name.strategy", "io.confluent.kafka.serializers.subject.RecordNameStrategy")
             }
 
         val producer = KafkaProducer<String, HarvestEvent>(producerProps)

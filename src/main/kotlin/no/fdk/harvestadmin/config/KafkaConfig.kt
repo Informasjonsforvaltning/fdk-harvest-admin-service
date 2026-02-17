@@ -30,6 +30,7 @@ class KafkaConfig(
         props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
         props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = KafkaAvroSerializer::class.java
         props["schema.registry.url"] = schemaRegistryUrl
+        props["value.subject.name.strategy"] = "io.confluent.kafka.serializers.subject.RecordNameStrategy"
         props["auto.register.schemas"] = true
         props["use.latest.version"] = true
         return DefaultKafkaProducerFactory(props)

@@ -43,6 +43,7 @@ spring:
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+        value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
         auto.register.schemas: true
         use.latest.version: true
 
