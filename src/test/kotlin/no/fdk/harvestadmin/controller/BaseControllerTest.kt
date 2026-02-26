@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package no.fdk.harvestadmin.controller
 
 import no.fdk.harvestadmin.service.DataSourceService

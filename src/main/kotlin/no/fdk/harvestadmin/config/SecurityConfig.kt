@@ -38,7 +38,7 @@ class SecurityConfig(
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .            oauth2ResourceServer { oauth2 ->
+            .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt ->
                     jwt
                         .decoder(jwtDecoder())

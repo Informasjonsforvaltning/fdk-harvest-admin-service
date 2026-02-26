@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package no.fdk.harvestadmin.integration
 
 import org.testcontainers.containers.GenericContainer
