@@ -13,6 +13,7 @@ import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import no.fdk.harvestadmin.service.HarvestRunService
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -193,6 +194,23 @@ class DataSourceService(
         } catch (e: Exception) {
             logger.error("Error starting harvest for data source with id: $id", e)
             throw RuntimeException("Error starting harvest", e)
+        }
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    fun scheduledHarvest() {
+        startHarvestingAll(forced = false)
+    }
+
+    fun startHarvestingAll(forced: Boolean = false) {
+        val dataSources = dataSourceRepository.findByFilters(null, null, null)
+        dataSources.forEach { ds ->
+            try {
+                startHarvesting(ds.id, ds.publisherId, removeAll = null, forced = forced)
+                logger.debug("Scheduled harvest started for data source ${ds.id}")
+            } catch (e: Exception) {
+                logger.error("Failed to start scheduled harvest for data source ${ds.id}", e)
+            }
         }
     }
 
