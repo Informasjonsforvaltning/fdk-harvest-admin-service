@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.fdk.harvestadmin.model.HarvestPerformanceMetrics
 import no.fdk.harvestadmin.model.HarvestRunDetails
 import no.fdk.harvestadmin.service.HarvestRunService
+import no.fdk.harvestadmin.service.SecurityService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,18 +21,19 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/internal/runs")
-@Tag(name = "Harvest Run", description = "Harvest Run Service (Internal)")
+@RequestMapping("/runs")
+@Tag(name = "Harvest Run", description = "Harvest Run Service")
 class HarvestRunController(
     private val harvestRunService: HarvestRunService,
+    private val securityService: SecurityService,
 ) {
     @GetMapping
     @Operation(
-        summary = "List harvest runs (internal)",
+        summary = "List harvest runs",
         description =
             "Returns a paginated list of harvest runs sorted by runStartedAt (descending). " +
                 "Can be filtered by dataSourceId, dataType, and status.",
-        security = [SecurityRequirement(name = "api-key")],
+        security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
         value = [
@@ -81,7 +83,8 @@ class HarvestRunController(
             )
         }
 
-        val (runs, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, dataType, status, offset, limit)
+        val allowedOrgs = securityService.getAuthorizedOrganizations(authentication)
+        val (runs, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, dataType, status, offset, limit, allowedOrgs)
 
         return ResponseEntity.ok(
             mapOf(
@@ -95,9 +98,9 @@ class HarvestRunController(
 
     @GetMapping("/{runId}")
     @Operation(
-        summary = "Get a specific harvest run (internal)",
+        summary = "Get a specific harvest run",
         description = "Returns detailed information about a specific harvest run including phase durations",
-        security = [SecurityRequirement(name = "api-key")],
+        security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
         value = [
@@ -113,7 +116,8 @@ class HarvestRunController(
         @Parameter(description = "Harvest run ID (runId, UUID)") @PathVariable runId: String,
         authentication: Authentication?,
     ): ResponseEntity<Any> {
-        val (run, httpStatus) = harvestRunService.getHarvestRun(runId)
+        val allowedOrgs = securityService.getAuthorizedOrganizations(authentication)
+        val (run, httpStatus) = harvestRunService.getHarvestRun(runId, allowedOrgs)
         return if (run != null) {
             ResponseEntity.status(httpStatus).body(run)
         } else {
@@ -123,11 +127,11 @@ class HarvestRunController(
 
     @GetMapping("/metrics")
     @Operation(
-        summary = "Get performance metrics (internal)",
+        summary = "Get performance metrics",
         description =
             "Returns aggregated performance metrics. " +
                 "Can filter by dataSourceId, dataType, date range, days back, or limit to last N runs.",
-        security = [SecurityRequirement(name = "api-key")],
+        security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
         value = [
@@ -177,6 +181,7 @@ class HarvestRunController(
                 }
             }
 
+        val allowedOrgs = securityService.getAuthorizedOrganizations(authentication)
         val (metrics, httpStatus) =
             when {
                 dataSourceId != null && dataType != null -> {
@@ -188,6 +193,7 @@ class HarvestRunController(
                         startDate = startDateInstant,
                         endDate = endDateInstant,
                         limit = limit,
+                        allowedPublisherIds = allowedOrgs,
                     )
                 }
                 else -> {
@@ -197,6 +203,7 @@ class HarvestRunController(
                         startDate = startDateInstant,
                         endDate = endDateInstant,
                         limit = limit,
+                        allowedPublisherIds = allowedOrgs,
                     )
                 }
             }

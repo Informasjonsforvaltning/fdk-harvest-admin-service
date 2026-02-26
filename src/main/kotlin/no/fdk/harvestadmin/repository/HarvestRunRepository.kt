@@ -44,6 +44,7 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
         WHERE (:dataSourceId IS NULL OR h.dataSourceId = :dataSourceId)
         AND (:dataType IS NULL OR h.dataType = :dataType)
         AND (:status IS NULL OR h.status = :status)
+        AND (:allowedDataSourceIds IS NULL OR h.dataSourceId IN :allowedDataSourceIds)
         ORDER BY h.runStartedAt DESC
         """,
     )
@@ -51,6 +52,7 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
         @Param("dataSourceId") dataSourceId: String?,
         @Param("dataType") dataType: String?,
         @Param("status") status: String?,
+        @Param("allowedDataSourceIds") allowedDataSourceIds: List<String>?,
         pageable: Pageable,
     ): List<HarvestRunEntity>
 
@@ -60,12 +62,14 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
         WHERE (:dataSourceId IS NULL OR h.dataSourceId = :dataSourceId)
         AND (:dataType IS NULL OR h.dataType = :dataType)
         AND (:status IS NULL OR h.status = :status)
+        AND (:allowedDataSourceIds IS NULL OR h.dataSourceId IN :allowedDataSourceIds)
         """,
     )
     fun countRunsWithFilters(
         @Param("dataSourceId") dataSourceId: String?,
         @Param("dataType") dataType: String?,
         @Param("status") status: String?,
+        @Param("allowedDataSourceIds") allowedDataSourceIds: List<String>?,
     ): Long
 
     @Query(
@@ -115,21 +119,30 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
     ): Double?
 
     // Global metrics queries (all data sources)
-    @Query("SELECT h FROM HarvestRunEntity h WHERE h.status = 'COMPLETED' AND h.runStartedAt >= :startDate ORDER BY h.runStartedAt DESC")
+    @Query(
+        "SELECT h FROM HarvestRunEntity h WHERE h.status = 'COMPLETED' AND h.runStartedAt >= :startDate AND (:allowedDataSourceIds IS NULL OR h.dataSourceId IN :allowedDataSourceIds) ORDER BY h.runStartedAt DESC",
+    )
     fun findAllCompletedRuns(
         @Param("startDate") startDate: Instant,
+        @Param("allowedDataSourceIds") allowedDataSourceIds: List<String>?,
     ): List<HarvestRunEntity>
 
     @Query(
-        "SELECT h FROM HarvestRunEntity h WHERE h.status = 'COMPLETED' AND h.runStartedAt >= :startDate AND h.runStartedAt <= :endDate ORDER BY h.runStartedAt DESC",
+        "SELECT h FROM HarvestRunEntity h WHERE h.status = 'COMPLETED' AND h.runStartedAt >= :startDate AND h.runStartedAt <= :endDate AND (:allowedDataSourceIds IS NULL OR h.dataSourceId IN :allowedDataSourceIds) ORDER BY h.runStartedAt DESC",
     )
     fun findAllCompletedRunsByDateRange(
         @Param("startDate") startDate: Instant,
         @Param("endDate") endDate: Instant,
+        @Param("allowedDataSourceIds") allowedDataSourceIds: List<String>?,
     ): List<HarvestRunEntity>
 
-    @Query("SELECT h FROM HarvestRunEntity h WHERE h.status = 'COMPLETED' ORDER BY h.runStartedAt DESC")
-    fun findLastAllCompletedRuns(pageable: Pageable): List<HarvestRunEntity>
+    @Query(
+        "SELECT h FROM HarvestRunEntity h WHERE h.status = 'COMPLETED' AND (:allowedDataSourceIds IS NULL OR h.dataSourceId IN :allowedDataSourceIds) ORDER BY h.runStartedAt DESC",
+    )
+    fun findLastAllCompletedRuns(
+        @Param("allowedDataSourceIds") allowedDataSourceIds: List<String>?,
+        pageable: Pageable,
+    ): List<HarvestRunEntity>
 
     // Find stale runs (IN_PROGRESS runs that haven't been updated recently)
     @Query(

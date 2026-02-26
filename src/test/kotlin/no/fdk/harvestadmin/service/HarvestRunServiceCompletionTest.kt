@@ -5,6 +5,7 @@ import no.fdk.harvest.HarvestEvent
 import no.fdk.harvest.HarvestPhase
 import no.fdk.harvestadmin.entity.HarvestEventEntity
 import no.fdk.harvestadmin.entity.HarvestRunEntity
+import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestEventRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,6 +32,9 @@ class HarvestRunServiceCompletionTest {
     private lateinit var harvestRunRepository: HarvestRunRepository
 
     @Mock
+    private lateinit var dataSourceRepository: DataSourceRepository
+
+    @Mock
     private lateinit var harvestMetricsService: HarvestMetricsService
 
     private lateinit var harvestRunService: HarvestRunService
@@ -39,7 +43,8 @@ class HarvestRunServiceCompletionTest {
 
     @BeforeEach
     fun setUp() {
-        harvestRunService = HarvestRunService(harvestEventRepository, harvestRunRepository, harvestMetricsService, 30L)
+        harvestRunService =
+            HarvestRunService(harvestEventRepository, harvestRunRepository, dataSourceRepository, harvestMetricsService, 30L)
         baseTime = Instant.parse("2024-01-01T10:00:00Z")
     }
 

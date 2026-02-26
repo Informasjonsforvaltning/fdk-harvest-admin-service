@@ -4,10 +4,11 @@ import no.fdk.harvestadmin.service.SecurityService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
@@ -25,7 +26,7 @@ class SecurityConfig(
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        // Add API key filter for all endpoints (temporary replacement for JWT)
+        // API key filter first: if X-API-KEY is valid, sets authentication (JWT used when no API key)
         if (apiKey.isNotBlank()) {
             http.addFilterBefore(
                 ApiKeyAuthenticationFilter(apiKey),
@@ -37,30 +38,24 @@ class SecurityConfig(
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            // Temporarily disabled OAuth2 JWT authentication
-            // .oauth2ResourceServer { oauth2 ->
-            //     oauth2.jwt { jwt ->
-            //         jwt
-            //             .decoder(jwtDecoder())
-            //             .jwtAuthenticationConverter { jwt ->
-            //                 // Validate audience
-            //                 val claims = jwt.claims
-            //                 val audience = claims["aud"] as? List<*> ?: emptyList<Any>()
-            //                 if (!audience.contains(tokenAudience)) {
-            //                     throw IllegalArgumentException("Invalid audience")
-            //                 }
-            //                 // Convert Jwt to JwtAuthenticationToken
-            //                 org.springframework.security.oauth2.server.resource.authentication
-            //                     .JwtAuthenticationToken(jwt)
-            //             }
-            //     }
-            // }
-            .authorizeHttpRequests { authz ->
+            .oauth2ResourceServer { oauth2 ->
+                oauth2.jwt { jwt ->
+                    jwt
+                        .decoder(jwtDecoder())
+                        .jwtAuthenticationConverter { jwt ->
+                            val claims = jwt.claims
+                            val audience = claims["aud"] as? List<*> ?: emptyList<Any>()
+                            if (!audience.contains(tokenAudience)) {
+                                throw IllegalArgumentException("Invalid audience")
+                            }
+                            org.springframework.security.oauth2.server.resource.authentication
+                                .JwtAuthenticationToken(jwt)
+                        }
+                }
+            }.authorizeHttpRequests { authz ->
                 authz
-                    // Actuator endpoints - public
                     .requestMatchers("/actuator/**")
                     .permitAll()
-                    // Swagger UI and API docs - public
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
@@ -69,21 +64,16 @@ class SecurityConfig(
                         "/api-docs/**",
                         "/webjars/**",
                     ).permitAll()
-                    // Temporary: Create data source endpoint - public (POST only)
-                    .requestMatchers(HttpMethod.POST, "/organizations/*/datasources")
-                    .permitAll()
-                    // All endpoints - require API key authentication (temporary replacement for JWT)
                     .anyRequest()
-                    .hasRole("API_USER")
+                    .authenticated()
             }.build()
     }
 
-    // Temporarily disabled - using API key authentication instead of JWT
-    // @Bean
-    // fun jwtDecoder(): JwtDecoder {
-    //     val jwkSetUri = "$keycloakHost/realms/fdk/protocol/openid-connect/certs"
-    //     return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build()
-    // }
+    @Bean
+    fun jwtDecoder(): JwtDecoder {
+        val jwkSetUri = "$keycloakHost/realms/fdk/protocol/openid-connect/certs"
+        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build()
+    }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
