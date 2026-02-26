@@ -253,20 +253,17 @@ class DataSourceController(
     @GetMapping("/organizations/{org}/datasources/{id}/status")
     @Operation(
         summary = "Get harvest status for a data source",
-        description =
-            "Returns the current harvest state(s) for a data source. " +
-                "Returns a list with one state per data type if dataType is not specified.",
+        description = "Returns the last harvest run for a data source.",
         security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
     )
     fun getHarvestStatus(
         @PathVariable org: String,
         @PathVariable id: String,
-        @Parameter(description = "Filter by data type") @RequestParam(required = false) dataType: String?,
         authentication: Authentication?,
     ): ResponseEntity<List<no.fdk.harvestadmin.model.HarvestCurrentState>> {
         validateOrgId(org)
         requireOrgAccess(org, authentication)
-        val (states, httpStatus) = harvestRunService.getCurrentState(id, dataType)
+        val (states, httpStatus) = harvestRunService.getCurrentState(id)
         return ResponseEntity.status(httpStatus).body(states)
     }
 }

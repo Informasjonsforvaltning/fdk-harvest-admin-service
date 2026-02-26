@@ -734,17 +734,10 @@ class HarvestRunService(
 
     // Methods for current state and performance metrics
 
-    fun getCurrentState(
-        dataSourceId: String,
-        dataType: String? = null,
-    ): Pair<List<HarvestCurrentState>, HttpStatus> =
+    fun getCurrentState(dataSourceId: String): Pair<List<HarvestCurrentState>, HttpStatus> =
         try {
-            val runs =
-                if (dataType != null) {
-                    harvestRunRepository.findCurrentRun(dataSourceId, dataType)?.let { listOf(it) } ?: emptyList()
-                } else {
-                    harvestRunRepository.findCurrentRunsByDataSourceId(dataSourceId)
-                }
+            val run = harvestRunRepository.findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId)
+            val runs = run?.let { listOf(it) } ?: emptyList()
 
             val states =
                 runs.map { run ->
@@ -781,7 +774,7 @@ class HarvestRunService(
 
             Pair(states, HttpStatus.OK)
         } catch (e: Exception) {
-            logger.error("Error getting current state for dataSourceId: $dataSourceId, dataType: $dataType", e)
+            logger.error("Error getting current state for dataSourceId: $dataSourceId", e)
             Pair(emptyList(), HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
