@@ -134,10 +134,11 @@ class HarvestRunServiceTest {
                 currentPhase = "HARVESTING",
                 status = "IN_PROGRESS",
             )
-        whenever(harvestRunRepository.findCurrentRun(dataSourceId, dataType)).thenReturn(runEntity)
+        whenever(harvestRunRepository.findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId))
+            .thenReturn(runEntity)
 
         // When
-        val (states, httpStatus) = harvestRunService.getCurrentState(dataSourceId, dataType)
+        val (states, httpStatus) = harvestRunService.getCurrentState(dataSourceId)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -151,10 +152,11 @@ class HarvestRunServiceTest {
     fun `should return empty list when no current state found`() {
         // Given
         val dataSourceId = UUID.randomUUID().toString()
-        whenever(harvestRunRepository.findCurrentRun(dataSourceId, "dataset")).thenReturn(null)
+        whenever(harvestRunRepository.findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId))
+            .thenReturn(null)
 
         // When
-        val (states, httpStatus) = harvestRunService.getCurrentState(dataSourceId, "dataset")
+        val (states, httpStatus) = harvestRunService.getCurrentState(dataSourceId)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)

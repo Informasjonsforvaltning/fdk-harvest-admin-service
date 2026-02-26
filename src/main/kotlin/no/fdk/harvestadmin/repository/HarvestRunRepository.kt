@@ -17,6 +17,8 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
         dataType: String,
     ): List<HarvestRunEntity>
 
+    fun findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId: String): HarvestRunEntity?
+
     // Find run by runId (UUID)
     fun findByRunId(runId: String): HarvestRunEntity?
 
