@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class KafkaHarvestEventPublisher(
     private val kafkaTemplate: KafkaTemplate<String, HarvestEvent>,
-    @Value("\${app.kafka.topic.harvest-events}") private val topicName: String,
+    @param:Value("\${app.kafka.topic.harvest-events}") private val topicName: String,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 

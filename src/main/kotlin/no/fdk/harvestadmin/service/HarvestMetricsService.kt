@@ -220,7 +220,7 @@ class HarvestMetricsService(
             runsCompletedCounter.increment()
 
             // Record total duration (convert ms to Duration)
-            if (run.runStartedAt != null && run.totalDurationMs != null) {
+            if (run.totalDurationMs != null) {
                 val totalDuration = java.time.Duration.ofMillis(run.totalDurationMs!!)
                 phaseDurationTimer
                     .tag("phase", "TOTAL")

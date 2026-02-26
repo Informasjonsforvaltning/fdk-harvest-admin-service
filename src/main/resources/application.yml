@@ -22,12 +22,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  rabbitmq:
-    host: ${RABBIT_HOST:localhost}
-    port: ${RABBIT_PORT:5672}
-    username: ${RABBIT_USERNAME:guest}
-    password: ${RABBIT_PASSWORD:guest}
-
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
@@ -76,21 +70,11 @@ management:
 logging:
   level:
     no.fdk.harvestadmin: DEBUG
-    org.springframework.amqp: WARN
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
 # Application specific configuration
 app:
-  rabbitmq:
-    exchange: ${RABBIT_EXCHANGE:harvests}
-    exchange-type: ${RABBIT_EXCHANGE_TYPE:topic}
-    queue: ${RABBIT_QUEUE:fdkHarvestAdmin}
-    routing-keys:
-      new-datasource: ${RABBIT_NEW_DATASOURCE_KEY:*.publisher.NewDataSource}
-      harvested: ${RABBIT_HARVESTED_KEY:*.harvested}
-      ingested: ${RABBIT_INGESTED_KEY:*.ingested}
-      reasoned: ${RABBIT_REASONED_KEY:*.reasoned}
   security:
     token-audience: ${TOKEN_AUDIENCE:fdk-harvest-admin}
     sys-admin-auth: ${SYS_ADMIN_AUTH:system:root:admin}

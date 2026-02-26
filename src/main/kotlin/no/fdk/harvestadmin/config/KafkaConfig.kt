@@ -20,8 +20,8 @@ import org.springframework.kafka.listener.ContainerProperties
 
 @Configuration
 class KafkaConfig(
-    @Value("\${spring.kafka.bootstrap-servers}") private val bootstrapServers: String,
-    @Value("\${spring.kafka.producer.properties.schema.registry.url}") private val schemaRegistryUrl: String,
+    @param:Value("\${spring.kafka.bootstrap-servers}") private val bootstrapServers: String,
+    @param:Value("\${spring.kafka.producer.properties.schema.registry.url}") private val schemaRegistryUrl: String,
 ) {
     @Bean
     fun producerFactory(): ProducerFactory<String, HarvestEvent> {

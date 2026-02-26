@@ -7,7 +7,7 @@ For a broader understanding of the system's context, refer to the [architecture 
 ## Features
 
 - **REST API** for managing data sources (create, read, update, delete)
-- **RabbitMQ integration** for consuming harvest reports and publishing harvest triggers
+- **Kafka integration** for harvest events (triggers and reports)
 - **PostgreSQL database** for persistent storage
 - **OAuth2 authentication** with Keycloak integration
 - **API key authentication** for internal endpoints
@@ -31,7 +31,7 @@ Ensure you have the following installed:
 cd fdk-harvest-admin-service
 ```
 
-2. Start PostgreSQL and RabbitMQ:
+2. Start PostgreSQL, Kafka and Schema Registry:
 
 ```sh
 docker compose up -d
@@ -63,8 +63,7 @@ mvn verify
 The application can be configured using environment variables or `application.yml`. Key configuration options:
 
 - `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USERNAME`, `POSTGRES_PASSWORD` - Database configuration
-- `RABBIT_HOST`, `RABBIT_PORT`, `RABBIT_USERNAME`, `RABBIT_PASSWORD` - RabbitMQ configuration
-- `RABBIT_EXCHANGE`, `RABBIT_QUEUE` - RabbitMQ exchange and queue names
+- `KAFKA_BOOTSTRAP_SERVERS`, `SCHEMA_REGISTRY_URL` - Kafka configuration
 - `SSO_AUTH_URI` - Keycloak authentication server URI
 - `TOKEN_AUDIENCE` - OAuth2 token audience (default: `fdk-harvest-admin`)
 - `API_KEY` - API key for internal endpoints
@@ -91,18 +90,9 @@ The application can be configured using environment variables or `application.ym
 - `GET /runs/{runId}` - Get harvest run details
 - `GET /runs/metrics` - Get performance metrics
 
-## RabbitMQ Integration
+## Kafka Integration
 
-The service consumes messages from RabbitMQ with the following routing keys:
-
-- `*.publisher.NewDataSource` - New data source creation events
-- `*.harvested` - Harvest completion reports
-- `*.reasoned` - Reasoning completion reports
-- `*.ingested` - Ingestion completion reports
-
-The service publishes harvest trigger messages with routing keys:
-
-- `{datatype}.publisher.HarvestTrigger` - Triggers harvesting for a data source
+The service consumes and publishes harvest events via the `harvest-events` Kafka topic. Harvest triggers are published when starting a harvest, and harvest reports (harvested, reasoned, ingested) are consumed to update run status.
 
 ## Database Schema
 
@@ -236,4 +226,4 @@ export HARVEST_API_KEY=my-api-key
 
 ## Migration from Go Application
 
-This Spring Boot application replaces the original Go-based `fdk-harvest-admin`. It maintains API compatibility and supports the same endpoints and RabbitMQ integration patterns.
+This Spring Boot application replaces the original Go-based `fdk-harvest-admin`. It maintains API compatibility and supports the same endpoints. Harvest events flow via Kafka.
