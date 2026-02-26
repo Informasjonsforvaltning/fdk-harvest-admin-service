@@ -7,7 +7,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.http.HttpMethod
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -52,12 +54,21 @@ class SecurityConfig(
                             if (!audience.contains(tokenAudience)) {
                                 throw IllegalArgumentException("Invalid audience")
                             }
+                            val authoritiesStr = jwt.claims["authorities"] as? String ?: ""
+                            val authorities =
+                                authoritiesStr
+                                    .split(",")
+                                    .map { it.trim() }
+                                    .filter { it.isNotBlank() }
+                                    .map { SimpleGrantedAuthority(it) }
                             org.springframework.security.oauth2.server.resource.authentication
-                                .JwtAuthenticationToken(jwt)
+                                .JwtAuthenticationToken(jwt, authorities)
                         }
                 }
             }.authorizeHttpRequests { authz ->
                 authz
+                    .requestMatchers(HttpMethod.OPTIONS, "/**")
+                    .permitAll()
                     .requestMatchers("/actuator/**")
                     .permitAll()
                     .requestMatchers(
