@@ -38,13 +38,17 @@ class SecurityConfig(
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .oauth2ResourceServer { oauth2 ->
+            .            oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt ->
                     jwt
                         .decoder(jwtDecoder())
                         .jwtAuthenticationConverter { jwt ->
-                            val claims = jwt.claims
-                            val audience = claims["aud"] as? List<*> ?: emptyList<Any>()
+                            val audience =
+                                when (val aud = jwt.claims["aud"]) {
+                                    is String -> listOf(aud)
+                                    is List<*> -> aud.mapNotNull { it?.toString() }
+                                    else -> emptyList()
+                                }
                             if (!audience.contains(tokenAudience)) {
                                 throw IllegalArgumentException("Invalid audience")
                             }
