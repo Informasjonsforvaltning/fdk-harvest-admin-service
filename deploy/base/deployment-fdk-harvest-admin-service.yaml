@@ -71,6 +71,11 @@ spec:
                 secretKeyRef:
                   name: fdk-harvest-admin
                   key: CORS_ORIGIN_PATTERNS
+            - name: SSO_AUTH_URI
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak
+                  key: KEYCLOAK_BASE_URI
             - name: JAVA_OPTS
               value: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
           image: fdk-harvest-admin-service
