@@ -18,10 +18,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    @Value("\${app.security.token-audience}") private val tokenAudience: String,
-    @Value("\${app.security.api-key}") private val apiKey: String,
-    @Value("\${app.security.keycloak-host}") private val keycloakHost: String,
-    @Value("\${app.cors.origin-patterns}") private val corsOriginPatterns: String,
+    @param:Value("\${app.security.token-audience}") private val tokenAudience: String,
+    @param:Value("\${app.security.api-key}") private val apiKey: String,
+    @param:Value("\${app.security.keycloak-host}") private val keycloakHost: String,
+    @param:Value("\${app.cors.origin-patterns}") private val corsOriginPatterns: String,
     private val securityService: SecurityService,
 ) {
     @Bean

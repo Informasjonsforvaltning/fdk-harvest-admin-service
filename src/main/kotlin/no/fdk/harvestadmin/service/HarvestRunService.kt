@@ -27,7 +27,7 @@ class HarvestRunService(
     private val harvestRunRepository: HarvestRunRepository,
     private val dataSourceRepository: DataSourceRepository,
     private val harvestMetricsService: HarvestMetricsService,
-    @Value("\${app.harvest.stale-timeout-minutes:30}") private val staleTimeoutMinutes: Long,
+    @param:Value("\${app.harvest.stale-timeout-minutes:30}") private val staleTimeoutMinutes: Long,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -132,59 +132,57 @@ class HarvestRunService(
             return
         }
 
-        if (currentRun != null) {
-            val oldStatus = currentRun.status
-            val updatedRun = updateRunWithEvent(currentRun, event)
-            val savedRun = harvestRunRepository.save(updatedRun)
+        val oldStatus = currentRun.status
+        val updatedRun = updateRunWithEvent(currentRun, event)
+        val savedRun = harvestRunRepository.save(updatedRun)
 
-            // Only record ongoing metrics if the run was still IN_PROGRESS when the event arrived
-            // This prevents recording metrics for late-arriving events after a run has completed
-            if (oldStatus == "IN_PROGRESS") {
-                // Record phase duration if this phase just completed (has endTime)
-                val eventStartTime = event.startTime?.let { parseDateTime(it) }
-                val eventEndTime = event.endTime?.let { parseDateTime(it) }
-                if (eventStartTime != null && eventEndTime != null) {
-                    val phaseDurationMs = ChronoUnit.MILLIS.between(eventStartTime, eventEndTime)
-                    harvestMetricsService.recordPhaseDurationDuringRun(
-                        event.phase.name,
-                        phaseDurationMs,
+        // Only record ongoing metrics if the run was still IN_PROGRESS when the event arrived
+        // This prevents recording metrics for late-arriving events after a run has completed
+        if (oldStatus == "IN_PROGRESS") {
+            // Record phase duration if this phase just completed (has endTime)
+            val eventStartTime = event.startTime?.let { parseDateTime(it) }
+            val eventEndTime = event.endTime?.let { parseDateTime(it) }
+            if (eventStartTime != null && eventEndTime != null) {
+                val phaseDurationMs = ChronoUnit.MILLIS.between(eventStartTime, eventEndTime)
+                harvestMetricsService.recordPhaseDurationDuringRun(
+                    event.phase.name,
+                    phaseDurationMs,
+                    savedRun.dataType,
+                )
+            }
+
+            // Record resources processed if applicable
+            if (savedRun.processedResources != null && savedRun.processedResources > 0) {
+                val resourceProcessingPhases =
+                    listOf(
+                        "REASONING",
+                        "RDF_PARSING",
+                        "RESOURCE_PROCESSING",
+                        "SEARCH_PROCESSING",
+                        "AI_SEARCH_PROCESSING",
+                        "SPARQL_PROCESSING",
+                    )
+                if (event.phase.name in resourceProcessingPhases) {
+                    harvestMetricsService.recordResourcesProcessed(
                         savedRun.dataType,
+                        event.phase.name,
+                        1,
                     )
                 }
-
-                // Record resources processed if applicable
-                if (savedRun.processedResources != null && savedRun.processedResources > 0) {
-                    val resourceProcessingPhases =
-                        listOf(
-                            "REASONING",
-                            "RDF_PARSING",
-                            "RESOURCE_PROCESSING",
-                            "SEARCH_PROCESSING",
-                            "AI_SEARCH_PROCESSING",
-                            "SPARQL_PROCESSING",
-                        )
-                    if (event.phase.name in resourceProcessingPhases) {
-                        harvestMetricsService.recordResourcesProcessed(
-                            savedRun.dataType,
-                            event.phase.name,
-                            1,
-                        )
-                    }
-                }
-
-                // Record resource counts during run (not just at completion)
-                // Record whenever we have resource data (total or processed)
-                if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
-                    (savedRun.processedResources != null && savedRun.processedResources > 0)
-                ) {
-                    harvestMetricsService.recordRunResourceCounts(savedRun)
-                }
             }
 
-            // Record metrics if status changed (always record completion/failure metrics)
-            if (oldStatus != savedRun.status) {
-                harvestMetricsService.recordRunCompleted(savedRun)
+            // Record resource counts during run (not just at completion)
+            // Record whenever we have resource data (total or processed)
+            if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
+                (savedRun.processedResources != null && savedRun.processedResources > 0)
+            ) {
+                harvestMetricsService.recordRunResourceCounts(savedRun)
             }
+        }
+
+        // Record metrics if status changed (always record completion/failure metrics)
+        if (oldStatus != savedRun.status) {
+            harvestMetricsService.recordRunCompleted(savedRun)
         }
     }
 
@@ -233,7 +231,7 @@ class HarvestRunService(
         // Update phase durations based on phase
         when (event.phase.name) {
             "HARVESTING" -> {
-                if (startTime != null && run.runStartedAt != null) {
+                if (startTime != null) {
                     updatedRun =
                         updatedRun.copy(
                             initDurationMs = ChronoUnit.MILLIS.between(run.runStartedAt, startTime),
@@ -341,7 +339,7 @@ class HarvestRunService(
             // Calculate runEndedAt based on totalDuration to ensure consistency
             // This ensures runEndedAt - runStartedAt = totalDurationMs
             val calculatedEndTime =
-                if (run.runStartedAt != null && totalDuration != null) {
+                if (totalDuration != null) {
                     run.runStartedAt.plusMillis(totalDuration)
                 } else {
                     // Fallback to latest endTime if we can't calculate from durations

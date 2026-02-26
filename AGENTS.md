@@ -4,10 +4,10 @@ This document gives AI agents and contributors enough context to work effectivel
 
 ## Project Overview
 
-**fdk-harvest-admin-service** is a Spring Boot (Kotlin) application that replaces the original Go-based `fdk-harvest-admin`. It provides a REST API to register and list data sources for harvesting, and integrates with RabbitMQ (harvest triggers/reports) and Kafka (harvest events). It is part of the FDK (Felles datakatalog) harvest pipeline.
+**fdk-harvest-admin-service** is a Spring Boot (Kotlin) application that replaces the original Go-based `fdk-harvest-admin`. It provides a REST API to register and list data sources for harvesting, and integrates with Kafka for harvest events (triggers and reports). It is part of the FDK (Felles datakatalog) harvest pipeline.
 
 - **Architecture**: See [architecture documentation](https://github.com/Informasjonsforvaltning/architecture-documentation) for system context.
-- **Run locally**: `mvn spring-boot:run` (requires Docker for PostgreSQL and RabbitMQ: `docker compose up -d`).
+- **Run locally**: `mvn spring-boot:run` (requires Docker for PostgreSQL and Kafka: `docker compose up -d`).
 - **Tests**: `mvn verify` (unit tests with Surefire; integration tests with Failsafe and Testcontainers).
 
 ## Tech Stack
@@ -18,25 +18,24 @@ This document gives AI agents and contributors enough context to work effectivel
 | Framework | Spring Boot 3.5.x |
 | Build | Maven |
 | Database | PostgreSQL, JPA, Flyway |
-| Messaging | RabbitMQ (AMQP), Apache Kafka |
+| Messaging | Apache Kafka |
 | Auth | Spring Security, OAuth2 (Keycloak), API key for internal endpoints |
 | API docs | SpringDoc OpenAPI (Swagger UI at `/swagger-ui.html`) |
 | Observability | Micrometer/Prometheus, Actuator |
-| Testing | JUnit 5, Mockito (mockito-kotlin), Testcontainers (Postgres, RabbitMQ, Kafka) |
+| Testing | JUnit 5, Mockito (mockito-kotlin), Testcontainers (Postgres, Kafka) |
 
 ## Project Layout
 
 ```
 src/main/kotlin/no/fdk/harvestadmin/
 ├── FdkHarvestAdminServiceApplication.kt   # Entry point, @EnableScheduling
-├── config/                                # Security, Kafka, RabbitMQ, OpenAPI
+├── config/                                # Security, Kafka, OpenAPI
 ├── controller/                            # REST controllers (datasources, harvest runs, internal)
 ├── converter/                             # JPA attribute converters (e.g. DataType, DataSourceType)
 ├── entity/                                # JPA entities (DataSource, HarvestRun, HarvestEvent)
 ├── exception/                             # GlobalExceptionHandler, custom exceptions
 ├── kafka/                                 # KafkaHarvestEventConsumer, KafkaHarvestEventPublisher
 ├── model/                                 # DTOs and domain models (DataSource, HarvestStatus, etc.)
-├── rabbit/                                # RabbitMQListener, RabbitMQPublisher
 ├── repository/                            # Spring Data JPA repositories
 └── service/                               # Business logic (DataSourceService, HarvestRunService, etc.)
 
@@ -77,7 +76,7 @@ scripts/                                   # Migration and utility scripts (e.g.
 
 ### Messaging
 
-- **RabbitMQ**: Consumes harvest reports (e.g. `*.harvested`, `*.reasoned`, `*.ingested`) and publishes harvest triggers (`{datatype}.publisher.HarvestTrigger`). See `RabbitMQListener`, `RabbitMQPublisher`, and README.
+- **Kafka**: Consumes harvest events and publishes harvest triggers. See `KafkaHarvestEventConsumer`, `KafkaHarvestEventPublisher`, and README.
 - **Kafka**: Consumes/publishes harvest events; Avro schemas in `kafka/schemas/`; generated classes in `target/generated-sources/avro`. See `KafkaHarvestEventConsumer`, `KafkaHarvestEventPublisher`, and `KafkaConfig`.
 
 ### Errors and Security
@@ -88,7 +87,7 @@ scripts/                                   # Migration and utility scripts (e.g.
 ### Tests
 
 - **Controller tests**: Extend `BaseControllerTest`, use `@WebMvcTest`, `MockMvc`, and `@MockBean` for services. Use `@ActiveProfiles("test")` and application-test config so security can be relaxed where needed.
-- **Integration tests**: Use `@SpringBootTest`, Testcontainers (PostgreSQL, RabbitMQ, Kafka as needed), and shared setup (e.g. `BaseIntegrationTest`, `TestContainerLifecycleExtension`, `SharedTestContainers`).
+- **Integration tests**: Use `@SpringBootTest`, Testcontainers (PostgreSQL, Kafka as needed), and shared setup (e.g. `BaseIntegrationTest`, `TestContainerLifecycleExtension`, `SharedTestContainers`).
 - **Naming**: `*Test.kt` for unit tests (Surefire); `*IntegrationTest.kt` for integration tests (Failsafe).
 
 ## Common Tasks
@@ -103,11 +102,17 @@ scripts/                                   # Migration and utility scripts (e.g.
 - `mvn spring-boot:run` – run the application
 - `mvn verify` – run all tests (unit + integration)
 - `mvn test` – run unit tests only (excludes `*IntegrationTest`)
-- `docker compose up -d` – start PostgreSQL and RabbitMQ for local run
+- `mvn compile` – compile (fails on warnings via `-Werror`)
+- `docker compose up -d` – start PostgreSQL and Kafka for local run
+
+## Compilation
+
+- **Warnings as errors**: Kotlin compiler uses `-Werror`; fix or suppress any compilation warnings before committing.
+- **Check before changes**: Run `mvn compile` (or `mvn verify`) after making code changes to ensure no new warnings or errors.
 
 ## Files to Check When Changing Behavior
 
 - **Security / auth**: `SecurityConfig.kt`, `ApiKeyAuthenticationFilter.kt`, `OpenApiConfig.kt`
 - **API surface**: Controllers in `controller/`, `application.yml` (paths/context if any)
-- **Harvest flow**: `HarvestRunService`, `HarvestEventProcessor`, `KafkaHarvestEventConsumer`/`Publisher`, `RabbitMQListener`/`Publisher`
+- **Harvest flow**: `HarvestRunService`, `HarvestEventProcessor`, `KafkaHarvestEventConsumer`/`Publisher`
 - **Data model**: `entity/`, `model/`, `repository/`, Flyway migrations

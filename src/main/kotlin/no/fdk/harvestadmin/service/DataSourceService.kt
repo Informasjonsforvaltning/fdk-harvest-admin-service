@@ -9,7 +9,6 @@ import no.fdk.harvestadmin.kafka.KafkaHarvestEventPublisher
 import no.fdk.harvestadmin.model.DataSource
 import no.fdk.harvestadmin.model.DataSourceType
 import no.fdk.harvestadmin.model.DataType
-import no.fdk.harvestadmin.rabbit.RabbitMQPublisher
 import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import no.fdk.harvestadmin.service.HarvestRunService
@@ -22,7 +21,6 @@ import java.util.UUID
 @Service
 class DataSourceService(
     private val dataSourceRepository: DataSourceRepository,
-    private val rabbitMQPublisher: RabbitMQPublisher,
     private val harvestRunService: HarvestRunService,
     private val kafkaHarvestEventPublisher: KafkaHarvestEventPublisher,
     private val harvestRunRepository: HarvestRunRepository,
@@ -82,32 +80,6 @@ class DataSourceService(
         } catch (e: Exception) {
             logger.error("Error creating data source", e)
             throw RuntimeException("Error creating data source", e)
-        }
-    }
-
-    @Transactional
-    fun createDataSourceFromRabbitMessage(dataSource: DataSource) {
-        // Note: Bean Validation is not automatically triggered for RabbitMQ messages
-        // Basic validation is done manually here
-        if (dataSource.url.isBlank() || dataSource.publisherId.isBlank()) {
-            logger.error("Invalid data source from RabbitMQ: missing required fields")
-            return
-        }
-
-        val existing = dataSourceRepository.findByUrlAndDataType(dataSource.url, dataSource.dataType)
-        if (existing.isNotEmpty()) {
-            logger.warn("Data source with current url and data type already exists, skipping creation from RabbitMQ")
-            return
-        }
-
-        val id = UUID.randomUUID().toString()
-        val entity = DataSourceEntity.fromModel(dataSource.copy(id = id))
-
-        try {
-            dataSourceRepository.save(entity)
-            logger.info("Data source created from RabbitMQ message with id: $id")
-        } catch (e: Exception) {
-            logger.error("Error creating data source from RabbitMQ", e)
         }
     }
 
@@ -218,20 +190,6 @@ class DataSourceService(
 
             // Publish harvest trigger event to Kafka
             kafkaHarvestEventPublisher.publishEvent(triggerEvent)
-
-            // Publish harvest trigger to RabbitMQ (deprecated)
-            val trigger =
-                no.fdk.harvestadmin.model.HarvestTrigger(
-                    runId = runId,
-                    dataSourceId = id,
-                    dataSourceUrl = dataSource.url,
-                    dataType = dataSource.dataType.value,
-                    acceptHeader = dataSource.acceptHeader!!,
-                    publisherId = dataSource.publisherId,
-                    timestamp = 0L,
-                    forceUpdate = "true",
-                )
-            rabbitMQPublisher.publishHarvestTrigger(dataSource.dataType, trigger)
         } catch (e: Exception) {
             logger.error("Error starting harvest for data source with id: $id", e)
             throw RuntimeException("Error starting harvest", e)

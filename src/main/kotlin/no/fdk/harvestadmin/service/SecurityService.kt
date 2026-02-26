@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 
 @Service
 class SecurityService(
-    @Value("\${app.security.org-type}") private val orgType: String,
+    @param:Value("\${app.security.org-type}") private val orgType: String,
 ) {
     /**
      * Returns organizations the current user may access. Null means all organizations (system admin).

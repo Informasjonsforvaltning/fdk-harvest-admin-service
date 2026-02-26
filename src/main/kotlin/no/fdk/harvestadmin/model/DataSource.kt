@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Pattern
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class DataSource(
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @field:JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val id: String? = null,
     @field:NotNull(message = "dataSourceType is required")
     val dataSourceType: DataSourceType,
@@ -20,7 +20,7 @@ data class DataSource(
         message = "Invalid URL format",
     )
     val url: String,
-    @JsonProperty("acceptHeaderValue")
+    @field:JsonProperty("acceptHeaderValue")
     val acceptHeader: String? = null,
     @field:NotBlank(message = "publisherId is required")
     @field:Pattern(

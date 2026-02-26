@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class OpenApiConfig(
-    @Value("\${app.openapi.server-url:}") private val serverUrl: String?,
-    @Value("\${server.port:8080}") private val serverPort: Int,
+    @param:Value("\${app.openapi.server-url:}") private val serverUrl: String?,
+    @param:Value("\${server.port:8080}") private val serverPort: Int,
 ) {
     @Bean
     fun customOpenAPI(servletContext: ServletContext?): OpenAPI {

@@ -39,38 +39,18 @@ spec:
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: fdk-harvest-admin-service
+                  name: fdk-harvest-admin
                   key: POSTGRESQL_DB
             - name: POSTGRES_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: fdk-harvest-admin-service
+                  name: fdk-harvest-admin
                   key: POSTGRESQL_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: fdk-harvest-admin-service
+                  name: fdk-harvest-admin
                   key: POSTGRESQL_PASSWORD
-            - name: RABBIT_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq
-                  key: RABBITMQ_HOST
-            - name: RABBIT_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq
-                  key: RABBITMQ_USERNAME
-            - name: RABBIT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq
-                  key: RABBITMQ_PASSWORD
-            - name: RABBIT_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq
-                  key: RABBITMQ_PORT
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
                 secretKeyRef:
@@ -84,8 +64,13 @@ spec:
             - name: API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: fdk-harvest-admin-service
+                  name: fdk-harvest-admin
                   key: API_KEY
+            - name: CORS_ORIGIN_PATTERNS
+              valueFrom:
+                secretKeyRef:
+                  name: fdk-harvest-admin
+                  key: CORS_ORIGIN_PATTERNS
             - name: JAVA_OPTS
               value: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
           image: fdk-harvest-admin-service
