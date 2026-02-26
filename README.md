@@ -87,12 +87,9 @@ The application can be configured using environment variables or `application.ym
 - `DELETE /organizations/{org}/datasources/{id}` - Delete a data source
 - `GET /organizations/{org}/datasources/{id}/status` - Get harvest status
 - `POST /organizations/{org}/datasources/{id}/start-harvesting` - Trigger harvest
-
-### Internal Endpoints (API Key Required)
-
-- `GET /internal/datasources` - Get all data sources
-- `GET /internal/organizations/{org}/datasources` - Get data sources for an organization
-- `GET /internal/organizations/{org}/datasources/{id}` - Get a specific data source
+- `GET /runs` - List harvest runs (paginated)
+- `GET /runs/{runId}` - Get harvest run details
+- `GET /runs/metrics` - Get performance metrics
 
 ## RabbitMQ Integration
 

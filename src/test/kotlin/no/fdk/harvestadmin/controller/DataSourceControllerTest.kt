@@ -107,7 +107,7 @@ class DataSourceControllerTest : BaseControllerTest() {
                 dataSourceType = DataSourceType.DCAT_AP_NO,
                 url = "https://example.com/data-updated",
             )
-        whenever(securityService.getAuthorizedOrganizations(any())).thenReturn(listOf("test-org"))
+        whenever(securityService.getAuthorizedOrganizations(null)).thenReturn(listOf("test-org"))
         whenever(dataSourceService.updateDataSource(any(), any(), any())).thenReturn(dataSource)
 
         // When/Then

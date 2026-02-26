@@ -24,12 +24,12 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val runDetails = createHarvestRunDetails()
         whenever(
-            harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), eq("IN_PROGRESS"), any(), any()),
+            harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), eq("IN_PROGRESS"), any(), any(), anyOrNull()),
         ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs").param("status", "IN_PROGRESS"))
+            .perform(get("/runs").param("status", "IN_PROGRESS"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.runs[0].runId").value(runDetails.runId))
@@ -44,12 +44,12 @@ class HarvestRunControllerTest : BaseControllerTest() {
         val dataSourceId = UUID.randomUUID().toString()
         val runDetails = createHarvestRunDetails(dataSourceId = dataSourceId)
         whenever(
-            harvestRunService.getHarvestRuns(eq(dataSourceId), anyOrNull(), anyOrNull(), any(), any()),
+            harvestRunService.getHarvestRuns(eq(dataSourceId), anyOrNull(), anyOrNull(), any(), any(), anyOrNull()),
         ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs").param("dataSourceId", dataSourceId))
+            .perform(get("/runs").param("dataSourceId", dataSourceId))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.runs[0].dataSourceId").value(dataSourceId))
@@ -63,13 +63,13 @@ class HarvestRunControllerTest : BaseControllerTest() {
         val dataType = "dataset"
         val runDetails = createHarvestRunDetails(dataSourceId = dataSourceId, dataType = dataType)
         whenever(
-            harvestRunService.getHarvestRuns(eq(dataSourceId), eq(dataType), anyOrNull(), any(), any()),
+            harvestRunService.getHarvestRuns(eq(dataSourceId), eq(dataType), anyOrNull(), any(), any(), anyOrNull()),
         ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
         mockMvc
             .perform(
-                get("/internal/runs")
+                get("/runs")
                     .param("dataSourceId", dataSourceId)
                     .param("dataType", dataType),
             ).andExpect(status().isOk)
@@ -81,11 +81,13 @@ class HarvestRunControllerTest : BaseControllerTest() {
     @Test
     fun `should return empty list when no filters provided`() {
         // Given
-        whenever(harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), anyOrNull(), any(), any())).thenReturn(Pair(emptyList(), 0L))
+        whenever(
+            harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), anyOrNull(), any(), any(), anyOrNull()),
+        ).thenReturn(Pair(emptyList(), 0L))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs"))
+            .perform(get("/runs"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.runs").isEmpty)
             .andExpect(jsonPath("$.total").value(0))
@@ -96,11 +98,11 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val runId = UUID.randomUUID().toString()
         val runDetails = createHarvestRunDetails()
-        whenever(harvestRunService.getHarvestRun(eq(runId))).thenReturn(Pair(runDetails, HttpStatus.OK))
+        whenever(harvestRunService.getHarvestRun(eq(runId), anyOrNull())).thenReturn(Pair(runDetails, HttpStatus.OK))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs/$runId"))
+            .perform(get("/runs/$runId"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.runId").value(runDetails.runId))
@@ -111,11 +113,11 @@ class HarvestRunControllerTest : BaseControllerTest() {
     fun `should return 404 when harvest run not found`() {
         // Given
         val runId = UUID.randomUUID().toString()
-        whenever(harvestRunService.getHarvestRun(eq(runId))).thenReturn(Pair(null, HttpStatus.NOT_FOUND))
+        whenever(harvestRunService.getHarvestRun(eq(runId), anyOrNull())).thenReturn(Pair(null, HttpStatus.NOT_FOUND))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs/$runId"))
+            .perform(get("/runs/$runId"))
             .andExpect(status().isNotFound)
     }
 
@@ -133,13 +135,14 @@ class HarvestRunControllerTest : BaseControllerTest() {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
+                anyOrNull(),
             ),
         ).thenReturn(Pair(metrics, HttpStatus.OK))
 
         // When/Then
         mockMvc
             .perform(
-                get("/internal/runs/metrics")
+                get("/runs/metrics")
                     .param("dataSourceId", dataSourceId)
                     .param("dataType", dataType),
             ).andExpect(status().isOk)
@@ -159,12 +162,13 @@ class HarvestRunControllerTest : BaseControllerTest() {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
+                anyOrNull(),
             ),
         ).thenReturn(Pair(metrics, HttpStatus.OK))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs/metrics"))
+            .perform(get("/runs/metrics"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.dataSourceId").doesNotExist())
@@ -182,12 +186,13 @@ class HarvestRunControllerTest : BaseControllerTest() {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
+                anyOrNull(),
             ),
         ).thenReturn(Pair(metrics, HttpStatus.OK))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs/metrics").param("daysBack", "30"))
+            .perform(get("/runs/metrics").param("daysBack", "30"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.totalRuns").exists())
     }
@@ -202,13 +207,14 @@ class HarvestRunControllerTest : BaseControllerTest() {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
+                anyOrNull(),
             ),
         ).thenReturn(Pair(metrics, HttpStatus.OK))
 
         // When/Then
         mockMvc
             .perform(
-                get("/internal/runs/metrics")
+                get("/runs/metrics")
                     .param("startDate", "2024-01-01T00:00:00Z")
                     .param("endDate", "2024-01-31T23:59:59Z"),
             ).andExpect(status().isOk)
@@ -219,7 +225,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
     fun `should return 400 for invalid start date format`() {
         // When/Then
         mockMvc
-            .perform(get("/internal/runs/metrics").param("startDate", "invalid-date"))
+            .perform(get("/runs/metrics").param("startDate", "invalid-date"))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").exists())
     }
@@ -228,7 +234,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
     fun `should return 400 for invalid end date format`() {
         // When/Then
         mockMvc
-            .perform(get("/internal/runs/metrics").param("endDate", "invalid-date"))
+            .perform(get("/runs/metrics").param("endDate", "invalid-date"))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").exists())
     }
@@ -243,12 +249,13 @@ class HarvestRunControllerTest : BaseControllerTest() {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
+                anyOrNull(),
             ),
         ).thenReturn(Pair(metrics, HttpStatus.OK))
 
         // When/Then
         mockMvc
-            .perform(get("/internal/runs/metrics").param("limit", "10"))
+            .perform(get("/runs/metrics").param("limit", "10"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.totalRuns").exists())
     }
@@ -265,13 +272,14 @@ class HarvestRunControllerTest : BaseControllerTest() {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
+                anyOrNull(),
             ),
         ).thenReturn(Pair(null, HttpStatus.NOT_FOUND))
 
         // When/Then
         mockMvc
             .perform(
-                get("/internal/runs/metrics")
+                get("/runs/metrics")
                     .param("dataSourceId", testDataSourceId)
                     .param("dataType", "dataset"),
             ).andExpect(status().isNotFound)

@@ -10,12 +10,18 @@ import java.util.regex.Pattern
 class SecurityService(
     @Value("\${app.security.org-type}") private val orgType: String,
 ) {
+    /**
+     * Returns organizations the current user may access. Null means all organizations (system admin).
+     * API key authentication is treated as system admin (same access as system:root:admin).
+     * Returns empty list when not authenticated (no access); only authenticated principals get null for full access.
+     */
     fun getAuthorizedOrganizations(authentication: Authentication?): List<String>? {
         if (authentication == null) {
-            return null
+            return emptyList()
         }
 
         val principal = authentication.principal
+        // API key auth uses non-JWT principal; treat as system admin (full access)
         if (principal !is Jwt) {
             return null
         }
@@ -43,7 +49,7 @@ class SecurityService(
     fun hasAnyOrgAuth(authorities: String): Boolean = authorities.contains(orgType)
 
     private fun extractOrganizations(authorities: String): List<String> {
-        val pattern = Pattern.compile("$orgType:([0-9]*):")
+        val pattern = Pattern.compile(Pattern.quote(orgType) + ":([^:]+):")
         val matcher = pattern.matcher(authorities)
         val orgs = mutableListOf<String>()
 

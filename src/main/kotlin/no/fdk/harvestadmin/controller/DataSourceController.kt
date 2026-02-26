@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import no.fdk.harvestadmin.exception.ForbiddenException
 import no.fdk.harvestadmin.exception.ValidationException
 import no.fdk.harvestadmin.model.DataSource
 import no.fdk.harvestadmin.model.DataSourceType
@@ -50,6 +51,17 @@ class DataSourceController(
         }
     }
 
+    /** Ensures the authenticated user (JWT or API key) may access the given org. API key = system admin = any org. */
+    private fun requireOrgAccess(
+        org: String,
+        authentication: Authentication?,
+    ) {
+        val authorizedOrgs = securityService.getAuthorizedOrganizations(authentication)
+        if (authorizedOrgs != null && org !in authorizedOrgs) {
+            throw ForbiddenException("Access denied to organization $org")
+        }
+    }
+
     @GetMapping("/datasources")
     @Operation(
         summary = "Query for data sources",
@@ -75,64 +87,6 @@ class DataSourceController(
         return ResponseEntity.ok(sources)
     }
 
-    @GetMapping("/internal/datasources")
-    @Operation(
-        summary = "Query for all data sources (internal)",
-        description = "Returns all data sources without authorization checks",
-        security = [SecurityRequirement(name = "api-key")],
-    )
-    fun getAllInternalDataSources(
-        @RequestParam(required = false) dataType: String?,
-        @RequestParam(required = false) dataSourceType: String?,
-    ): ResponseEntity<List<DataSource>> {
-        val dataTypeEnum = dataType?.let { DataType.fromString(it) }
-        val dataSourceTypeEnum = dataSourceType?.let { DataSourceType.fromString(it) }
-
-        val sources = dataSourceService.getAllowedDataSources(null, dataTypeEnum, dataSourceTypeEnum)
-        return ResponseEntity.ok(sources)
-    }
-
-    @GetMapping("/organizations/{org}/datasources")
-    @Operation(
-        summary = "Query for data sources by organization",
-        description = "Returns a collection of data sources for specified organization",
-        security = [SecurityRequirement(name = "api-key")],
-    )
-    fun getOrgDataSources(
-        @PathVariable org: String,
-        @RequestParam(required = false) dataType: String?,
-        @RequestParam(required = false) dataSourceType: String?,
-        authentication: Authentication?,
-    ): ResponseEntity<List<DataSource>> {
-        validateOrgId(org)
-        val authorizedOrgs = listOf(org)
-        val dataTypeEnum = dataType?.let { DataType.fromString(it) }
-        val dataSourceTypeEnum = dataSourceType?.let { DataSourceType.fromString(it) }
-
-        val sources = dataSourceService.getAllowedDataSources(authorizedOrgs, dataTypeEnum, dataSourceTypeEnum)
-        return ResponseEntity.ok(sources)
-    }
-
-    @GetMapping("/internal/organizations/{org}/datasources")
-    @Operation(
-        summary = "Query for data sources by organization (internal)",
-        description = "Returns data sources for organization without authorization checks",
-        security = [SecurityRequirement(name = "api-key")],
-    )
-    fun getInternalOrgDataSources(
-        @PathVariable org: String,
-        @RequestParam(required = false) dataType: String?,
-        @RequestParam(required = false) dataSourceType: String?,
-    ): ResponseEntity<List<DataSource>> {
-        validateOrgId(org)
-        val authorizedOrgs = listOf(org)
-        val dataTypeEnum = dataType?.let { DataType.fromString(it) }
-        val dataSourceTypeEnum = dataSourceType?.let { DataSourceType.fromString(it) }
-
-        val sources = dataSourceService.getAllowedDataSources(authorizedOrgs, dataTypeEnum, dataSourceTypeEnum)
-        return ResponseEntity.ok(sources)
-    }
-
     @GetMapping("/organizations/{org}/datasources/{id}")
     @Operation(
         summary = "Get a specific data source by id",
@@ -145,21 +99,7 @@ class DataSourceController(
         authentication: Authentication?,
     ): ResponseEntity<DataSource> {
         validateOrgId(org)
-        val source = dataSourceService.getDataSource(id)
-        return ResponseEntity.ok(source)
-    }
-
-    @GetMapping("/internal/organizations/{org}/datasources/{id}")
-    @Operation(
-        summary = "Get a specific data source by id (internal)",
-        description = "Returns a data source by id without authorization checks",
-        security = [SecurityRequirement(name = "api-key")],
-    )
-    fun getInternalDataSource(
-        @PathVariable org: String,
-        @PathVariable id: String,
-    ): ResponseEntity<DataSource> {
-        validateOrgId(org)
+        requireOrgAccess(org, authentication)
         val source = dataSourceService.getDataSource(id)
         return ResponseEntity.ok(source)
     }
@@ -222,6 +162,7 @@ class DataSourceController(
         authentication: Authentication?,
     ): ResponseEntity<DataSource> {
         validateOrgId(org)
+        requireOrgAccess(org, authentication)
         val created = dataSourceService.createDataSource(dataSource, org)
         val location = "/organizations/$org/datasources/${created.id}"
         return ResponseEntity
@@ -269,6 +210,7 @@ class DataSourceController(
         authentication: Authentication?,
     ): ResponseEntity<DataSource> {
         validateOrgId(org)
+        requireOrgAccess(org, authentication)
         val updated = dataSourceService.updateDataSource(id, dataSource, org)
         return ResponseEntity.ok(updated)
     }
@@ -285,6 +227,7 @@ class DataSourceController(
         authentication: Authentication?,
     ): ResponseEntity<Void> {
         validateOrgId(org)
+        requireOrgAccess(org, authentication)
         dataSourceService.deleteDataSource(id)
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
@@ -302,17 +245,18 @@ class DataSourceController(
         authentication: Authentication?,
     ): ResponseEntity<Void> {
         validateOrgId(org)
+        requireOrgAccess(org, authentication)
         dataSourceService.startHarvesting(id, org, request?.removeAll, request?.forced)
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 
-    @GetMapping("/internal/organizations/{org}/datasources/{id}/status")
+    @GetMapping("/organizations/{org}/datasources/{id}/status")
     @Operation(
-        summary = "Get harvest status for a data source (internal)",
+        summary = "Get harvest status for a data source",
         description =
             "Returns the current harvest state(s) for a data source. " +
                 "Returns a list with one state per data type if dataType is not specified.",
-        security = [SecurityRequirement(name = "api-key")],
+        security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
     )
     fun getHarvestStatus(
         @PathVariable org: String,
@@ -321,6 +265,7 @@ class DataSourceController(
         authentication: Authentication?,
     ): ResponseEntity<List<no.fdk.harvestadmin.model.HarvestCurrentState>> {
         validateOrgId(org)
+        requireOrgAccess(org, authentication)
         val (states, httpStatus) = harvestRunService.getCurrentState(id, dataType)
         return ResponseEntity.status(httpStatus).body(states)
     }

@@ -129,7 +129,7 @@ class HarvestMetricsService(
                         .now()
                         .minus(24, java.time.temporal.ChronoUnit.HOURS)
                 harvestRunRepository
-                    .findAllCompletedRuns(oneDayAgo)
+                    .findAllCompletedRuns(oneDayAgo, null)
                     .sumOf { it.processedResources?.toLong() ?: 0L }
                     .toDouble()
             }.description("Total processed resources from completed runs in last 24 hours")
@@ -148,7 +148,7 @@ class HarvestMetricsService(
                         .minus(24, java.time.temporal.ChronoUnit.HOURS)
                 val completed =
                     harvestRunRepository
-                        .findAllCompletedRuns(oneDayAgo)
+                        .findAllCompletedRuns(oneDayAgo, null)
                         .sumOf { it.processedResources?.toLong() ?: 0L }
                 (inProgress + completed).toDouble()
             }.description("Total processed resources (in-progress + completed in last 24h)")

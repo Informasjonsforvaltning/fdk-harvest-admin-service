@@ -254,7 +254,7 @@ get_status() {
         error "Data source ID is required"
     fi
     
-    local url="$BASE_URL/internal/organizations/$org/datasources/$datasource_id/status"
+    local url="$BASE_URL/organizations/$org/datasources/$datasource_id/status"
     if [ -n "$data_type" ]; then
         url="$url?dataType=$data_type"
     fi
@@ -308,7 +308,7 @@ get_run() {
         error "Run ID is required. Use: $0 run <run-id>"
     fi
     
-    local url="$BASE_URL/internal/runs/$run_id"
+    local url="$BASE_URL/runs/$run_id"
     local response=$(curl_cmd "GET" "$url")
     local http_code=$(echo "$response" | tail -n1)
     local body=$(echo "$response" | sed '$d')
@@ -369,7 +369,7 @@ list_runs() {
     local offset="${4:-0}"
     local limit="${5:-50}"
     
-    local url="$BASE_URL/internal/runs"
+    local url="$BASE_URL/runs"
     local params=()
     
     [ -n "$data_source_id" ] && params+=("dataSourceId=$data_source_id")
@@ -450,7 +450,7 @@ get_metrics() {
     local end_date="$5"
     local limit="$6"
     
-    local url="$BASE_URL/internal/runs/metrics"
+    local url="$BASE_URL/runs/metrics"
     local params=()
     
     [ -n "$data_source_id" ] && params+=("dataSourceId=$data_source_id")

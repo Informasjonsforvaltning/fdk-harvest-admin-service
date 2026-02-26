@@ -63,11 +63,10 @@ class OpenApiConfig(
                         SecurityScheme()
                             .type(SecurityScheme.Type.APIKEY)
                             .`in`(SecurityScheme.In.HEADER)
-                            .name("X-API-Key")
-                            .description("API key for internal endpoints"),
+                            .name("X-API-KEY")
+                            .description("API key for internal/service calls"),
                     ),
-            ).addSecurityItem(
-                SecurityRequirement().addList("api-key"),
-            )
+            ).addSecurityItem(SecurityRequirement().addList("api-key"))
+            .addSecurityItem(SecurityRequirement().addList("bearer-jwt"))
     }
 }

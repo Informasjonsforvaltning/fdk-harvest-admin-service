@@ -17,7 +17,7 @@ class ApiKeyAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        // Process API key authentication for all endpoints (temporary replacement for JWT)
+        // Process API key authentication; JWT is also accepted when no API key is sent
         val path = request.requestURI
         // Skip API key check for public endpoints
         if (!path.startsWith("/actuator") &&

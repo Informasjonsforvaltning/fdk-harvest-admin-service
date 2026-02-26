@@ -8,6 +8,7 @@ import no.fdk.harvestadmin.model.HarvestPerformanceMetrics
 import no.fdk.harvestadmin.model.HarvestRunDetails
 import no.fdk.harvestadmin.model.PhaseDurations
 import no.fdk.harvestadmin.model.ResourceCounts
+import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestEventRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.slf4j.LoggerFactory
@@ -24,10 +25,18 @@ import java.time.temporal.ChronoUnit
 class HarvestRunService(
     private val harvestEventRepository: HarvestEventRepository,
     private val harvestRunRepository: HarvestRunRepository,
+    private val dataSourceRepository: DataSourceRepository,
     private val harvestMetricsService: HarvestMetricsService,
     @Value("\${app.harvest.stale-timeout-minutes:30}") private val staleTimeoutMinutes: Long,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    /** Resolves allowed publisher IDs (orgs) to data source IDs for run filtering. Returns null when no restriction (e.g. system admin / API key). */
+    private fun resolveAllowedDataSourceIds(allowedPublisherIds: List<String>?): List<String>? {
+        if (allowedPublisherIds == null) return null
+        if (allowedPublisherIds.isEmpty()) return emptyList()
+        return dataSourceRepository.findByPublisherIdIn(allowedPublisherIds).map { it.id }
+    }
 
     @Transactional
     fun persistEvent(event: HarvestEvent) {
@@ -836,8 +845,15 @@ class HarvestRunService(
         startDate: Instant? = null,
         endDate: Instant? = null,
         limit: Int? = null,
-    ): Pair<HarvestPerformanceMetrics?, HttpStatus> =
-        try {
+        allowedPublisherIds: List<String>? = null,
+    ): Pair<HarvestPerformanceMetrics?, HttpStatus> {
+        return try {
+            if (allowedPublisherIds != null) {
+                val dataSource = dataSourceRepository.findById(dataSourceId).orElse(null)
+                if (dataSource == null || dataSource.publisherId !in allowedPublisherIds) {
+                    return Pair(null, HttpStatus.FORBIDDEN)
+                }
+            }
             val runs =
                 when {
                     limit != null -> {
@@ -898,32 +914,38 @@ class HarvestRunService(
             logger.error("Error getting performance metrics for dataSourceId: $dataSourceId, dataType: $dataType", e)
             Pair(null, HttpStatus.INTERNAL_SERVER_ERROR)
         }
+    }
 
     fun getAllPerformanceMetrics(
         daysBack: Int? = null,
         startDate: Instant? = null,
         endDate: Instant? = null,
         limit: Int? = null,
-    ): Pair<HarvestPerformanceMetrics?, HttpStatus> =
-        try {
+        allowedPublisherIds: List<String>? = null,
+    ): Pair<HarvestPerformanceMetrics?, HttpStatus> {
+        return try {
+            val allowedDataSourceIds = resolveAllowedDataSourceIds(allowedPublisherIds)
+            if (allowedPublisherIds != null && allowedDataSourceIds != null && allowedDataSourceIds.isEmpty()) {
+                return Pair(null, HttpStatus.NOT_FOUND)
+            }
             val runs =
                 when {
                     limit != null -> {
                         // Get last N completed runs across all data sources
-                        harvestRunRepository.findLastAllCompletedRuns(PageRequest.of(0, limit))
+                        harvestRunRepository.findLastAllCompletedRuns(allowedDataSourceIds, PageRequest.of(0, limit))
                     }
                     startDate != null && endDate != null -> {
                         // Get runs from date range across all data sources
-                        harvestRunRepository.findAllCompletedRunsByDateRange(startDate, endDate)
+                        harvestRunRepository.findAllCompletedRunsByDateRange(startDate, endDate, allowedDataSourceIds)
                     }
                     startDate != null -> {
                         // Get runs from startDate to now across all data sources
-                        harvestRunRepository.findAllCompletedRunsByDateRange(startDate, Instant.now())
+                        harvestRunRepository.findAllCompletedRunsByDateRange(startDate, Instant.now(), allowedDataSourceIds)
                     }
                     else -> {
                         // Default: use daysBack (backward compatibility)
                         val start = Instant.now().minus((daysBack ?: 30).toLong(), ChronoUnit.DAYS)
-                        harvestRunRepository.findAllCompletedRuns(start)
+                        harvestRunRepository.findAllCompletedRuns(start, allowedDataSourceIds)
                     }
                 }
 
@@ -966,63 +988,70 @@ class HarvestRunService(
             logger.error("Error getting all performance metrics", e)
             Pair(null, HttpStatus.INTERNAL_SERVER_ERROR)
         }
+    }
 
-    fun getHarvestRun(runId: String): Pair<HarvestRunDetails?, HttpStatus> =
-        try {
-            val run = harvestRunRepository.findByRunId(runId)
-            if (run == null) {
-                Pair(null, HttpStatus.NOT_FOUND)
-            } else {
-                Pair(
-                    HarvestRunDetails(
-                        runId = run.runId,
-                        dataSourceId = run.dataSourceId,
-                        dataType = run.dataType,
-                        runStartedAt = run.runStartedAt,
-                        runEndedAt = run.runEndedAt,
-                        totalDurationMs = run.totalDurationMs,
-                        phaseDurations =
-                            PhaseDurations(
-                                initDurationMs = run.initDurationMs,
-                                harvestDurationMs = run.harvestDurationMs,
-                                reasoningDurationMs = run.reasoningDurationMs,
-                                rdfParsingDurationMs = run.rdfParsingDurationMs,
-                                searchProcessingDurationMs = run.searchProcessingDurationMs,
-                                aiSearchProcessingDurationMs = run.aiSearchProcessingDurationMs,
-                                apiProcessingDurationMs = run.apiProcessingDurationMs,
-                                sparqlProcessingDurationMs = run.sparqlProcessingDurationMs,
-                            ),
-                        resourceCounts =
-                            ResourceCounts(
-                                totalResources = run.totalResources,
-                                changedResourcesCount = run.changedResourcesCount,
-                                removedResourcesCount = run.removedResourcesCount,
-                                phaseEventCounts =
-                                    no.fdk.harvestadmin.model.PhaseEventCounts(
-                                        initiatingEventsCount = run.initiatingEventsCount,
-                                        harvestingEventsCount = run.harvestingEventsCount,
-                                        reasoningEventsCount = run.reasoningEventsCount,
-                                        rdfParsingEventsCount = run.rdfParsingEventsCount,
-                                        resourceProcessingEventsCount = run.resourceProcessingEventsCount,
-                                        searchProcessingEventsCount = run.searchProcessingEventsCount,
-                                        aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
-                                        sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
-                                    ),
-                            ),
-                        removeAll = run.removeAll,
-                        forced = run.forced,
-                        status = run.status,
-                        errorMessage = run.errorMessage,
-                        createdAt = run.createdAt,
-                        updatedAt = run.updatedAt,
-                    ),
-                    HttpStatus.OK,
-                )
+    fun getHarvestRun(
+        runId: String,
+        allowedPublisherIds: List<String>? = null,
+    ): Pair<HarvestRunDetails?, HttpStatus> {
+        return try {
+            val run = harvestRunRepository.findByRunId(runId) ?: return Pair(null, HttpStatus.NOT_FOUND)
+            if (allowedPublisherIds != null) {
+                val dataSource = dataSourceRepository.findById(run.dataSourceId).orElse(null)
+                if (dataSource == null || dataSource.publisherId !in allowedPublisherIds) {
+                    return Pair(null, HttpStatus.FORBIDDEN)
+                }
             }
+            Pair(
+                HarvestRunDetails(
+                    runId = run.runId,
+                    dataSourceId = run.dataSourceId,
+                    dataType = run.dataType,
+                    runStartedAt = run.runStartedAt,
+                    runEndedAt = run.runEndedAt,
+                    totalDurationMs = run.totalDurationMs,
+                    phaseDurations =
+                        PhaseDurations(
+                            initDurationMs = run.initDurationMs,
+                            harvestDurationMs = run.harvestDurationMs,
+                            reasoningDurationMs = run.reasoningDurationMs,
+                            rdfParsingDurationMs = run.rdfParsingDurationMs,
+                            searchProcessingDurationMs = run.searchProcessingDurationMs,
+                            aiSearchProcessingDurationMs = run.aiSearchProcessingDurationMs,
+                            apiProcessingDurationMs = run.apiProcessingDurationMs,
+                            sparqlProcessingDurationMs = run.sparqlProcessingDurationMs,
+                        ),
+                    resourceCounts =
+                        ResourceCounts(
+                            totalResources = run.totalResources,
+                            changedResourcesCount = run.changedResourcesCount,
+                            removedResourcesCount = run.removedResourcesCount,
+                            phaseEventCounts =
+                                no.fdk.harvestadmin.model.PhaseEventCounts(
+                                    initiatingEventsCount = run.initiatingEventsCount,
+                                    harvestingEventsCount = run.harvestingEventsCount,
+                                    reasoningEventsCount = run.reasoningEventsCount,
+                                    rdfParsingEventsCount = run.rdfParsingEventsCount,
+                                    resourceProcessingEventsCount = run.resourceProcessingEventsCount,
+                                    searchProcessingEventsCount = run.searchProcessingEventsCount,
+                                    aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
+                                    sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
+                                ),
+                        ),
+                    removeAll = run.removeAll,
+                    forced = run.forced,
+                    status = run.status,
+                    errorMessage = run.errorMessage,
+                    createdAt = run.createdAt,
+                    updatedAt = run.updatedAt,
+                ),
+                HttpStatus.OK,
+            )
         } catch (e: Exception) {
             logger.error("Error getting harvest run for runId: $runId", e)
             Pair(null, HttpStatus.INTERNAL_SERVER_ERROR)
         }
+    }
 
     fun getHarvestRuns(
         dataSourceId: String? = null,
@@ -1030,13 +1059,18 @@ class HarvestRunService(
         status: String? = null,
         offset: Int = 0,
         limit: Int = 50,
-    ): Pair<List<HarvestRunDetails>, Long> =
-        try {
+        allowedPublisherIds: List<String>? = null,
+    ): Pair<List<HarvestRunDetails>, Long> {
+        return try {
+            val allowedDataSourceIds = resolveAllowedDataSourceIds(allowedPublisherIds)
+            if (allowedPublisherIds != null && allowedDataSourceIds != null && allowedDataSourceIds.isEmpty()) {
+                return Pair(emptyList(), 0L)
+            }
             // Calculate page number from offset (Spring Data uses 0-indexed page numbers)
             val page = if (limit > 0) offset / limit else 0
             val pageable = PageRequest.of(page, limit)
-            val runs = harvestRunRepository.findRunsWithFilters(dataSourceId, dataType, status, pageable)
-            val totalCount = harvestRunRepository.countRunsWithFilters(dataSourceId, dataType, status)
+            val runs = harvestRunRepository.findRunsWithFilters(dataSourceId, dataType, status, allowedDataSourceIds, pageable)
+            val totalCount = harvestRunRepository.countRunsWithFilters(dataSourceId, dataType, status, allowedDataSourceIds)
 
             val runDetails =
                 runs.map { run ->
@@ -1088,6 +1122,7 @@ class HarvestRunService(
             logger.error("Error getting harvest runs for dataSourceId: $dataSourceId, dataType: $dataType, status: $status", e)
             Pair(emptyList(), 0L)
         }
+    }
 
     private fun <T> calculateAverage(
         items: List<T>,

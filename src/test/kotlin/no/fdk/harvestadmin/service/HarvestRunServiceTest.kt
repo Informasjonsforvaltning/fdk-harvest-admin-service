@@ -5,6 +5,7 @@ import no.fdk.harvest.HarvestEvent
 import no.fdk.harvest.HarvestPhase
 import no.fdk.harvestadmin.entity.HarvestEventEntity
 import no.fdk.harvestadmin.entity.HarvestRunEntity
+import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestEventRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,6 +17,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -33,13 +35,17 @@ class HarvestRunServiceTest {
     private lateinit var harvestRunRepository: HarvestRunRepository
 
     @Mock
+    private lateinit var dataSourceRepository: DataSourceRepository
+
+    @Mock
     private lateinit var harvestMetricsService: HarvestMetricsService
 
     private lateinit var harvestRunService: HarvestRunService
 
     @BeforeEach
     fun setUp() {
-        harvestRunService = HarvestRunService(harvestEventRepository, harvestRunRepository, harvestMetricsService, 30L)
+        harvestRunService =
+            HarvestRunService(harvestEventRepository, harvestRunRepository, dataSourceRepository, harvestMetricsService, 30L)
     }
 
     @Test
@@ -287,7 +293,7 @@ class HarvestRunServiceTest {
                 runStartedAt = Instant.now(),
                 status = "COMPLETED",
             )
-        whenever(harvestRunRepository.findAllCompletedRuns(any())).thenReturn(listOf(run1))
+        whenever(harvestRunRepository.findAllCompletedRuns(any(), anyOrNull())).thenReturn(listOf(run1))
 
         // When
         val (metrics, httpStatus) = harvestRunService.getAllPerformanceMetrics(daysBack = 30)
@@ -366,6 +372,7 @@ class HarvestRunServiceTest {
                 eq(dataSourceId),
                 eq("dataset"),
                 eq(null),
+                anyOrNull(),
                 any(),
             ),
         ).thenReturn(listOf(run1, run2))
@@ -374,6 +381,7 @@ class HarvestRunServiceTest {
                 eq(dataSourceId),
                 eq("dataset"),
                 eq(null),
+                anyOrNull(),
             ),
         ).thenReturn(2L)
 
@@ -407,6 +415,7 @@ class HarvestRunServiceTest {
                 eq(dataSourceId),
                 eq("dataset"),
                 eq(null),
+                anyOrNull(),
                 any(),
             ),
         ).thenReturn(runs.take(5))
@@ -415,6 +424,7 @@ class HarvestRunServiceTest {
                 eq(dataSourceId),
                 eq("dataset"),
                 eq(null),
+                anyOrNull(),
             ),
         ).thenReturn(10L)
 
