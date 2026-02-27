@@ -6,8 +6,10 @@ import no.fdk.harvestadmin.entity.HarvestRunEntity
 import no.fdk.harvestadmin.model.HarvestCurrentState
 import no.fdk.harvestadmin.model.HarvestPerformanceMetrics
 import no.fdk.harvestadmin.model.HarvestRunDetails
+import no.fdk.harvestadmin.model.PhaseCompletion
 import no.fdk.harvestadmin.model.PhaseDurations
 import no.fdk.harvestadmin.model.ResourceCounts
+import no.fdk.harvestadmin.model.RunCompletionStatus
 import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestEventRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
@@ -326,12 +328,36 @@ class HarvestRunService(
                 )
         }
 
-        // Update status
-        val status = determineStatus(event, run, updatedRun)
+        // Evaluate completion across phases using the latest in-memory run state
+        val completionStatus = checkIfAllPhasesComplete(updatedRun)
+
+        // Determine status based on error and completion state
+        val status =
+            if (event.errorMessage != null) {
+                "FAILED"
+            } else if (completionStatus.allPhasesComplete) {
+                "COMPLETED"
+            } else {
+                existingStatusOrDefault(run)
+            }
+
         var finalUpdatedRun = updatedRun.copy(status = status)
 
-        // Check if harvest is complete (when all phases have endTime)
-        val isComplete = checkIfAllPhasesComplete(run.runId, event)
+        // Check if harvest is complete (when all required phases are complete)
+        val isComplete = completionStatus.allPhasesComplete
+
+        // When the run is still in progress, record per-phase resource shortfall metrics
+        if (!isComplete) {
+            completionStatus.phases
+                .filter { it.required && !it.complete && it.expectedResources != null }
+                .forEach { phase ->
+                    val expected = phase.expectedResources!!
+                    val shortfall = expected - phase.completedResources
+                    if (shortfall > 0) {
+                        harvestMetricsService.recordPhaseResourceShortfall(updatedRun.dataType, phase.phase, shortfall)
+                    }
+                }
+        }
         if (isComplete && run.runEndedAt == null) {
             // Calculate total duration as the sum of all phase durations
             val totalDuration = calculateTotalDurationFromPhases(finalUpdatedRun)
@@ -369,74 +395,118 @@ class HarvestRunService(
         return finalUpdatedRun
     }
 
-    private fun determineStatus(
-        event: HarvestEvent,
-        existingRun: HarvestRunEntity?,
-        updatedRun: HarvestRunEntity,
-    ): String {
-        // If current event has an error, mark as FAILED
-        if (event.errorMessage != null) {
-            return "FAILED"
-        }
-        // Check if all phases are complete
-        if (checkIfAllPhasesComplete(updatedRun.runId, event)) {
-            // Mark as COMPLETED - errorMessage will be cleared later if the run completes successfully
-            // This handles the case where a retry fixed the issue but the old errorMessage persisted
-            return "COMPLETED"
-        }
-        return existingRun?.status ?: "IN_PROGRESS"
-    }
+    private fun existingStatusOrDefault(run: HarvestRunEntity): String = run.status.ifBlank { "IN_PROGRESS" }
 
-    private fun checkIfAllPhasesComplete(
-        runId: String,
-        currentEvent: HarvestEvent,
-    ): Boolean {
-        // Required phases in order: HARVESTING -> REASONING -> RDF_PARSING
-        // Then parallel: SEARCH_PROCESSING, AI_SEARCH_PROCESSING, RESOURCE_PROCESSING, SPARQL_PROCESSING
-        val requiredPhases =
-            listOf(
-                "HARVESTING",
-                "REASONING",
-                "RDF_PARSING",
-                "SEARCH_PROCESSING",
-                "AI_SEARCH_PROCESSING",
-                "RESOURCE_PROCESSING",
-                "SPARQL_PROCESSING",
-            )
-
-        // Get the run to access resource counts
-        val run = harvestRunRepository.findByRunId(runId) ?: return false
+    /**
+     * Evaluate whether all required phases are complete for a harvest run and
+     * return detailed per-phase completion information.
+     *
+     * Rules:
+     * - For phases without per-resource identifiers (e.g. HARVESTING), we only
+     *   require at least one successful event (endTime != null, no error).
+     * - For resource-based phases, when an expected resource count is known
+     *   (changed + removed > 0), we require that the number of completed
+     *   resources is **at least** the expected count. More is allowed
+     *   (retries/duplicates), fewer will block completion.
+     * - Optional phases (AI_SEARCH_PROCESSING, SPARQL_PROCESSING) do not block
+     *   completion when there are no events at all for that phase in the run.
+     *   If events do exist, they behave like required phases.
+     */
+    private fun checkIfAllPhasesComplete(run: HarvestRunEntity): RunCompletionStatus {
         val expectedResourceCount = (run.changedResourcesCount ?: 0) + (run.removedResourcesCount ?: 0)
 
-        // Phases without resource identifiers (like HARVESTING) - just check that there's at least one event with endTime and no errorMessage
-        val phasesWithoutResourceIds = listOf("HARVESTING")
+        // Phases without resource identifiers (like HARVESTING) - just check that there's at least one event
+        val phasesWithoutResourceIds = listOf(HarvestPhaseConfig.HARVESTING_PHASE)
 
-        // Check each required phase
-        return requiredPhases.all { phase ->
+        val phaseCompletions = mutableListOf<PhaseCompletion>()
+        var allRequiredComplete = true
+
+        HarvestPhaseConfig.allPhasesInCompletionOrder.forEach { phase ->
+            val isOptionalByConfig = phase in HarvestPhaseConfig.optionalPhases
+
             if (phase in phasesWithoutResourceIds) {
-                // For phases without resource identifiers, just check that there's at least one event with endTime and no errorMessage
-                val count = harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(runId, phase)
-                count > 0
-            } else {
-                // For phases with resource identifiers, count events with endTime and no errorMessage
-                // Use latest events per resource to handle duplicates
-                // Get all events for the phase (not just those with endTime) to find the true latest per resource
-                val allPhaseEvents = harvestEventRepository.findByRunIdAndEventType(runId, phase)
-                val latestEvents = getLatestEventsForPhase(allPhaseEvents)
-
-                // Filter to only events with endTime and no errorMessage
-                val completedEvents = latestEvents.filter { it.endTime != null && it.errorMessage == null }
-
-                // Verify that the count of completed events equals changed + removed count
-                // Only check if we have resource counts available
-                if (expectedResourceCount > 0) {
-                    completedEvents.size == expectedResourceCount
-                } else {
-                    // If no resource counts available yet, just check that there's at least one completed event
-                    completedEvents.isNotEmpty()
+                val count =
+                    harvestEventRepository
+                        .countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(run.runId, phase)
+                val hasCompletedEvent = count > 0
+                // HARVESTING is always required
+                val complete = hasCompletedEvent
+                if (!complete) {
+                    allRequiredComplete = false
                 }
+                phaseCompletions.add(
+                    PhaseCompletion(
+                        phase = phase,
+                        required = true,
+                        expectedResources = null,
+                        completedResources = if (hasCompletedEvent) 1 else 0,
+                        complete = complete,
+                    ),
+                )
+            } else {
+                // For phases with resource identifiers, operate on the latest event per resource
+                val allPhaseEvents = harvestEventRepository.findByRunIdAndEventType(run.runId, phase)
+                val latestEvents = getLatestEventsForPhase(allPhaseEvents)
+                val completedEvents = latestEvents.filter { it.endTime != null && it.errorMessage == null }
+                val completedResources = completedEvents.size
+                val hasAnyCompleted = completedResources > 0
+
+                // Determine whether this phase is effectively required for this run.
+                // Optional phases with no events at all do not block completion and are
+                // treated as complete with no expected count.
+                val isOptionalAndUnused = isOptionalByConfig && allPhaseEvents.isEmpty()
+                val required = !isOptionalAndUnused
+
+                val expected =
+                    if (!isOptionalAndUnused && expectedResourceCount > 0) {
+                        expectedResourceCount
+                    } else {
+                        null
+                    }
+
+                val complete =
+                    when {
+                        isOptionalAndUnused -> true
+                        expected != null -> completedResources >= expected
+                        else -> hasAnyCompleted
+                    }
+
+                if (required && !complete) {
+                    allRequiredComplete = false
+                }
+
+                if (expected != null && completedResources > expected) {
+                    logger.debug(
+                        "Run ${run.runId} phase $phase has more completed resources ($completedResources) than expected ($expected).",
+                    )
+                }
+
+                phaseCompletions.add(
+                    PhaseCompletion(
+                        phase = phase,
+                        required = required,
+                        expectedResources = expected,
+                        completedResources = completedResources,
+                        complete = complete,
+                    ),
+                )
             }
         }
+
+        if (!allRequiredComplete) {
+            val blockingPhases =
+                phaseCompletions
+                    .filter { it.required && !it.complete }
+                    .joinToString { "${it.phase}(expected=${it.expectedResources ?: "?"}, completed=${it.completedResources})" }
+            logger.debug(
+                "Run ${run.runId} not yet COMPLETED. Blocking phases: $blockingPhases",
+            )
+        }
+
+        return RunCompletionStatus(
+            allPhasesComplete = allRequiredComplete,
+            phases = phaseCompletions,
+        )
     }
 
     /**
@@ -556,16 +626,9 @@ class HarvestRunService(
 
         val currentProcessed = existingRun?.processedResources ?: 0
 
-        // Resource processing phases - a resource is only considered processed when ALL phases are complete
-        val resourceProcessingPhases =
-            listOf(
-                "REASONING",
-                "RDF_PARSING",
-                "RESOURCE_PROCESSING",
-                "SEARCH_PROCESSING",
-                "AI_SEARCH_PROCESSING",
-                "SPARQL_PROCESSING",
-            )
+        // Resource processing phases - a resource is only considered processed when ALL configured
+        // resource-processing phases for this run are complete for that resource.
+        val resourceProcessingPhases = HarvestPhaseConfig.resourceProcessingPhases
 
         // Only check for resource completion if this is one of the resource processing phases
         // Use latest event approach - only process if this is the latest event for this resource/phase
@@ -638,9 +701,21 @@ class HarvestRunService(
         runId: String,
         requiredPhases: List<String>,
     ): Int {
-        // Get all events for this run that are in the resource processing phases
+        // Optional phases without any events in this run should not be treated as required when
+        // counting fully processed resources.
+        val effectiveRequiredPhases =
+            requiredPhases.filter { phase ->
+                if (phase in HarvestPhaseConfig.optionalPhases) {
+                    val eventCount = harvestEventRepository.countByRunIdAndEventType(runId, phase)
+                    eventCount > 0
+                } else {
+                    true
+                }
+            }
+
+        // Get all events for this run that are in the effective resource-processing phases
         val allResourceEvents =
-            requiredPhases.flatMap { phase ->
+            effectiveRequiredPhases.flatMap { phase ->
                 harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
             }
 
@@ -666,7 +741,7 @@ class HarvestRunService(
         val resourcesWithAllPhases =
             latestEventsByResourceAndPhase.values.count { latestEvents ->
                 val phases = latestEvents.map { it.eventType }.toSet()
-                phases.containsAll(requiredPhases)
+                phases.containsAll(effectiveRequiredPhases)
             }
 
         return resourcesWithAllPhases
@@ -822,6 +897,7 @@ class HarvestRunService(
                     errorMessage = run.errorMessage,
                     createdAt = run.createdAt,
                     updatedAt = run.updatedAt,
+                    completionStatus = checkIfAllPhasesComplete(run),
                 )
             }
         } catch (e: Exception) {
@@ -1035,6 +1111,7 @@ class HarvestRunService(
                     errorMessage = run.errorMessage,
                     createdAt = run.createdAt,
                     updatedAt = run.updatedAt,
+                    completionStatus = checkIfAllPhasesComplete(run),
                 ),
                 HttpStatus.OK,
             )
@@ -1106,6 +1183,7 @@ class HarvestRunService(
                         errorMessage = run.errorMessage,
                         createdAt = run.createdAt,
                         updatedAt = run.updatedAt,
+                        completionStatus = if (run.status == "COMPLETED") null else checkIfAllPhasesComplete(run),
                     )
                 }
             Pair(runDetails, totalCount)

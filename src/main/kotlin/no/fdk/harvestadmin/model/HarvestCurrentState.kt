@@ -122,6 +122,12 @@ data class HarvestRunDetails(
     val createdAt: Instant?,
     @field:Schema(description = "When the harvest run was last updated")
     val updatedAt: Instant?,
+    @field:Schema(
+        description =
+            "Per-phase completion details for this run. " +
+                "Populated in particular when the run is not COMPLETED to show which phases or resources are missing.",
+    )
+    val completionStatus: RunCompletionStatus? = null,
 )
 
 @Schema(description = "Duration of each harvest phase in milliseconds")
@@ -156,6 +162,40 @@ data class ResourceCounts(
     val removedResourcesCount: Int?,
     @field:Schema(description = "Event counts per phase")
     val phaseEventCounts: PhaseEventCounts?,
+)
+
+@Schema(description = "Completion status for a harvest run")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class RunCompletionStatus(
+    @field:Schema(description = "Whether all required phases are complete for this run")
+    val allPhasesComplete: Boolean,
+    @field:Schema(description = "Per-phase completion details")
+    val phases: List<PhaseCompletion>,
+)
+
+@Schema(description = "Per-phase completion details for a harvest run")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class PhaseCompletion(
+    @field:Schema(description = "Harvest phase name", example = "RDF_PARSING")
+    val phase: String,
+    @field:Schema(description = "Whether this phase is required for completion. Optional phases with no events do not block completion.")
+    val required: Boolean,
+    @field:Schema(
+        description =
+            "Expected number of unique resources for this phase (changed + removed) when known. " +
+                "For phases without per-resource identifiers (like HARVESTING) this is null.",
+        example = "120",
+    )
+    val expectedResources: Int?,
+    @field:Schema(
+        description =
+            "Number of unique resources whose latest event in this phase has completed successfully " +
+                "(has endTime and no error).",
+        example = "117",
+    )
+    val completedResources: Int,
+    @field:Schema(description = "Whether this phase is considered complete for this run")
+    val complete: Boolean,
 )
 
 @Schema(description = "Event counts per harvest phase")

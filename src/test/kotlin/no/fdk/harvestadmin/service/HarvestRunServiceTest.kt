@@ -48,6 +48,23 @@ class HarvestRunServiceTest {
             HarvestRunService(harvestEventRepository, harvestRunRepository, dataSourceRepository, harvestMetricsService, 30L)
     }
 
+    private fun createPhaseEvents(
+        runId: String,
+        dataSourceId: String,
+        phase: String,
+        resourceCount: Int,
+    ): List<HarvestEventEntity> =
+        (1..resourceCount).map { idx ->
+            HarvestEventEntity(
+                eventType = phase,
+                dataSourceId = dataSourceId,
+                runId = runId,
+                dataType = "dataset",
+                fdkId = "fdk-$idx",
+                endTime = Instant.now().toString(),
+            )
+        }
+
     @Test
     fun `should persist harvest event`() {
         // Given
@@ -117,6 +134,74 @@ class HarvestRunServiceTest {
         verify(harvestEventRepository).save(any())
         // But run update should be skipped since run doesn't exist
         verify(harvestRunRepository, never()).save(any())
+    }
+
+    @Test
+    fun `should mark run as COMPLETED when all required phases have enough completed resources`() {
+        // Given
+        val dataSourceId = UUID.randomUUID().toString()
+        val runId = UUID.randomUUID().toString()
+        val expectedResources = 3
+
+        val existingRun =
+            HarvestRunEntity(
+                id = 1L,
+                runId = runId,
+                dataSourceId = dataSourceId,
+                dataType = "dataset",
+                runStartedAt = Instant.now().minusSeconds(60),
+                status = "IN_PROGRESS",
+                changedResourcesCount = expectedResources,
+                removedResourcesCount = 0,
+            )
+
+        whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
+        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+
+        // HARVESTING: at least one successful event
+        whenever(
+            harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
+                eq(runId),
+                eq("HARVESTING"),
+            ),
+        ).thenReturn(1L)
+
+        // Resource-based phases with completed events for all expected resources
+        val phasesWithResources =
+            listOf(
+                "REASONING",
+                "RDF_PARSING",
+                "RESOURCE_PROCESSING",
+                "SEARCH_PROCESSING",
+            )
+        phasesWithResources.forEach { phase ->
+            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase)))
+                .thenReturn(createPhaseEvents(runId, dataSourceId, phase, expectedResources))
+        }
+
+        // Optional phases without any events should not block completion
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("AI_SEARCH_PROCESSING"))).thenReturn(emptyList())
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SPARQL_PROCESSING"))).thenReturn(emptyList())
+
+        val event =
+            HarvestEvent
+                .newBuilder()
+                .setPhase(HarvestPhase.SEARCH_PROCESSING)
+                .setDataSourceId(dataSourceId)
+                .setRunId(runId)
+                .setDataType(DataType.dataset)
+                .setStartTime(Instant.now().toString())
+                .build()
+
+        // When
+        harvestRunService.persistEvent(event)
+
+        // Then
+        val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
+        verify(harvestRunRepository).save(runCaptor.capture())
+        val updatedRun = runCaptor.value
+        assertEquals("COMPLETED", updatedRun.status)
     }
 
     @Test
@@ -331,6 +416,71 @@ class HarvestRunServiceTest {
         assertNotNull(run)
         assertEquals(runEntity.runId, run!!.runId)
         assertEquals(runEntity.dataSourceId, run.dataSourceId)
+    }
+
+    @Test
+    fun `should expose completionStatus with missing resources per phase`() {
+        // Given
+        val dataSourceId = UUID.randomUUID().toString()
+        val runId = UUID.randomUUID().toString()
+        val expectedResources = 3
+
+        val runEntity =
+            HarvestRunEntity(
+                id = 1L,
+                runId = runId,
+                dataSourceId = dataSourceId,
+                dataType = "dataset",
+                runStartedAt = Instant.now().minusSeconds(60),
+                status = "IN_PROGRESS",
+                changedResourcesCount = expectedResources,
+                removedResourcesCount = 0,
+            )
+        whenever(harvestRunRepository.findByRunId(runId)).thenReturn(runEntity)
+
+        // HARVESTING: at least one successful event
+        whenever(
+            harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
+                eq(runId),
+                eq("HARVESTING"),
+            ),
+        ).thenReturn(1L)
+
+        // All phases complete except RDF_PARSING, which has fewer completed resources than expected
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("REASONING")))
+            .thenReturn(createPhaseEvents(runId, dataSourceId, "REASONING", expectedResources))
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("RDF_PARSING")))
+            .thenReturn(createPhaseEvents(runId, dataSourceId, "RDF_PARSING", 1))
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("RESOURCE_PROCESSING")))
+            .thenReturn(createPhaseEvents(runId, dataSourceId, "RESOURCE_PROCESSING", expectedResources))
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SEARCH_PROCESSING")))
+            .thenReturn(createPhaseEvents(runId, dataSourceId, "SEARCH_PROCESSING", expectedResources))
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("AI_SEARCH_PROCESSING")))
+            .thenReturn(emptyList())
+        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SPARQL_PROCESSING")))
+            .thenReturn(emptyList())
+
+        // When
+        val (run, httpStatus) = harvestRunService.getHarvestRun(runId)
+
+        // Then
+        assertEquals(HttpStatus.OK, httpStatus)
+        assertNotNull(run)
+        val completionStatus = run!!.completionStatus
+        assertNotNull(completionStatus)
+        assertEquals(false, completionStatus!!.allPhasesComplete)
+
+        val rdfPhase =
+            completionStatus.phases.first { it.phase == "RDF_PARSING" }
+        assertEquals(expectedResources, rdfPhase.expectedResources)
+        assertEquals(1, rdfPhase.completedResources)
+        assertEquals(true, rdfPhase.required)
+        assertEquals(false, rdfPhase.complete)
+
+        // Optional phases without events should be marked as not required and complete
+        val aiSearchPhase = completionStatus.phases.first { it.phase == "AI_SEARCH_PROCESSING" }
+        assertEquals(false, aiSearchPhase.required)
+        assertEquals(true, aiSearchPhase.complete)
     }
 
     @Test

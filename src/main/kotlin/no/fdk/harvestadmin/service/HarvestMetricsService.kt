@@ -47,6 +47,12 @@ class HarvestMetricsService(
             .builder("harvest.events.by.datatype")
             .description("Number of harvest events by data type")
 
+    // Counter for harvest events per data source URL (with phase and data type)
+    private val eventsByDataSourceUrlCounter: Counter.Builder =
+        Counter
+            .builder("harvest.events.by.datasource_url")
+            .description("Number of harvest events by data source URL, phase and data type")
+
     // Counters for harvest runs
     private val runsStartedCounter: Counter =
         Counter
@@ -90,6 +96,13 @@ class HarvestMetricsService(
         io.micrometer.core.instrument.DistributionSummary
             .builder("harvest.run.resources.processed")
             .description("Number of processed resources per run")
+            .baseUnit("resources")
+
+    // Per-phase resource shortfall when a run is incomplete (expected - completed)
+    private val phaseResourceShortfallHistogram: io.micrometer.core.instrument.DistributionSummary.Builder =
+        io.micrometer.core.instrument.DistributionSummary
+            .builder("harvest.run.phase.resource_shortfall")
+            .description("Resource shortfall (expected - completed) per phase when a run is incomplete")
             .baseUnit("resources")
 
     // Gauges for current runs and progress - registered at startup
@@ -188,6 +201,17 @@ class HarvestMetricsService(
             .register(meterRegistry)
             .increment()
 
+        // Record event by data source URL (if available)
+        val dataSourceUrl = event.dataSourceUrl?.toString()
+        if (!dataSourceUrl.isNullOrBlank()) {
+            eventsByDataSourceUrlCounter
+                .tag("datasource_url", dataSourceUrl)
+                .tag("phase", event.phase.name)
+                .tag("datatype", normalizeDataType(event.dataType.name))
+                .register(meterRegistry)
+                .increment()
+        }
+
         // Record phase duration if endTime is available
         if (event.startTime != null && event.endTime != null) {
             try {
@@ -268,6 +292,19 @@ class HarvestMetricsService(
             .tag("phase", phase)
             .register(meterRegistry)
             .increment(count.toDouble())
+    }
+
+    fun recordPhaseResourceShortfall(
+        dataType: String,
+        phase: String,
+        shortfall: Int,
+    ) {
+        if (shortfall <= 0) return
+        phaseResourceShortfallHistogram
+            .tag("datatype", normalizeDataType(dataType))
+            .tag("phase", phase)
+            .register(meterRegistry)
+            .record(shortfall.toDouble())
     }
 
     private fun recordPhaseDuration(
