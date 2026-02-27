@@ -414,12 +414,69 @@ class HarvestRunService(
      */
     private fun checkIfAllPhasesComplete(run: HarvestRunEntity): RunCompletionStatus {
         val expectedResourceCount = (run.changedResourcesCount ?: 0) + (run.removedResourcesCount ?: 0)
+        val hasExplicitResourceCounts =
+            run.changedResourcesCount != null ||
+                run.removedResourcesCount != null ||
+                run.totalResources != null
 
         // Phases without resource identifiers (like HARVESTING) - just check that there's at least one event
         val phasesWithoutResourceIds = listOf(HarvestPhaseConfig.HARVESTING_PHASE)
 
         val phaseCompletions = mutableListOf<PhaseCompletion>()
         var allRequiredComplete = true
+
+        // Special case: we explicitly know there are zero resources to process (0 changed, 0 removed).
+        // In this case, a successful HARVESTING phase is enough to consider the run completed, and
+        // all resource-processing phases are treated as optional/complete.
+        if (hasExplicitResourceCounts && expectedResourceCount == 0) {
+            HarvestPhaseConfig.allPhasesInCompletionOrder.forEach { phase ->
+                if (phase in phasesWithoutResourceIds) {
+                    val count =
+                        harvestEventRepository
+                            .countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(run.runId, phase)
+                    val hasCompletedEvent = count > 0
+                    val complete = hasCompletedEvent
+                    if (!complete) {
+                        allRequiredComplete = false
+                    }
+                    phaseCompletions.add(
+                        PhaseCompletion(
+                            phase = phase,
+                            required = true,
+                            expectedResources = null,
+                            completedResources = if (hasCompletedEvent) 1 else 0,
+                            complete = complete,
+                        ),
+                    )
+                } else {
+                    // No resources to process for resource-based phases in this scenario.
+                    phaseCompletions.add(
+                        PhaseCompletion(
+                            phase = phase,
+                            required = false,
+                            expectedResources = null,
+                            completedResources = 0,
+                            complete = true,
+                        ),
+                    )
+                }
+            }
+
+            if (!allRequiredComplete) {
+                val blockingPhases =
+                    phaseCompletions
+                        .filter { it.required && !it.complete }
+                        .joinToString { "${it.phase}(expected=${it.expectedResources ?: "?"}, completed=${it.completedResources})" }
+                logger.debug(
+                    "Run ${run.runId} not yet COMPLETED. Blocking phases: $blockingPhases",
+                )
+            }
+
+            return RunCompletionStatus(
+                allPhasesComplete = allRequiredComplete,
+                phases = phaseCompletions,
+            )
+        }
 
         HarvestPhaseConfig.allPhasesInCompletionOrder.forEach { phase ->
             val isOptionalByConfig = phase in HarvestPhaseConfig.optionalPhases

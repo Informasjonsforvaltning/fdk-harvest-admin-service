@@ -205,6 +205,58 @@ class HarvestRunServiceTest {
     }
 
     @Test
+    fun `should mark run as COMPLETED when there are zero resources and harvesting finished`() {
+        // Given
+        val dataSourceId = UUID.randomUUID().toString()
+        val runId = UUID.randomUUID().toString()
+
+        val existingRun =
+            HarvestRunEntity(
+                id = 1L,
+                runId = runId,
+                dataSourceId = dataSourceId,
+                dataType = "dataset",
+                runStartedAt = Instant.now().minusSeconds(60),
+                status = "IN_PROGRESS",
+                // Explicitly indicate that there are zero resources to process
+                changedResourcesCount = 0,
+                removedResourcesCount = 0,
+                totalResources = 0,
+            )
+
+        whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
+        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+
+        // HARVESTING: at least one successful event
+        whenever(
+            harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
+                eq(runId),
+                eq("HARVESTING"),
+            ),
+        ).thenReturn(1L)
+
+        val event =
+            HarvestEvent
+                .newBuilder()
+                .setPhase(HarvestPhase.HARVESTING)
+                .setDataSourceId(dataSourceId)
+                .setRunId(runId)
+                .setDataType(DataType.dataset)
+                .setStartTime(Instant.now().toString())
+                .build()
+
+        // When
+        harvestRunService.persistEvent(event)
+
+        // Then
+        val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
+        verify(harvestRunRepository).save(runCaptor.capture())
+        val updatedRun = runCaptor.value
+        assertEquals("COMPLETED", updatedRun.status)
+    }
+
+    @Test
     fun `should get current state for data source`() {
         // Given
         val dataSourceId = UUID.randomUUID().toString()
