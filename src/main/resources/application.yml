@@ -93,6 +93,8 @@ app:
   harvest:
     stale-timeout-minutes: ${HARVEST_STALE_TIMEOUT_MINUTES:30}
     stale-check-interval-ms: ${HARVEST_STALE_CHECK_INTERVAL_MS:300000}
+    scheduled-cron: ${HARVEST_SCHEDULED_CRON:0 */5 * * * *}
+    scheduled-slots: ${HARVEST_SCHEDULED_SLOTS:12}
 
 # Resilience4j Circuit Breaker configuration
 resilience4j:

@@ -13,10 +13,12 @@ import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import no.fdk.harvestadmin.service.HarvestRunService
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @Service
@@ -26,6 +28,7 @@ class DataSourceService(
     private val kafkaHarvestEventPublisher: KafkaHarvestEventPublisher,
     private val harvestRunRepository: HarvestRunRepository,
     private val harvestMetricsService: HarvestMetricsService,
+    @param:Value("\${app.harvest.scheduled-slots:12}") private val scheduledSlots: Int,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -197,21 +200,26 @@ class DataSourceService(
         }
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "\${app.harvest.scheduled-cron:0 */5 * * * *}")
     fun scheduledHarvest() {
         startHarvestingAll(forced = false)
     }
 
     fun startHarvestingAll(forced: Boolean = false) {
         val dataSources = dataSourceRepository.findByFilters(null, null, null)
-        dataSources.forEach { ds ->
-            try {
-                startHarvesting(ds.id, ds.publisherId, removeAll = null, forced = forced)
-                logger.debug("Scheduled harvest started for data source ${ds.id}")
-            } catch (e: Exception) {
-                logger.error("Failed to start scheduled harvest for data source ${ds.id}", e)
+        val minuteOfHour = ZonedDateTime.now().minute
+        val intervalMinutes = 60 / scheduledSlots
+        val currentSlot = (minuteOfHour / intervalMinutes) % scheduledSlots
+        dataSources
+            .filter { ds -> (ds.id.hashCode().and(Int.MAX_VALUE) % scheduledSlots) == currentSlot }
+            .forEach { ds ->
+                try {
+                    startHarvesting(ds.id, ds.publisherId, removeAll = null, forced = forced)
+                    logger.debug("Scheduled harvest started for data source ${ds.id} (slot $currentSlot)")
+                } catch (e: Exception) {
+                    logger.error("Failed to start scheduled harvest for data source ${ds.id}", e)
+                }
             }
-        }
     }
 
     private fun mapDataType(dataType: DataType): no.fdk.harvest.DataType =
