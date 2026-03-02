@@ -173,13 +173,8 @@ class HarvestRunService(
                 }
             }
 
-            // Record resource counts during run (not just at completion)
-            // Record whenever we have resource data (total or processed)
-            if ((savedRun.totalResources != null && savedRun.totalResources > 0) ||
-                (savedRun.processedResources != null && savedRun.processedResources > 0)
-            ) {
-                harvestMetricsService.recordRunResourceCounts(savedRun)
-            }
+            // Record resource counts during run (including 0) so Grafana "Resources per Run" gets data
+            harvestMetricsService.recordRunResourceCounts(savedRun)
         }
 
         // Record metrics if status changed (always record completion/failure metrics)
