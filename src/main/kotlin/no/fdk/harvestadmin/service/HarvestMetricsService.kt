@@ -263,20 +263,17 @@ class HarvestMetricsService(
             recordPhaseDuration("RESOURCE_PROCESSING", run.apiProcessingDurationMs, run.dataType)
             recordPhaseDuration("SPARQL_PROCESSING", run.sparqlProcessingDurationMs, run.dataType)
 
-            // Record resource counts
-            if (run.totalResources != null && run.totalResources > 0) {
-                totalResourcesHistogram
-                    .tag("datatype", normalizeDataType(run.dataType))
-                    .register(meterRegistry)
-                    .record(run.totalResources.toDouble())
-            }
-
-            if (run.processedResources != null && run.processedResources > 0) {
-                processedResourcesHistogram
-                    .tag("datatype", normalizeDataType(run.dataType))
-                    .register(meterRegistry)
-                    .record(run.processedResources.toDouble())
-            }
+            // Record resource counts (including 0) so Grafana "Resources per Run" has data points
+            val total = (run.totalResources ?: 0).toDouble()
+            val processed = (run.processedResources ?: 0).toDouble()
+            totalResourcesHistogram
+                .tag("datatype", normalizeDataType(run.dataType))
+                .register(meterRegistry)
+                .record(total)
+            processedResourcesHistogram
+                .tag("datatype", normalizeDataType(run.dataType))
+                .register(meterRegistry)
+                .record(processed)
         } else if (run.status == "FAILED") {
             runsFailedCounter.increment()
         }
@@ -337,20 +334,17 @@ class HarvestMetricsService(
             .record(duration)
     }
 
-    // Record resource counts during run (for in-progress runs)
+    // Record resource counts during run (for in-progress runs), including 0 so Grafana has data
     fun recordRunResourceCounts(run: HarvestRunEntity) {
-        if (run.totalResources != null && run.totalResources > 0) {
-            totalResourcesHistogram
-                .tag("datatype", normalizeDataType(run.dataType))
-                .register(meterRegistry)
-                .record(run.totalResources.toDouble())
-        }
-
-        if (run.processedResources != null && run.processedResources > 0) {
-            processedResourcesHistogram
-                .tag("datatype", normalizeDataType(run.dataType))
-                .register(meterRegistry)
-                .record(run.processedResources.toDouble())
-        }
+        val total = (run.totalResources ?: 0).toDouble()
+        val processed = (run.processedResources ?: 0).toDouble()
+        totalResourcesHistogram
+            .tag("datatype", normalizeDataType(run.dataType))
+            .register(meterRegistry)
+            .record(total)
+        processedResourcesHistogram
+            .tag("datatype", normalizeDataType(run.dataType))
+            .register(meterRegistry)
+            .record(processed)
     }
 }
