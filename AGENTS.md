@@ -10,6 +10,48 @@ This document gives AI agents and contributors enough context to work effectivel
 - **Run locally**: `mvn spring-boot:run` (requires Docker for PostgreSQL and Kafka: `docker compose up -d`).
 - **Tests**: `mvn verify` (unit tests with Surefire; integration tests with Failsafe and Testcontainers).
 
+## Harvest process and Kafka
+
+The service coordinates harvest runs via a single Kafka topic (`harvest-events`, configurable). All messages use the Avro type `HarvestEvent` (see `kafka/schemas/no.fdk.harvest.HarvestEvent.avsc`).
+
+### Message flow
+
+- **Publish (this service)**  
+  When a harvest is started (API or scheduled job), the service creates a run, persists an **INITIATING** event, and **publishes** one `HarvestEvent` with `phase=INITIATING` to Kafka. That message is the trigger for the harvester (or other consumers) to begin work. Key fields: `runId`, `dataSourceId`, `dataType`, `dataSourceUrl`, `acceptHeader`, `removeAll`, `forced`.
+
+- **Consume (this service)**  
+  The service **consumes** all other harvest events from the same topic (phase ≠ INITIATING). For each event it: persists the event, updates the corresponding `HarvestRun` (counts, phase, status), and records metrics. INITIATING events on the topic are ignored by the consumer (the run was already created when we published the trigger).
+
+### Phases
+
+Phases are defined in the Avro enum `HarvestPhase` and in `HarvestPhaseConfig`. Order used for completion:
+
+1. **INITIATING** – Trigger only; emitted by this service when starting a harvest. Not used for completion.
+2. **HARVESTING** – Fetch from source; one or more events per run, often one “summary” event with `changedResourcesCount` / `removedResourcesCount`. No per-resource `fdkId`/`resourceUri` required.
+3. **REASONING** – Reasoning over harvested data.
+4. **RDF_PARSING** – Parse RDF.
+5. **RESOURCE_PROCESSING** – Map and validate resources.
+6. **SEARCH_PROCESSING** – Index for search.
+7. **AI_SEARCH_PROCESSING** – AI-related search (optional, see below).
+8. **SPARQL_PROCESSING** – SPARQL-related processing (optional, see below).
+
+Phases 3–8 are “resource-processing” phases: events typically carry `fdkId` and/or `resourceUri`. Completion is derived from “at least N resources completed” per phase, where N comes from HARVESTING’s `changedResourcesCount + removedResourcesCount` (or totalResources). **Optional phases** (`AI_SEARCH_PROCESSING`, `SPARQL_PROCESSING`): if a run has no events for such a phase, it does not block completion; if it has events, that phase is required and counts must match.
+
+### Run status and completion
+
+- **IN_PROGRESS** – Run exists and not all required phases are complete (or a phase has failed).
+- **COMPLETED** – All required phases have at least the expected number of successful events; optional phases with no events are ignored. Special case: if HARVESTING reports 0 changed and 0 removed, the run can complete after HARVESTING finishes successfully.
+- **FAILED** – Any required phase has an event with `errorMessage` set.
+
+Completion logic and per-phase details are in `HarvestRunService.checkIfAllPhasesComplete`; optional vs required phases in `HarvestPhaseConfig`. The API can expose `completionStatus` (e.g. on run details) so operators can see which phase or resource count is blocking completion.
+
+### Event fields (summary)
+
+- **All events**: `phase`, `runId`, `dataType`, `dataSourceId`, `startTime`, `endTime`, `errorMessage`.
+- **INITIATING**: `removeAll`, `forced`, `dataSourceUrl`, `acceptHeader`; no resource counts.
+- **HARVESTING**: `changedResourcesCount`, `removedResourcesCount` (optional but used for completion).
+- **Resource-processing phases**: often `fdkId`, `resourceUri` to count completed resources per phase.
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -76,8 +118,8 @@ scripts/                                   # Migration and utility scripts (e.g.
 
 ### Messaging
 
-- **Kafka**: Consumes harvest events and publishes harvest triggers. See `KafkaHarvestEventConsumer`, `KafkaHarvestEventPublisher`, and README.
-- **Kafka**: Consumes/publishes harvest events; Avro schemas in `kafka/schemas/`; generated classes in `target/generated-sources/avro`. See `KafkaHarvestEventConsumer`, `KafkaHarvestEventPublisher`, and `KafkaConfig`.
+- **Kafka**: Single topic for harvest events; this service **publishes** INITIATING (trigger) and **consumes** all other phases. See [Harvest process and Kafka](#harvest-process-and-kafka) above, `KafkaHarvestEventConsumer`, `KafkaHarvestEventPublisher`, and `KafkaConfig`.
+- **Avro**: Schemas in `kafka/schemas/`; generated classes in `target/generated-sources/avro`.
 
 ### Errors and Security
 
