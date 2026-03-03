@@ -92,7 +92,27 @@ The application can be configured using environment variables or `application.ym
 
 ## Kafka Integration
 
-The service consumes and publishes harvest events via the `harvest-events` Kafka topic. Harvest triggers are published when starting a harvest, and harvest reports (harvested, reasoned, ingested) are consumed to update run status.
+The service uses a single Kafka topic (`harvest-events`, configurable via `KAFKA_HARVEST_EVENTS_TOPIC`) for both triggering and tracking harvests. All messages use the Avro schema `HarvestEvent` (see `kafka/schemas/`).
+
+### How it works
+
+1. **Starting a harvest**  
+   When you start a harvest (API or scheduled job), the service creates a harvest run and **publishes** one message with phase **INITIATING** to Kafka. That message is the trigger for the harvester: it includes `runId`, `dataSourceId`, `dataType`, `dataSourceUrl`, `removeAll`, `forced`, etc.
+
+2. **Harvest pipeline**  
+   Downstream services (e.g. fdk-harvester) consume the INITIATING event, perform the harvest, and then produce **report** events for the same `runId` with later phases. The pipeline runs through these phases in order:
+   - **HARVESTING** – fetch from source (reports `changedResourcesCount` / `removedResourcesCount`)
+   - **REASONING** – reasoning
+   - **RDF_PARSING** – RDF parsing
+   - **RESOURCE_PROCESSING** – resource mapping/validation
+   - **SEARCH_PROCESSING** – search indexing
+   - **AI_SEARCH_PROCESSING** – AI search (optional)
+   - **SPARQL_PROCESSING** – SPARQL (optional)
+
+3. **Consuming reports**  
+   This service **consumes** all events on the topic except INITIATING (which it already wrote when starting the run). For each report it updates the harvest run: phase progress, resource counts, and status (IN_PROGRESS → COMPLETED or FAILED). A run is **COMPLETED** when every required phase has at least the expected number of successful events; phases with no events (e.g. AI_SEARCH_PROCESSING, SPARQL_PROCESSING) do not block completion. If HARVESTING reports 0 changed and 0 removed, the run can complete as soon as HARVESTING finishes successfully.
+
+For more detail (event fields, optional phases, completion rules), see [AGENTS.md](AGENTS.md#harvest-process-and-kafka).
 
 ## Database Schema
 
