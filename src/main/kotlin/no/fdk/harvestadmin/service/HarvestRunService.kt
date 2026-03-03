@@ -676,59 +676,18 @@ class HarvestRunService(
             return existingRun?.processedResources
         }
 
-        val currentProcessed = existingRun?.processedResources ?: 0
-
-        // Resource processing phases - a resource is only considered processed when ALL configured
-        // resource-processing phases for this run are complete for that resource.
         val resourceProcessingPhases = HarvestPhaseConfig.resourceProcessingPhases
+        val runId = event.runId?.toString() ?: existingRun?.runId
 
-        // Only check for resource completion if this is one of the resource processing phases
-        // Use latest event approach - only process if this is the latest event for this resource/phase
-        if (event.phase.name in resourceProcessingPhases) {
-            val runId = event.runId?.toString() ?: existingRun?.runId
-            if (runId != null) {
-                // Check if this resource has now completed all phases
-                val resourceIdentifier = event.fdkId?.toString() ?: event.resourceUri?.toString()
-                if (resourceIdentifier != null) {
-                    // Get all events for this resource and find the latest for each phase
-                    val resourceEvents =
-                        when {
-                            event.fdkId != null -> {
-                                harvestEventRepository.findByRunIdAndFdkId(runId, event.fdkId.toString())
-                            }
-                            event.resourceUri != null -> {
-                                harvestEventRepository.findByRunIdAndResourceUri(runId, event.resourceUri.toString())
-                            }
-                            else -> emptyList()
-                        }
-
-                    // Group by phase and get the latest event for each phase (by createdAt)
-                    val latestEventsByPhase =
-                        resourceEvents
-                            .groupBy { it.eventType }
-                            .mapValues { (_, events) -> events.maxByOrNull { it.createdAt } }
-                            .values
-                            .filterNotNull()
-
-                    // Get unique phases that this resource has latest events for
-                    val completedPhases = latestEventsByPhase.map { it.eventType }.toSet()
-
-                    // Check if all resource processing phases are now complete for this resource
-                    val allPhasesComplete = resourceProcessingPhases.all { phase -> completedPhases.contains(phase) }
-
-                    if (allPhasesComplete) {
-                        // Check if this resource was already counted as processed
-                        // We do this by checking if we've already counted resources with all phases complete
-                        // For simplicity, we'll count distinct resources that have all phases
-                        val resourcesWithAllPhases = countResourcesWithAllPhases(runId, resourceProcessingPhases)
-                        return minOf(totalResources, resourcesWithAllPhases)
-                    }
-                }
-            }
+        // Only recompute processed resources when we are in a resource-processing phase and have a runId
+        if (runId == null || event.phase.name !in resourceProcessingPhases) {
+            return existingRun?.processedResources
         }
 
-        // For other phases or if not all phases complete, keep the current processed count
-        return currentProcessed
+        // Use the same effective phase logic as completion: optional phases without events
+        // are not required when counting fully processed resources for the run.
+        val resourcesWithAllPhases = countResourcesWithAllPhases(runId, resourceProcessingPhases)
+        return minOf(totalResources, resourcesWithAllPhases)
     }
 
     private fun calculatePhaseEventCounts(runId: String): Map<String, Long> {
