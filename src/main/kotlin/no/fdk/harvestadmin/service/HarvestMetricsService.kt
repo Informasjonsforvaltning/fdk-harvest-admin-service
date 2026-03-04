@@ -66,11 +66,10 @@ class HarvestMetricsService(
             .description("Total number of harvest runs completed")
             .register(meterRegistry)
 
-    private val runsFailedCounter: Counter =
+    private val runsFailedCounter: Counter.Builder =
         Counter
             .builder("harvest.runs.failed")
-            .description("Total number of harvest runs failed")
-            .register(meterRegistry)
+            .description("Number of harvest runs failed (by datasource and datatype)")
 
     // Timers for phase durations (records in seconds for Prometheus)
     private val phaseDurationTimer: Timer.Builder =
@@ -167,10 +166,21 @@ class HarvestMetricsService(
             }.description("Total processed resources (in-progress + completed in last 24h)")
             .register(meterRegistry)
 
+        // Average processed resources per completed run in last 24h (per datatype, from DB)
+        val dataTypes = listOf("concept", "dataset", "informationmodel", "dataservice", "publicservice", "event")
+        dataTypes.forEach { dataType ->
+            Gauge
+                .builder("harvest.runs.completed_24h.avg_processed_resources") {
+                    getAvgProcessedResourcesPerCompletedRunLast24h(dataType)
+                }
+                .tag("datatype", dataType)
+                .description("Average processed resources per completed run in last 24 hours")
+                .register(meterRegistry)
+        }
+
         // Initialize DistributionSummary metrics to ensure they're always exposed
         // This ensures harvest_run_resources_total_sum and harvest_run_resources_processed_sum
         // are available in Prometheus even before any data is recorded
-        val dataTypes = listOf("concept", "dataset", "informationmodel", "dataservice", "publicservice", "event")
         dataTypes.forEach { dataType ->
             // Initialize totalResourcesHistogram with 0 to ensure metric exists
             totalResourcesHistogram
@@ -275,7 +285,11 @@ class HarvestMetricsService(
                 .register(meterRegistry)
                 .record(processed)
         } else if (run.status == "FAILED") {
-            runsFailedCounter.increment()
+            runsFailedCounter
+                .tag("datasource_id", run.dataSourceId)
+                .tag("datatype", normalizeDataType(run.dataType))
+                .register(meterRegistry)
+                .increment()
         }
     }
 
@@ -302,6 +316,19 @@ class HarvestMetricsService(
             .tag("phase", phase)
             .register(meterRegistry)
             .record(shortfall.toDouble())
+    }
+
+    /** Average processed resources per completed run in last 24h for the given datatype (from DB). */
+    private fun getAvgProcessedResourcesPerCompletedRunLast24h(dataType: String): Double {
+        val oneDayAgo =
+            java.time.Instant.now().minus(24, java.time.temporal.ChronoUnit.HOURS)
+        val runs =
+            harvestRunRepository
+                .findAllCompletedRuns(oneDayAgo, null)
+                .filter { normalizeDataType(it.dataType) == dataType }
+        if (runs.isEmpty()) return 0.0
+        val sum = runs.sumOf { it.processedResources?.toLong() ?: 0L }
+        return sum.toDouble() / runs.size
     }
 
     private fun recordPhaseDuration(
