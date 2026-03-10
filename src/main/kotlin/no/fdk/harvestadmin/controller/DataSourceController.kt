@@ -250,6 +250,27 @@ class DataSourceController(
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 
+    @PostMapping("/organizations/{org}/datasources/start-harvesting")
+    @Operation(
+        summary = "Start harvesting for a data source by URL and data type",
+        description = "Triggers harvesting by URL and data type. The removeAll and forced properties are not available.",
+        security = [SecurityRequirement(name = "api-key")],
+    )
+    fun startHarvestingByUrlAndDataType(
+        @PathVariable org: String,
+        @RequestBody request: no.fdk.harvestadmin.model.StartHarvestByUrlRequest,
+        authentication: Authentication?,
+    ): ResponseEntity<Void> {
+        validateOrgId(org)
+        requireOrgAccess(org, authentication)
+        dataSourceService.startHarvestingByUrlAndDataType(
+            org = org,
+            url = request.url,
+            dataType = request.dataType,
+        )
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+    }
+
     @GetMapping("/organizations/{org}/datasources/{id}/status")
     @Operation(
         summary = "Get harvest status for a data source",

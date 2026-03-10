@@ -13,6 +13,19 @@ data class StartHarvestRequest(
     val forced: Boolean? = null,
 )
 
+@Schema(description = "Request body for starting a harvest run by URL and data type")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class StartHarvestByUrlRequest(
+    @field:Schema(description = "URL of the data source", example = "https://example.com/datasets")
+    val url: String,
+    @field:Schema(
+        description = "Data type",
+        example = "dataset",
+        allowableValues = ["concept", "dataset", "informationmodel", "dataservice", "publicService", "event"],
+    )
+    val dataType: DataType,
+)
+
 @Schema(description = "Current state of a harvest run")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class HarvestCurrentState(
