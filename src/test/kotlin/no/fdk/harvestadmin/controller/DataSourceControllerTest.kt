@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.harvestadmin.model.DataSource
 import no.fdk.harvestadmin.model.DataSourceType
 import no.fdk.harvestadmin.model.DataType
+import no.fdk.harvestadmin.model.StartHarvestByUrlRequest
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
@@ -131,5 +132,47 @@ class DataSourceControllerTest : BaseControllerTest() {
         mockMvc
             .perform(delete("/organizations/test-org/datasources/$dataSourceId"))
             .andExpect(status().isNoContent)
+    }
+
+    @Test
+    fun `should start harvesting by id`() {
+        // Given
+        val dataSourceId = UUID.randomUUID().toString()
+        whenever(securityService.getAuthorizedOrganizations(null)).thenReturn(listOf("test-org"))
+        doNothing().whenever(dataSourceService).startHarvesting(any(), any(), any(), any())
+
+        // When/Then
+        mockMvc
+            .perform(
+                post("/organizations/test-org/datasources/$dataSourceId/start-harvesting")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"removeAll": true, "forced": false}"""),
+            ).andExpect(status().isNoContent)
+    }
+
+    @Test
+    fun `should start harvesting by url and data type`() {
+        // Given
+        val request =
+            StartHarvestByUrlRequest(
+                url = "https://example.com/data",
+                dataType = DataType.DATASET,
+            )
+        whenever(securityService.getAuthorizedOrganizations(null)).thenReturn(listOf("test-org"))
+        doNothing()
+            .whenever(dataSourceService)
+            .startHarvestingByUrlAndDataType(
+                org = any(),
+                url = any(),
+                dataType = any(),
+            )
+
+        // When/Then
+        mockMvc
+            .perform(
+                post("/organizations/test-org/datasources/start-harvesting")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isNoContent)
     }
 }

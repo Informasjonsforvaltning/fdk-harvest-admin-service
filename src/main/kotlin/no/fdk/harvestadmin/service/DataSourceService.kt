@@ -200,6 +200,40 @@ class DataSourceService(
         }
     }
 
+    fun startHarvestingByUrlAndDataType(
+        org: String,
+        url: String,
+        dataType: DataType,
+    ) {
+        try {
+            val dataSources = dataSourceRepository.findByUrlAndDataType(url, dataType)
+
+            if (dataSources.isEmpty()) {
+                throw NotFoundException("Data source not found for url '$url' and data type '${dataType.value}'")
+            }
+
+            val matchingOrgSources = dataSources.filter { it.publisherId == org }
+            if (matchingOrgSources.isEmpty()) {
+                throw ValidationException("Trying to start harvest for other organization")
+            }
+
+            if (matchingOrgSources.size > 1) {
+                throw ConflictException("Multiple data sources found for url '$url' and data type '${dataType.value}'")
+            }
+
+            val dataSource = matchingOrgSources.first()
+            startHarvesting(
+                id = dataSource.id,
+                org = org,
+                removeAll = false,
+                forced = false,
+            )
+        } catch (e: Exception) {
+            logger.error("Error starting harvest for url '$url' and data type '${dataType.value}'", e)
+            throw e
+        }
+    }
+
     @Scheduled(cron = "\${app.harvest.scheduled-cron:0 */5 * * * *}")
     fun scheduledHarvest() {
         startHarvestingAll(forced = false)
