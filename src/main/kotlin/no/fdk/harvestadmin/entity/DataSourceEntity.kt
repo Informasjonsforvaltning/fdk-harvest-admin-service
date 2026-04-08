@@ -33,6 +33,8 @@ data class DataSourceEntity(
     var publisherId: String,
     @Column(name = "description", columnDefinition = "TEXT")
     var description: String? = null,
+    @Column(name = "active", nullable = false)
+    var active: Boolean = true,
 ) {
     fun toModel(): DataSource =
         DataSource(
@@ -43,6 +45,7 @@ data class DataSourceEntity(
             acceptHeader = acceptHeader,
             publisherId = publisherId,
             description = description,
+            active = active,
         )
 
     fun updateFromModel(dataSource: DataSource) {
@@ -64,6 +67,7 @@ data class DataSourceEntity(
                 acceptHeader = dataSource.acceptHeader,
                 publisherId = dataSource.publisherId,
                 description = dataSource.description,
+                active = dataSource.active,
             )
     }
 }
