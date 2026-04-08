@@ -119,6 +119,32 @@ class DataSourceService(
     }
 
     @Transactional
+    fun setDataSourceActive(
+        id: String,
+        org: String,
+        active: Boolean,
+    ): DataSource {
+        val existing =
+            dataSourceRepository
+                .findById(id)
+                .orElseThrow { NotFoundException("Data source not found with id: $id") }
+
+        if (org != existing.publisherId) {
+            throw ValidationException("Trying to modify data source for other organization")
+        }
+
+        existing.active = active
+
+        return try {
+            val saved = dataSourceRepository.save(existing)
+            saved.toModel()
+        } catch (e: Exception) {
+            logger.error("Error updating active status for data source with id: $id", e)
+            throw RuntimeException("Error updating active status", e)
+        }
+    }
+
+    @Transactional
     fun deleteDataSource(id: String) {
         try {
             if (!dataSourceRepository.existsById(id)) {
@@ -146,6 +172,10 @@ class DataSourceService(
 
         if (org != dataSource.publisherId) {
             throw ValidationException("Trying to start harvest for other organization")
+        }
+
+        if (!dataSource.active) {
+            throw ValidationException("Cannot start harvest for inactive data source: $id")
         }
 
         try {
@@ -245,7 +275,7 @@ class DataSourceService(
         val intervalMinutes = 60 / scheduledSlots
         val currentSlot = (minuteOfHour / intervalMinutes) % scheduledSlots
         dataSources
-            .filter { ds -> (ds.id.hashCode().and(Int.MAX_VALUE) % scheduledSlots) == currentSlot }
+            .filter { ds -> ds.active && (ds.id.hashCode().and(Int.MAX_VALUE) % scheduledSlots) == currentSlot }
             .forEach { ds ->
                 try {
                     startHarvesting(ds.id, ds.publisherId, removeAll = null, forced = forced)

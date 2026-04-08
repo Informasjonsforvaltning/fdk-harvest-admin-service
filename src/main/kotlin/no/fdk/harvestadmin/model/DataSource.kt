@@ -29,4 +29,6 @@ data class DataSource(
     )
     val publisherId: String,
     val description: String? = null,
+    @field:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val active: Boolean = true,
 )

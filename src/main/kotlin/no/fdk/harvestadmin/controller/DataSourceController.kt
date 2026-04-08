@@ -232,6 +232,54 @@ class DataSourceController(
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 
+    @PostMapping("/organizations/{org}/datasources/{id}/deactivate")
+    @Operation(
+        summary = "Deactivate a data source",
+        description = "Deactivates a data source, preventing it from being harvested",
+        security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "OK"),
+            ApiResponse(responseCode = "403", description = "Forbidden"),
+            ApiResponse(responseCode = "404", description = "Not Found"),
+        ],
+    )
+    fun deactivateDataSource(
+        @PathVariable org: String,
+        @PathVariable id: String,
+        authentication: Authentication?,
+    ): ResponseEntity<DataSource> {
+        validateOrgId(org)
+        requireOrgAccess(org, authentication)
+        val updated = dataSourceService.setDataSourceActive(id, org, active = false)
+        return ResponseEntity.ok(updated)
+    }
+
+    @PostMapping("/organizations/{org}/datasources/{id}/activate")
+    @Operation(
+        summary = "Activate a data source",
+        description = "Reactivates a previously deactivated data source",
+        security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "OK"),
+            ApiResponse(responseCode = "403", description = "Forbidden"),
+            ApiResponse(responseCode = "404", description = "Not Found"),
+        ],
+    )
+    fun activateDataSource(
+        @PathVariable org: String,
+        @PathVariable id: String,
+        authentication: Authentication?,
+    ): ResponseEntity<DataSource> {
+        validateOrgId(org)
+        requireOrgAccess(org, authentication)
+        val updated = dataSourceService.setDataSourceActive(id, org, active = true)
+        return ResponseEntity.ok(updated)
+    }
+
     @PostMapping("/organizations/{org}/datasources/{id}/start-harvesting")
     @Operation(
         summary = "Start harvesting for a data source",

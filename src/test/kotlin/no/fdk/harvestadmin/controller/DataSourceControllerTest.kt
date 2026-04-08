@@ -135,6 +135,54 @@ class DataSourceControllerTest : BaseControllerTest() {
     }
 
     @Test
+    fun `should deactivate data source`() {
+        // Given
+        val dataSourceId = UUID.randomUUID().toString()
+        val deactivated =
+            DataSource(
+                id = dataSourceId,
+                publisherId = "test-org",
+                dataType = DataType.DATASET,
+                dataSourceType = DataSourceType.DCAT_AP_NO,
+                url = "https://example.com/data",
+                active = false,
+            )
+        whenever(securityService.getAuthorizedOrganizations(null)).thenReturn(listOf("test-org"))
+        whenever(dataSourceService.setDataSourceActive(dataSourceId, "test-org", false)).thenReturn(deactivated)
+
+        // When/Then
+        mockMvc
+            .perform(post("/organizations/test-org/datasources/$dataSourceId/deactivate"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(dataSourceId))
+            .andExpect(jsonPath("$.active").value(false))
+    }
+
+    @Test
+    fun `should activate data source`() {
+        // Given
+        val dataSourceId = UUID.randomUUID().toString()
+        val activated =
+            DataSource(
+                id = dataSourceId,
+                publisherId = "test-org",
+                dataType = DataType.DATASET,
+                dataSourceType = DataSourceType.DCAT_AP_NO,
+                url = "https://example.com/data",
+                active = true,
+            )
+        whenever(securityService.getAuthorizedOrganizations(null)).thenReturn(listOf("test-org"))
+        whenever(dataSourceService.setDataSourceActive(dataSourceId, "test-org", true)).thenReturn(activated)
+
+        // When/Then
+        mockMvc
+            .perform(post("/organizations/test-org/datasources/$dataSourceId/activate"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(dataSourceId))
+            .andExpect(jsonPath("$.active").value(true))
+    }
+
+    @Test
     fun `should start harvesting by id`() {
         // Given
         val dataSourceId = UUID.randomUUID().toString()

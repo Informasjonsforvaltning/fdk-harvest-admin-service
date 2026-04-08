@@ -11,7 +11,9 @@ import no.fdk.harvestadmin.model.DataSourceType
 import no.fdk.harvestadmin.model.DataType
 import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -112,6 +114,103 @@ class DataSourceServiceTest {
                 url = url,
                 dataType = dataType,
             )
+        }
+    }
+
+    @Test
+    fun `setDataSourceActive should deactivate data source`() {
+        val org = "test-org"
+        val dataSourceId = UUID.randomUUID().toString()
+        val entity =
+            DataSourceEntity(
+                id = dataSourceId,
+                publisherId = org,
+                dataType = DataType.DATASET,
+                dataSourceType = DataSourceType.DCAT_AP_NO,
+                url = "https://example.com/data",
+                active = true,
+            )
+
+        whenever(dataSourceRepository.findById(dataSourceId)).thenReturn(Optional.of(entity))
+        whenever(dataSourceRepository.save(any<DataSourceEntity>())).thenAnswer { it.arguments[0] as DataSourceEntity }
+
+        val result = service.setDataSourceActive(dataSourceId, org, active = false)
+
+        assertFalse(result.active)
+        assertFalse(entity.active)
+    }
+
+    @Test
+    fun `setDataSourceActive should activate data source`() {
+        val org = "test-org"
+        val dataSourceId = UUID.randomUUID().toString()
+        val entity =
+            DataSourceEntity(
+                id = dataSourceId,
+                publisherId = org,
+                dataType = DataType.DATASET,
+                dataSourceType = DataSourceType.DCAT_AP_NO,
+                url = "https://example.com/data",
+                active = false,
+            )
+
+        whenever(dataSourceRepository.findById(dataSourceId)).thenReturn(Optional.of(entity))
+        whenever(dataSourceRepository.save(any<DataSourceEntity>())).thenAnswer { it.arguments[0] as DataSourceEntity }
+
+        val result = service.setDataSourceActive(dataSourceId, org, active = true)
+
+        assertTrue(result.active)
+        assertTrue(entity.active)
+    }
+
+    @Test
+    fun `setDataSourceActive should throw NotFoundException when data source does not exist`() {
+        val dataSourceId = UUID.randomUUID().toString()
+
+        whenever(dataSourceRepository.findById(dataSourceId)).thenReturn(Optional.empty())
+
+        assertThrows(NotFoundException::class.java) {
+            service.setDataSourceActive(dataSourceId, "test-org", active = false)
+        }
+    }
+
+    @Test
+    fun `setDataSourceActive should throw ValidationException for wrong org`() {
+        val dataSourceId = UUID.randomUUID().toString()
+        val entity =
+            DataSourceEntity(
+                id = dataSourceId,
+                publisherId = "owner-org",
+                dataType = DataType.DATASET,
+                dataSourceType = DataSourceType.DCAT_AP_NO,
+                url = "https://example.com/data",
+            )
+
+        whenever(dataSourceRepository.findById(dataSourceId)).thenReturn(Optional.of(entity))
+
+        assertThrows(ValidationException::class.java) {
+            service.setDataSourceActive(dataSourceId, "other-org", active = false)
+        }
+    }
+
+    @Test
+    fun `startHarvesting should throw ValidationException for inactive data source`() {
+        val org = "test-org"
+        val dataSourceId = UUID.randomUUID().toString()
+        val entity =
+            DataSourceEntity(
+                id = dataSourceId,
+                publisherId = org,
+                dataType = DataType.DATASET,
+                dataSourceType = DataSourceType.DCAT_AP_NO,
+                url = "https://example.com/data",
+                active = false,
+            )
+
+        whenever(dataSourceRepository.findById(dataSourceId)).thenReturn(Optional.of(entity))
+
+        assertThrows(ValidationException::class.java) {
+            service.startHarvesting(dataSourceId, org)
         }
     }
 
