@@ -69,7 +69,7 @@ management:
 
 logging:
   level:
-    no.fdk.harvestadmin: DEBUG
+    no.fdk.harvestadmin: INFO
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
