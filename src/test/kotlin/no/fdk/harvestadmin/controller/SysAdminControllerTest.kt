@@ -1,6 +1,5 @@
 package no.fdk.harvestadmin.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.harvestadmin.model.DataType
 import no.fdk.harvestadmin.model.RemoveResourcesRequest
 import no.fdk.harvestadmin.model.ResourceToRemove
@@ -14,9 +13,10 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.json.JsonMapper
 
 class SysAdminControllerTest : BaseControllerTest() {
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = JsonMapper.builder().build()
 
     @Test
     fun `should return 202 and publish events for valid request`() {

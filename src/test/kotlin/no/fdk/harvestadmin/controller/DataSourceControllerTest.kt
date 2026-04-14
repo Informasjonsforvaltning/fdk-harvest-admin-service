@@ -1,6 +1,5 @@
 package no.fdk.harvestadmin.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.harvestadmin.model.DataSource
 import no.fdk.harvestadmin.model.DataSourceType
 import no.fdk.harvestadmin.model.DataType
@@ -17,10 +16,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.json.JsonMapper
 import java.util.UUID
 
 class DataSourceControllerTest : BaseControllerTest() {
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = JsonMapper.builder().build()
 
     @Test
     fun `should get data sources`() {

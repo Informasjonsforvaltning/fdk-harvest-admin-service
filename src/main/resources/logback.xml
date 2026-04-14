@@ -30,6 +30,10 @@
         <appender-ref ref="${LOG_FORMAT:-json-async}" />
     </logger>
 
+    <logger name="org.apache.kafka" level="error" additivity="false">
+        <appender-ref ref="${LOG_FORMAT:-json-async}" />
+    </logger>
+
     <root level="warn">
         <appender-ref ref="${LOG_FORMAT:-json-async}" />
     </root>

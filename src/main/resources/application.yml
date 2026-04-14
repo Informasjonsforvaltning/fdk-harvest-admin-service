@@ -26,20 +26,8 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID:fdk-harvest-admin-service}
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
-      properties:
-        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
-        specific.avro.reader: true
-      auto-offset-reset: earliest
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
-      properties:
-        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
-        value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
-        auto.register.schemas: true
-        use.latest.version: true
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
 
 server:
   port: 8080
@@ -95,16 +83,6 @@ app:
     stale-check-interval-ms: ${HARVEST_STALE_CHECK_INTERVAL_MS:300000}
     scheduled-cron: ${HARVEST_SCHEDULED_CRON:0 */5 * * * *}
     scheduled-slots: ${HARVEST_SCHEDULED_SLOTS:12}
-
-# Resilience4j Circuit Breaker configuration
-resilience4j:
-  circuitbreaker:
-    instances:
-      harvestEventConsumer:
-        failureRateThreshold: 60
-        waitDurationInOpenState: 30s
-        slidingWindowSize: 50
-        minimumNumberOfCalls: 10
 
 # SpringDoc OpenAPI configuration
 springdoc:

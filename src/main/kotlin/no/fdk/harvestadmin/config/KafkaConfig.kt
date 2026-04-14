@@ -21,7 +21,7 @@ import org.springframework.kafka.listener.ContainerProperties
 @Configuration
 class KafkaConfig(
     @param:Value("\${spring.kafka.bootstrap-servers}") private val bootstrapServers: String,
-    @param:Value("\${spring.kafka.producer.properties.schema.registry.url}") private val schemaRegistryUrl: String,
+    @param:Value("\${spring.kafka.properties.schema.registry.url}") private val schemaRegistryUrl: String,
 ) {
     @Bean
     fun producerFactory(): ProducerFactory<String, HarvestEvent> {
@@ -55,7 +55,7 @@ class KafkaConfig(
     @Bean
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, HarvestEvent> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, HarvestEvent>()
-        factory.consumerFactory = consumerFactory()
+        factory.setConsumerFactory(consumerFactory())
         factory.containerProperties.ackMode = ContainerProperties.AckMode.RECORD
         factory.setConcurrency(4)
         return factory
