@@ -120,8 +120,8 @@ class HarvestRunServiceCompletionTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(finalEvent)
@@ -209,8 +209,8 @@ class HarvestRunServiceCompletionTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(finalEvent)
@@ -296,8 +296,8 @@ class HarvestRunServiceCompletionTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(finalEvent)
@@ -379,8 +379,8 @@ class HarvestRunServiceCompletionTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(finalEvent)
@@ -491,8 +491,8 @@ class HarvestRunServiceCompletionTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(finalEvent)
@@ -577,8 +577,8 @@ class HarvestRunServiceCompletionTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(finalEvent)
@@ -654,8 +654,8 @@ class HarvestRunServiceCompletionTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(finalEvent)

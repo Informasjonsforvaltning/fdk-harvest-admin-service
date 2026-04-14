@@ -17,11 +17,16 @@ class KafkaHarvestEventConsumer(
         topics = ["\${app.kafka.topic.harvest-events}"],
         groupId = "\${spring.kafka.consumer.group-id:fdk-harvest-admin-service}",
         containerFactory = "kafkaListenerContainerFactory",
+        id = HARVEST_LISTENER_ID,
     )
     fun consumeHarvestEvent(record: ConsumerRecord<String, HarvestEvent>) {
         logger.debug("Received harvest event - offset: ${record.offset()}, partition: ${record.partition()}")
 
         val event = record.value()
         harvestEventProcessor.processEvent(event)
+    }
+
+    companion object {
+        const val HARVEST_LISTENER_ID = "harvest-event-listener"
     }
 }

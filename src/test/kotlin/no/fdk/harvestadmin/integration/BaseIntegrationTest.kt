@@ -34,16 +34,10 @@ abstract class BaseIntegrationTest {
                         "spring.kafka.consumer.auto-offset-reset=earliest",
                         "spring.kafka.consumer.enable-auto-commit=false",
                         "spring.kafka.listener.ack-mode=manual",
-                        "spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer",
-                        "spring.kafka.producer.value-serializer=io.confluent.kafka.serializers.KafkaAvroSerializer",
-                        "spring.kafka.producer.properties.schema.registry.url=" +
-                            "http://${schemaRegistryContainer.host}:${schemaRegistryContainer.getMappedPort(8081)}",
-                        "spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer",
-                        "spring.kafka.consumer.value-deserializer=io.confluent.kafka.serializers.KafkaAvroDeserializer",
-                        "spring.kafka.consumer.properties.schema.registry.url=" +
+                        "spring.kafka.properties.schema.registry.url=" +
                             "http://${schemaRegistryContainer.host}:${schemaRegistryContainer.getMappedPort(8081)}",
                         "app.kafka.topic.harvest-events=harvest-events",
-                        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.autoconfigure.security.oauth2.resourceserver.OAuth2ResourceServerAutoConfiguration",
+                        "spring.autoconfigure.exclude=org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration,org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerAutoConfiguration",
                         "spring.kafka.enabled=true",
                         "spring.kafka.listener.auto-startup=true",
                         "logging.level.org.apache.kafka=DEBUG",

@@ -90,8 +90,8 @@ class HarvestRunServiceTest {
                 status = "IN_PROGRESS",
             )
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
         harvestRunService.persistEvent(event)
@@ -125,7 +125,7 @@ class HarvestRunServiceTest {
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(null)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
 
         // When
         harvestRunService.persistEvent(event)
@@ -156,8 +156,8 @@ class HarvestRunServiceTest {
             )
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // HARVESTING: at least one successful event
         whenever(
@@ -225,8 +225,8 @@ class HarvestRunServiceTest {
             )
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
-        whenever(harvestEventRepository.save(any())).thenAnswer { it.arguments[0] as HarvestEventEntity }
-        whenever(harvestRunRepository.save(any())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // HARVESTING: at least one successful event
         whenever(
