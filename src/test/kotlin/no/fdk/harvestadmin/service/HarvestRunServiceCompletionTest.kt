@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -41,11 +40,34 @@ class HarvestRunServiceCompletionTest {
 
     private lateinit var baseTime: Instant
 
+    private val resourcePhases =
+        listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
+
     @BeforeEach
     fun setUp() {
         harvestRunService =
             HarvestRunService(harvestEventRepository, harvestRunRepository, dataSourceRepository, harvestMetricsService, 30L)
         baseTime = Instant.parse("2024-01-01T10:00:00Z")
+    }
+
+    /** Stubs the grouped total-events-per-phase query so every phase is treated as "used". */
+    private fun stubPhaseEventCounts(
+        runId: String,
+        count: Long,
+    ) {
+        whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
+            (listOf("INITIATING", "HARVESTING") + resourcePhases).map { arrayOf<Any>(it, count) },
+        )
+    }
+
+    /** Stubs the completed-resources-per-phase aggregate, the same completed count for every resource phase. */
+    private fun stubCompletedResourcesPerPhase(
+        runId: String,
+        completedPerPhase: Long,
+    ) {
+        whenever(harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any())).thenReturn(
+            resourcePhases.map { arrayOf<Any>(it, completedPerPhase) },
+        )
     }
 
     @Test
@@ -55,7 +77,7 @@ class HarvestRunServiceCompletionTest {
         val dataSourceId = UUID.randomUUID().toString()
         val changedCount = 10
         val removedCount = 5
-        val expectedCount = changedCount + removedCount // 15
+        val expectedCount = (changedCount + removedCount).toLong() // 15
 
         val existingRun =
             HarvestRunEntity(
@@ -69,7 +91,7 @@ class HarvestRunServiceCompletionTest {
                 status = "IN_PROGRESS",
             )
 
-        // Mock HARVESTING phase (no resource identifiers) - just needs at least one event
+        // HARVESTING phase (no resource identifiers) - just needs at least one completed event
         whenever(
             harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
                 eq(runId),
@@ -77,37 +99,10 @@ class HarvestRunServiceCompletionTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - need exactly expectedCount events
-        val resourcePhases =
-            listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
+        // Every resource phase has exactly expectedCount completed resources
+        stubPhaseEventCounts(runId, expectedCount)
+        stubCompletedResourcesPerPhase(runId, expectedCount)
 
-        // Create expectedCount events for each resource phase
-        resourcePhases.forEach { phase ->
-            val events =
-                (1..expectedCount).map { i ->
-                    HarvestEventEntity(
-                        id = i.toLong(),
-                        eventType = phase,
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong()).toString(),
-                        errorMessage = null,
-                        createdAt = baseTime.plusSeconds(i.toLong()),
-                    )
-                }
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            // countByRunIdAndEventType is only consumed for optional phases (via countResourcesWithAllPhases),
-            // phase event counts comes from countEventsByPhase.
-            Mockito
-                .lenient()
-                .`when`(
-                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
-                ).thenReturn(expectedCount.toLong())
-        }
-
-        // Mock the final event (SPARQL_PROCESSING)
         val finalEvent =
             HarvestEvent
                 .newBuilder()
@@ -115,8 +110,8 @@ class HarvestRunServiceCompletionTest {
                 .setRunId(runId)
                 .setDataType(DataType.dataset)
                 .setFdkId("resource-$expectedCount")
-                .setStartTime(baseTime.plusSeconds(expectedCount.toLong()).toString())
-                .setEndTime(baseTime.plusSeconds(expectedCount.toLong() + 1).toString())
+                .setStartTime(baseTime.plusSeconds(expectedCount).toString())
+                .setEndTime(baseTime.plusSeconds(expectedCount + 1).toString())
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
@@ -142,8 +137,7 @@ class HarvestRunServiceCompletionTest {
         val dataSourceId = UUID.randomUUID().toString()
         val changedCount = 10
         val removedCount = 5
-        val expectedCount = changedCount + removedCount // 15
-        val actualEventCount = 12 // Less than expected
+        val actualCompleted = 12L // Less than expected 15
 
         val existingRun =
             HarvestRunEntity(
@@ -157,7 +151,6 @@ class HarvestRunServiceCompletionTest {
                 status = "IN_PROGRESS",
             )
 
-        // Mock HARVESTING phase
         whenever(
             harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
                 eq(runId),
@@ -165,37 +158,8 @@ class HarvestRunServiceCompletionTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - only actualEventCount events (less than expected)
-        val resourcePhases =
-            listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-
-        resourcePhases.forEach { phase ->
-            val events =
-                (1..actualEventCount).map { i ->
-                    HarvestEventEntity(
-                        id = i.toLong(),
-                        eventType = phase,
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong()).toString(),
-                        errorMessage = null,
-                        createdAt = baseTime.plusSeconds(i.toLong()),
-                    )
-                }
-            // Use lenient stubbing since some phases may not be checked if completion fails early
-            Mockito.lenient().`when`(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            Mockito
-                .lenient()
-                .`when`(
-                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
-                ).thenReturn(actualEventCount.toLong())
-        }
-
-        // Mock INITIATING and HARVESTING phase counts
-        Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
+        stubPhaseEventCounts(runId, actualCompleted)
+        stubCompletedResourcesPerPhase(runId, actualCompleted)
 
         val finalEvent =
             HarvestEvent
@@ -203,9 +167,9 @@ class HarvestRunServiceCompletionTest {
                 .setPhase(HarvestPhase.SPARQL_PROCESSING)
                 .setRunId(runId)
                 .setDataType(DataType.dataset)
-                .setFdkId("resource-$actualEventCount")
-                .setStartTime(baseTime.plusSeconds(actualEventCount.toLong()).toString())
-                .setEndTime(baseTime.plusSeconds(actualEventCount.toLong() + 1).toString())
+                .setFdkId("resource-$actualCompleted")
+                .setStartTime(baseTime.plusSeconds(actualCompleted).toString())
+                .setEndTime(baseTime.plusSeconds(actualCompleted + 1).toString())
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
@@ -229,7 +193,8 @@ class HarvestRunServiceCompletionTest {
         val dataSourceId = UUID.randomUUID().toString()
         val changedCount = 10
         val removedCount = 5
-        val expectedCount = changedCount + removedCount // 15
+        // 3 of the 15 resources have an error on their latest event, so SQL reports 12 completed.
+        val completedAfterErrors = 12L
 
         val existingRun =
             HarvestRunEntity(
@@ -243,7 +208,6 @@ class HarvestRunServiceCompletionTest {
                 status = "IN_PROGRESS",
             )
 
-        // Mock HARVESTING phase
         whenever(
             harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
                 eq(runId),
@@ -251,38 +215,8 @@ class HarvestRunServiceCompletionTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - some events have errorMessage
-        val resourcePhases =
-            listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-
-        resourcePhases.forEach { phase ->
-            val events =
-                (1..expectedCount).map { i ->
-                    HarvestEventEntity(
-                        id = i.toLong(),
-                        eventType = phase,
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong()).toString(),
-                        // First 3 events have errors, rest don't
-                        errorMessage = if (i <= 3) "Error processing resource" else null,
-                        createdAt = baseTime.plusSeconds(i.toLong()),
-                    )
-                }
-            // Use lenient stubbing since some phases may not be checked if completion fails early
-            Mockito.lenient().`when`(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            Mockito
-                .lenient()
-                .`when`(
-                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
-                ).thenReturn(expectedCount.toLong())
-        }
-
-        // Mock INITIATING and HARVESTING phase counts
-        Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
+        stubPhaseEventCounts(runId, 15L)
+        stubCompletedResourcesPerPhase(runId, completedAfterErrors)
 
         val finalEvent =
             HarvestEvent
@@ -290,9 +224,9 @@ class HarvestRunServiceCompletionTest {
                 .setPhase(HarvestPhase.SPARQL_PROCESSING)
                 .setRunId(runId)
                 .setDataType(DataType.dataset)
-                .setFdkId("resource-$expectedCount")
-                .setStartTime(baseTime.plusSeconds(expectedCount.toLong()).toString())
-                .setEndTime(baseTime.plusSeconds(expectedCount.toLong() + 1).toString())
+                .setFdkId("resource-15")
+                .setStartTime(baseTime.plusSeconds(15).toString())
+                .setEndTime(baseTime.plusSeconds(16).toString())
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
@@ -306,8 +240,7 @@ class HarvestRunServiceCompletionTest {
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
         verify(harvestRunRepository).save(runCaptor.capture())
         val savedRun = runCaptor.value
-        // Should not be COMPLETED because events with errorMessage are filtered out
-        // So we only have 12 completed events (15 - 3), not 15
+        // Only 12 completed resources (errored ones excluded by the SQL aggregate), not 15
         assertEquals("IN_PROGRESS", savedRun.status)
     }
 
@@ -318,6 +251,7 @@ class HarvestRunServiceCompletionTest {
         val dataSourceId = UUID.randomUUID().toString()
         val changedCount = 10
         val removedCount = 5
+        val expectedCount = (changedCount + removedCount).toLong()
 
         val existingRun =
             HarvestRunEntity(
@@ -331,7 +265,7 @@ class HarvestRunServiceCompletionTest {
                 status = "IN_PROGRESS",
             )
 
-        // Mock HARVESTING phase - just needs at least one event (no resource count check)
+        // HARVESTING just needs at least one completed event (no resource count check)
         whenever(
             harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
                 eq(runId),
@@ -339,33 +273,8 @@ class HarvestRunServiceCompletionTest {
             ),
         ).thenReturn(1L)
 
-        // Mock all other phases as complete
-        val resourcePhases =
-            listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        val expectedCount = changedCount + removedCount
-
-        resourcePhases.forEach { phase ->
-            val events =
-                (1..expectedCount).map { i ->
-                    HarvestEventEntity(
-                        id = i.toLong(),
-                        eventType = phase,
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong()).toString(),
-                        errorMessage = null,
-                        createdAt = baseTime.plusSeconds(i.toLong()),
-                    )
-                }
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            Mockito
-                .lenient()
-                .`when`(
-                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
-                ).thenReturn(expectedCount.toLong())
-        }
+        stubPhaseEventCounts(runId, expectedCount)
+        stubCompletedResourcesPerPhase(runId, expectedCount)
 
         val finalEvent =
             HarvestEvent
@@ -374,8 +283,8 @@ class HarvestRunServiceCompletionTest {
                 .setRunId(runId)
                 .setDataType(DataType.dataset)
                 .setFdkId("resource-$expectedCount")
-                .setStartTime(baseTime.plusSeconds(expectedCount.toLong()).toString())
-                .setEndTime(baseTime.plusSeconds(expectedCount.toLong() + 1).toString())
+                .setStartTime(baseTime.plusSeconds(expectedCount).toString())
+                .setEndTime(baseTime.plusSeconds(expectedCount + 1).toString())
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
@@ -399,7 +308,7 @@ class HarvestRunServiceCompletionTest {
         val dataSourceId = UUID.randomUUID().toString()
         val changedCount = 5
         val removedCount = 2
-        val expectedCount = changedCount + removedCount // 7
+        val expectedCount = (changedCount + removedCount).toLong() // 7
 
         val existingRun =
             HarvestRunEntity(
@@ -413,7 +322,6 @@ class HarvestRunServiceCompletionTest {
                 status = "IN_PROGRESS",
             )
 
-        // Mock HARVESTING phase
         whenever(
             harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
                 eq(runId),
@@ -421,67 +329,10 @@ class HarvestRunServiceCompletionTest {
             ),
         ).thenReturn(1L)
 
-        // Mock REASONING phase with duplicates - each resource has 2 events, latest one has endTime and no error
-        val reasoningEvents =
-            (1..expectedCount).flatMap { i ->
-                listOf(
-                    // First event (older) - has errorMessage
-                    HarvestEventEntity(
-                        id = i.toLong() * 10,
-                        eventType = "REASONING",
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong()).toString(),
-                        errorMessage = "Old error",
-                        createdAt = baseTime.plusSeconds(i.toLong()),
-                    ),
-                    // Second event (newer) - no errorMessage
-                    HarvestEventEntity(
-                        id = i.toLong() * 10 + 1,
-                        eventType = "REASONING",
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong() + 100).toString(),
-                        errorMessage = null,
-                        createdAt = baseTime.plusSeconds(i.toLong() + 100),
-                    ),
-                )
-            }
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("REASONING"))).thenReturn(reasoningEvents)
-        Mockito
-            .lenient()
-            .`when`(
-                harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("REASONING")),
-            ).thenReturn((expectedCount * 2).toLong())
-
-        // Mock other phases as complete
-        val otherPhases = listOf("RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        otherPhases.forEach { phase ->
-            val events =
-                (1..expectedCount).map { i ->
-                    HarvestEventEntity(
-                        id = i.toLong(),
-                        eventType = phase,
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong()).toString(),
-                        errorMessage = null,
-                        createdAt = baseTime.plusSeconds(i.toLong()),
-                    )
-                }
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            Mockito
-                .lenient()
-                .`when`(
-                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
-                ).thenReturn(expectedCount.toLong())
-        }
+        // Each resource has duplicate REASONING events; the SQL aggregate keeps the latest (no error),
+        // so all expectedCount resources count as completed across every phase.
+        stubPhaseEventCounts(runId, expectedCount * 2)
+        stubCompletedResourcesPerPhase(runId, expectedCount)
 
         val finalEvent =
             HarvestEvent
@@ -490,8 +341,8 @@ class HarvestRunServiceCompletionTest {
                 .setRunId(runId)
                 .setDataType(DataType.dataset)
                 .setFdkId("resource-$expectedCount")
-                .setStartTime(baseTime.plusSeconds(expectedCount.toLong()).toString())
-                .setEndTime(baseTime.plusSeconds(expectedCount.toLong() + 1).toString())
+                .setStartTime(baseTime.plusSeconds(expectedCount).toString())
+                .setEndTime(baseTime.plusSeconds(expectedCount + 1).toString())
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
@@ -516,7 +367,7 @@ class HarvestRunServiceCompletionTest {
         val dataSourceId = UUID.randomUUID().toString()
         val changedCount = 10
         val removedCount = 5
-        val expectedCount = changedCount + removedCount
+        val expectedCount = (changedCount + removedCount).toLong()
 
         val existingRun =
             HarvestRunEntity(
@@ -530,7 +381,7 @@ class HarvestRunServiceCompletionTest {
                 status = "IN_PROGRESS",
             )
 
-        // Mock HARVESTING phase - no completed events
+        // HARVESTING has no completed events
         whenever(
             harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
                 eq(runId),
@@ -538,36 +389,9 @@ class HarvestRunServiceCompletionTest {
             ),
         ).thenReturn(0L)
 
-        // Mock all other phases as complete
-        val resourcePhases =
-            listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        resourcePhases.forEach { phase ->
-            val events =
-                (1..expectedCount).map { i ->
-                    HarvestEventEntity(
-                        id = i.toLong(),
-                        eventType = phase,
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-$i",
-                        endTime = baseTime.plusSeconds(i.toLong()).toString(),
-                        errorMessage = null,
-                        createdAt = baseTime.plusSeconds(i.toLong()),
-                    )
-                }
-            // Use lenient stubbing since HARVESTING fails first, so these phases won't be checked
-            Mockito.lenient().`when`(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            Mockito
-                .lenient()
-                .`when`(
-                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
-                ).thenReturn(expectedCount.toLong())
-        }
-
-        // Mock INITIATING and HARVESTING phase counts
-        Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
+        // All resource phases are complete, but HARVESTING blocks completion
+        stubPhaseEventCounts(runId, expectedCount)
+        stubCompletedResourcesPerPhase(runId, expectedCount)
 
         val finalEvent =
             HarvestEvent
@@ -576,8 +400,8 @@ class HarvestRunServiceCompletionTest {
                 .setRunId(runId)
                 .setDataType(DataType.dataset)
                 .setFdkId("resource-$expectedCount")
-                .setStartTime(baseTime.plusSeconds(expectedCount.toLong()).toString())
-                .setEndTime(baseTime.plusSeconds(expectedCount.toLong() + 1).toString())
+                .setStartTime(baseTime.plusSeconds(expectedCount).toString())
+                .setEndTime(baseTime.plusSeconds(expectedCount + 1).toString())
                 .build()
 
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(existingRun)
@@ -612,7 +436,6 @@ class HarvestRunServiceCompletionTest {
                 status = "IN_PROGRESS",
             )
 
-        // Mock HARVESTING phase
         whenever(
             harvestEventRepository.countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
                 eq(runId),
@@ -620,27 +443,9 @@ class HarvestRunServiceCompletionTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - at least one event
-        val resourcePhases =
-            listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        resourcePhases.forEach { phase ->
-            val events =
-                listOf(
-                    HarvestEventEntity(
-                        id = 1L,
-                        eventType = phase,
-                        dataSourceId = dataSourceId,
-                        runId = runId,
-                        dataType = "dataset",
-                        fdkId = "resource-1",
-                        endTime = baseTime.plusSeconds(1).toString(),
-                        errorMessage = null,
-                        createdAt = baseTime.plusSeconds(1),
-                    ),
-                )
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(1L)
-        }
+        // At least one completed resource per phase; no expected count is known
+        stubPhaseEventCounts(runId, 1L)
+        stubCompletedResourcesPerPhase(runId, 1L)
 
         val finalEvent =
             HarvestEvent
@@ -664,8 +469,8 @@ class HarvestRunServiceCompletionTest {
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
         verify(harvestRunRepository).save(runCaptor.capture())
         val savedRun = runCaptor.value
-        // When resource counts are not available, it should check that there's at least one completed event
-        // Since we have events for all phases, it should be COMPLETED
+        // When resource counts are not available, completion only requires at least one completed
+        // event per phase, so the run is COMPLETED.
         assertEquals("COMPLETED", savedRun.status)
     }
 }

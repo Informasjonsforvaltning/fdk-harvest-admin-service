@@ -459,24 +459,13 @@ class HarvestRunServiceDurationTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - need at least one event with endTime and no errorMessage
-        val resourcePhases =
+        // Mock resource-processing phases - at least one completed resource per phase
+        whenever(
+            harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any()),
+        ).thenReturn(
             listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        resourcePhases.forEach { phase ->
-            val mockEvent =
-                HarvestEventEntity(
-                    id = 1L,
-                    eventType = phase,
-                    dataSourceId = existingRun.dataSourceId,
-                    runId = runId,
-                    dataType = existingRun.dataType,
-                    fdkId = "resource-1",
-                    endTime = baseTime.plusSeconds(300).toString(),
-                    errorMessage = null,
-                    createdAt = baseTime.plusSeconds(300),
-                )
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-        }
+                .map { arrayOf<Any>(it, 1L) },
+        )
 
         // Mock phase event counts (single grouped query)
         whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
@@ -555,24 +544,13 @@ class HarvestRunServiceDurationTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - need at least one event with endTime and no errorMessage
-        val resourcePhases =
+        // Mock resource-processing phases - at least one completed resource per phase
+        whenever(
+            harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any()),
+        ).thenReturn(
             listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        resourcePhases.forEach { phase ->
-            val mockEvent =
-                HarvestEventEntity(
-                    id = 1L,
-                    eventType = phase,
-                    dataSourceId = existingRun.dataSourceId,
-                    runId = runId,
-                    dataType = existingRun.dataType,
-                    fdkId = "resource-1",
-                    endTime = baseTime.plusSeconds(300).toString(),
-                    errorMessage = null,
-                    createdAt = baseTime.plusSeconds(300),
-                )
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-        }
+                .map { arrayOf<Any>(it, 1L) },
+        )
 
         // Mock phase event counts (single grouped query)
         whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
@@ -651,24 +629,13 @@ class HarvestRunServiceDurationTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - need at least one event with endTime and no errorMessage
-        val resourcePhases =
+        // Mock resource-processing phases - at least one completed resource per phase
+        whenever(
+            harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any()),
+        ).thenReturn(
             listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        resourcePhases.forEach { phase ->
-            val mockEvent =
-                HarvestEventEntity(
-                    id = 1L,
-                    eventType = phase,
-                    dataSourceId = existingRun.dataSourceId,
-                    runId = runId,
-                    dataType = existingRun.dataType,
-                    fdkId = "resource-1",
-                    endTime = baseTime.plusSeconds(300).toString(),
-                    errorMessage = null,
-                    createdAt = baseTime.plusSeconds(300),
-                )
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-        }
+                .map { arrayOf<Any>(it, 1L) },
+        )
 
         // Mock phase event counts (single grouped query)
         whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
@@ -746,24 +713,13 @@ class HarvestRunServiceDurationTest {
             ),
         ).thenReturn(1L)
 
-        // Mock resource-processing phases - need at least one event with endTime and no errorMessage
-        val resourcePhases =
+        // Mock resource-processing phases - at least one completed resource per phase
+        whenever(
+            harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any()),
+        ).thenReturn(
             listOf("REASONING", "RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
-        resourcePhases.forEach { phase ->
-            val mockEvent =
-                HarvestEventEntity(
-                    id = 1L,
-                    eventType = phase,
-                    dataSourceId = existingRun.dataSourceId,
-                    runId = runId,
-                    dataType = existingRun.dataType,
-                    fdkId = "resource-1",
-                    endTime = baseTime.plusSeconds(300).toString(),
-                    errorMessage = null,
-                    createdAt = baseTime.plusSeconds(300),
-                )
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-        }
+                .map { arrayOf<Any>(it, 1L) },
+        )
 
         // Mock phase event counts (single grouped query)
         whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
