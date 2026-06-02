@@ -476,12 +476,21 @@ class HarvestRunServiceDurationTest {
                     createdAt = baseTime.plusSeconds(300),
                 )
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(1L)
         }
 
-        // Mock INITIATING and HARVESTING phase counts
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
+        // Mock phase event counts (single grouped query)
+        whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
+            listOf(
+                "INITIATING",
+                "HARVESTING",
+                "REASONING",
+                "RDF_PARSING",
+                "RESOURCE_PROCESSING",
+                "SEARCH_PROCESSING",
+                "AI_SEARCH_PROCESSING",
+                "SPARQL_PROCESSING",
+            ).map { arrayOf<Any>(it, 1L) },
+        )
 
         val event =
             HarvestEvent
@@ -563,12 +572,21 @@ class HarvestRunServiceDurationTest {
                     createdAt = baseTime.plusSeconds(300),
                 )
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(1L)
         }
 
-        // Mock INITIATING and HARVESTING phase counts
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
+        // Mock phase event counts (single grouped query)
+        whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
+            listOf(
+                "INITIATING",
+                "HARVESTING",
+                "REASONING",
+                "RDF_PARSING",
+                "RESOURCE_PROCESSING",
+                "SEARCH_PROCESSING",
+                "AI_SEARCH_PROCESSING",
+                "SPARQL_PROCESSING",
+            ).map { arrayOf<Any>(it, 1L) },
+        )
 
         val event =
             HarvestEvent
@@ -650,12 +668,21 @@ class HarvestRunServiceDurationTest {
                     createdAt = baseTime.plusSeconds(300),
                 )
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(1L)
         }
 
-        // Mock INITIATING and HARVESTING phase counts
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
+        // Mock phase event counts (single grouped query)
+        whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
+            listOf(
+                "INITIATING",
+                "HARVESTING",
+                "REASONING",
+                "RDF_PARSING",
+                "RESOURCE_PROCESSING",
+                "SEARCH_PROCESSING",
+                "AI_SEARCH_PROCESSING",
+                "SPARQL_PROCESSING",
+            ).map { arrayOf<Any>(it, 1L) },
+        )
 
         // Use an event with zero duration to test null total
         val event =
@@ -736,12 +763,21 @@ class HarvestRunServiceDurationTest {
                     createdAt = baseTime.plusSeconds(300),
                 )
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(listOf(mockEvent))
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(1L)
         }
 
-        // Mock INITIATING and HARVESTING phase counts
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
+        // Mock phase event counts (single grouped query)
+        whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
+            listOf(
+                "INITIATING",
+                "HARVESTING",
+                "REASONING",
+                "RDF_PARSING",
+                "RESOURCE_PROCESSING",
+                "SEARCH_PROCESSING",
+                "AI_SEARCH_PROCESSING",
+                "SPARQL_PROCESSING",
+            ).map { arrayOf<Any>(it, 1L) },
+        )
 
         val event =
             HarvestEvent

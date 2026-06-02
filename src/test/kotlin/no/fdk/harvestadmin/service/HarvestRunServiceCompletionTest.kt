@@ -98,14 +98,14 @@ class HarvestRunServiceCompletionTest {
                     )
                 }
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            // Also mock countByRunIdAndEventType for phase event counts calculation
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(expectedCount.toLong())
+            // countByRunIdAndEventType is only consumed for optional phases (via countResourcesWithAllPhases),
+            // phase event counts comes from countEventsByPhase.
+            Mockito
+                .lenient()
+                .`when`(
+                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
+                ).thenReturn(expectedCount.toLong())
         }
-
-        // Mock INITIATING phase count
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        // Mock HARVESTING phase count
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
 
         // Mock the final event (SPARQL_PROCESSING)
         val finalEvent =
@@ -360,12 +360,12 @@ class HarvestRunServiceCompletionTest {
                     )
                 }
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(expectedCount.toLong())
+            Mockito
+                .lenient()
+                .`when`(
+                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
+                ).thenReturn(expectedCount.toLong())
         }
-
-        // Mock INITIATING and HARVESTING phase counts
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
 
         val finalEvent =
             HarvestEvent
@@ -452,7 +452,11 @@ class HarvestRunServiceCompletionTest {
                 )
             }
         whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("REASONING"))).thenReturn(reasoningEvents)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("REASONING"))).thenReturn((expectedCount * 2).toLong())
+        Mockito
+            .lenient()
+            .`when`(
+                harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("REASONING")),
+            ).thenReturn((expectedCount * 2).toLong())
 
         // Mock other phases as complete
         val otherPhases = listOf("RDF_PARSING", "RESOURCE_PROCESSING", "SEARCH_PROCESSING", "AI_SEARCH_PROCESSING", "SPARQL_PROCESSING")
@@ -472,12 +476,12 @@ class HarvestRunServiceCompletionTest {
                     )
                 }
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(expectedCount.toLong())
+            Mockito
+                .lenient()
+                .`when`(
+                    harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase)),
+                ).thenReturn(expectedCount.toLong())
         }
-
-        // Mock INITIATING and HARVESTING phase counts
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
 
         val finalEvent =
             HarvestEvent
@@ -635,12 +639,8 @@ class HarvestRunServiceCompletionTest {
                     ),
                 )
             whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(events)
-            whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(1L)
+            Mockito.lenient().`when`(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq(phase))).thenReturn(1L)
         }
-
-        // Mock INITIATING and HARVESTING phase counts
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("INITIATING"))).thenReturn(1L)
-        whenever(harvestEventRepository.countByRunIdAndEventType(eq(runId), eq("HARVESTING"))).thenReturn(1L)
 
         val finalEvent =
             HarvestEvent
