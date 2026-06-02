@@ -2,10 +2,20 @@ package no.fdk.harvestadmin.repository
 
 import no.fdk.harvestadmin.entity.HarvestEventEntity
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
 interface HarvestEventRepository : JpaRepository<HarvestEventEntity, Long> {
+    /** Counts events per phase for a run in a single query, returning rows of [eventType, count]. */
+    @Query(
+        "SELECT e.eventType, COUNT(e) FROM HarvestEventEntity e WHERE e.runId = :runId GROUP BY e.eventType",
+    )
+    fun countEventsByPhase(
+        @Param("runId") runId: String,
+    ): List<Array<Any>>
+
     fun findByDataSourceIdOrderByCreatedAtDesc(dataSourceId: String): List<HarvestEventEntity>
 
     fun findByFdkIdOrderByCreatedAtDesc(fdkId: String): List<HarvestEventEntity>

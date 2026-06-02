@@ -109,7 +109,7 @@ class HarvestRunService(
             // Update or create harvest run (consolidated state tracking)
             // Only update run if it exists
             if (currentRun != null) {
-                updateHarvestRun(event)
+                updateHarvestRun(event, currentRun)
             } else {
                 logger.debug("Skipping run update: harvest run not found for runId: $runId")
             }
@@ -121,19 +121,10 @@ class HarvestRunService(
         }
     }
 
-    private fun updateHarvestRun(event: HarvestEvent) {
-        val runId = event.runId?.toString()
-        if (runId == null) {
-            logger.warn("Cannot update harvest run: runId is required. phase=${event.phase}")
-            return
-        }
-
-        val currentRun = harvestRunRepository.findByRunId(runId)
-        if (currentRun == null) {
-            logger.warn("Cannot find harvest run with runId: $runId, phase=${event.phase}")
-            return
-        }
-
+    private fun updateHarvestRun(
+        event: HarvestEvent,
+        currentRun: HarvestRunEntity,
+    ) {
         val oldStatus = currentRun.status
         val updatedRun = updateRunWithEvent(currentRun, event)
         val savedRun = harvestRunRepository.save(updatedRun)
@@ -703,9 +694,12 @@ class HarvestRunService(
                 "SPARQL_PROCESSING",
             )
 
-        return phases.associateWith { phase ->
-            harvestEventRepository.countByRunIdAndEventType(runId, phase)
-        }
+        val countsByPhase =
+            harvestEventRepository
+                .countEventsByPhase(runId)
+                .associate { (eventType, count) -> eventType as String to count as Long }
+
+        return phases.associateWith { phase -> countsByPhase[phase] ?: 0L }
     }
 
     private fun countResourcesWithAllPhases(
