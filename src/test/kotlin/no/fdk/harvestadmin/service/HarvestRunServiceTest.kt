@@ -48,22 +48,9 @@ class HarvestRunServiceTest {
             HarvestRunService(harvestEventRepository, harvestRunRepository, dataSourceRepository, harvestMetricsService, 30L)
     }
 
-    private fun createPhaseEvents(
-        runId: String,
-        dataSourceId: String,
-        phase: String,
-        resourceCount: Int,
-    ): List<HarvestEventEntity> =
-        (1..resourceCount).map { idx ->
-            HarvestEventEntity(
-                eventType = phase,
-                dataSourceId = dataSourceId,
-                runId = runId,
-                dataType = "dataset",
-                fdkId = "fdk-$idx",
-                endTime = Instant.now().toString(),
-            )
-        }
+    /** Builds [eventType, count] rows as returned by the grouped aggregate queries. */
+    private fun phaseCountRows(vararg counts: Pair<String, Long>): List<Array<Any>> =
+        counts.map { (phase, count) -> arrayOf<Any>(phase, count) }
 
     @Test
     fun `should persist harvest event`() {
@@ -167,22 +154,26 @@ class HarvestRunServiceTest {
             ),
         ).thenReturn(1L)
 
-        // Resource-based phases with completed events for all expected resources
-        val phasesWithResources =
-            listOf(
-                "REASONING",
-                "RDF_PARSING",
-                "RESOURCE_PROCESSING",
-                "SEARCH_PROCESSING",
-            )
-        phasesWithResources.forEach { phase ->
-            whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq(phase)))
-                .thenReturn(createPhaseEvents(runId, dataSourceId, phase, expectedResources))
-        }
-
-        // Optional phases without any events should not block completion
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("AI_SEARCH_PROCESSING"))).thenReturn(emptyList())
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SPARQL_PROCESSING"))).thenReturn(emptyList())
+        // Resource-based phases each have completed events for all expected resources.
+        // Optional phases (AI_SEARCH/SPARQL) have no events, so they must not block completion.
+        whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
+            phaseCountRows(
+                "INITIATING" to 1L,
+                "HARVESTING" to 1L,
+                "REASONING" to expectedResources.toLong(),
+                "RDF_PARSING" to expectedResources.toLong(),
+                "RESOURCE_PROCESSING" to expectedResources.toLong(),
+                "SEARCH_PROCESSING" to expectedResources.toLong(),
+            ),
+        )
+        whenever(harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any())).thenReturn(
+            phaseCountRows(
+                "REASONING" to expectedResources.toLong(),
+                "RDF_PARSING" to expectedResources.toLong(),
+                "RESOURCE_PROCESSING" to expectedResources.toLong(),
+                "SEARCH_PROCESSING" to expectedResources.toLong(),
+            ),
+        )
 
         val event =
             HarvestEvent
@@ -498,19 +489,26 @@ class HarvestRunServiceTest {
             ),
         ).thenReturn(1L)
 
-        // All phases complete except RDF_PARSING, which has fewer completed resources than expected
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("REASONING")))
-            .thenReturn(createPhaseEvents(runId, dataSourceId, "REASONING", expectedResources))
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("RDF_PARSING")))
-            .thenReturn(createPhaseEvents(runId, dataSourceId, "RDF_PARSING", 1))
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("RESOURCE_PROCESSING")))
-            .thenReturn(createPhaseEvents(runId, dataSourceId, "RESOURCE_PROCESSING", expectedResources))
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SEARCH_PROCESSING")))
-            .thenReturn(createPhaseEvents(runId, dataSourceId, "SEARCH_PROCESSING", expectedResources))
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("AI_SEARCH_PROCESSING")))
-            .thenReturn(emptyList())
-        whenever(harvestEventRepository.findByRunIdAndEventType(eq(runId), eq("SPARQL_PROCESSING")))
-            .thenReturn(emptyList())
+        // All phases complete except RDF_PARSING, which has fewer completed resources than expected.
+        // Optional phases (AI_SEARCH/SPARQL) have no events and must be reported as not required + complete.
+        whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
+            phaseCountRows(
+                "INITIATING" to 1L,
+                "HARVESTING" to 1L,
+                "REASONING" to expectedResources.toLong(),
+                "RDF_PARSING" to 1L,
+                "RESOURCE_PROCESSING" to expectedResources.toLong(),
+                "SEARCH_PROCESSING" to expectedResources.toLong(),
+            ),
+        )
+        whenever(harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any())).thenReturn(
+            phaseCountRows(
+                "REASONING" to expectedResources.toLong(),
+                "RDF_PARSING" to 1L,
+                "RESOURCE_PROCESSING" to expectedResources.toLong(),
+                "SEARCH_PROCESSING" to expectedResources.toLong(),
+            ),
+        )
 
         // When
         val (run, httpStatus) = harvestRunService.getHarvestRun(runId)
