@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class HarvestEventProcessor(
-    private val harvestRunService: HarvestRunService,
+    private val harvestEventIngestionService: HarvestEventIngestionService,
     private val harvestMetricsService: HarvestMetricsService,
     @param:Qualifier("harvestEventCircuitBreaker")
     private val circuitBreaker: CircuitBreaker,
@@ -30,7 +30,7 @@ class HarvestEventProcessor(
                     }
 
                     else -> {
-                        harvestRunService.persistEvent(event)
+                        harvestEventIngestionService.persistEvent(event)
                         harvestMetricsService.recordEventProcessed(event)
                         logger.debug("Successfully processed harvest event: phase={}, runId={}", event.phase, event.runId)
                     }

@@ -24,7 +24,7 @@ import java.util.UUID
 
 class DataSourceServiceTest {
     private val dataSourceRepository: DataSourceRepository = mock()
-    private val harvestRunService: HarvestRunService = mock()
+    private val harvestEventIngestionService: HarvestEventIngestionService = mock()
     private val kafkaHarvestEventPublisher: KafkaHarvestEventPublisher = mock()
     private val harvestRunRepository: HarvestRunRepository = mock()
     private val harvestMetricsService: HarvestMetricsService = mock()
@@ -32,7 +32,7 @@ class DataSourceServiceTest {
     private val service =
         DataSourceService(
             dataSourceRepository = dataSourceRepository,
-            harvestRunService = harvestRunService,
+            harvestEventIngestionService = harvestEventIngestionService,
             kafkaHarvestEventPublisher = kafkaHarvestEventPublisher,
             harvestRunRepository = harvestRunRepository,
             harvestMetricsService = harvestMetricsService,
@@ -67,7 +67,7 @@ class DataSourceServiceTest {
             dataType = dataType,
         )
 
-        verify(harvestRunService).persistEvent(any<HarvestEvent>())
+        verify(harvestEventIngestionService).persistEvent(any<HarvestEvent>())
         verify(kafkaHarvestEventPublisher).publishEvent(any<HarvestEvent>())
     }
 

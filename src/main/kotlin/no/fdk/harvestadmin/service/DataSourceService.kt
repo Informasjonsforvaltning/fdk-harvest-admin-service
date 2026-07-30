@@ -11,7 +11,6 @@ import no.fdk.harvestadmin.model.DataSourceType
 import no.fdk.harvestadmin.model.DataType
 import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
-import no.fdk.harvestadmin.service.HarvestRunService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -24,7 +23,7 @@ import java.util.UUID
 @Service
 class DataSourceService(
     private val dataSourceRepository: DataSourceRepository,
-    private val harvestRunService: HarvestRunService,
+    private val harvestEventIngestionService: HarvestEventIngestionService,
     private val kafkaHarvestEventPublisher: KafkaHarvestEventPublisher,
     private val harvestRunRepository: HarvestRunRepository,
     private val harvestMetricsService: HarvestMetricsService,
@@ -220,7 +219,7 @@ class DataSourceService(
                     .setRemoveAll(removeAll)
                     .setForced(forced ?: false)
                     .build()
-            harvestRunService.persistEvent(triggerEvent)
+            harvestEventIngestionService.persistEvent(triggerEvent)
 
             // Publish harvest trigger event to Kafka
             kafkaHarvestEventPublisher.publishEvent(triggerEvent)

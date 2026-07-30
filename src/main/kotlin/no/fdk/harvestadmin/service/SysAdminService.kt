@@ -17,7 +17,7 @@ class SysAdminService(
     private val kafkaHarvestEventPublisher: KafkaHarvestEventPublisher,
     private val harvestRunRepository: HarvestRunRepository,
     private val harvestMetricsService: HarvestMetricsService,
-    private val harvestRunService: HarvestRunService,
+    private val harvestEventIngestionService: HarvestEventIngestionService,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val adminSourceId = "sys-admin-operations"
@@ -66,7 +66,7 @@ class SysAdminService(
                     .setRemoveAll(null)
                     .setForced(false)
                     .build()
-            harvestRunService.persistEvent(event)
+            harvestEventIngestionService.persistEvent(event)
 
             // Publish harvest removing event to Kafka
             kafkaHarvestEventPublisher.publishEvent(event)

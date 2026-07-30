@@ -44,8 +44,23 @@ class HarvestRunServiceDurationTest {
 
     @BeforeEach
     fun setUp() {
+        val completionEvaluator = HarvestCompletionEvaluator(harvestEventRepository)
+        val ingestionService =
+            HarvestEventIngestionService(
+                harvestEventRepository,
+                harvestRunRepository,
+                harvestMetricsService,
+                completionEvaluator,
+            )
         harvestRunService =
-            HarvestRunService(harvestEventRepository, harvestRunRepository, dataSourceRepository, harvestMetricsService, 30L)
+            HarvestRunService(
+                harvestRunRepository,
+                dataSourceRepository,
+                harvestMetricsService,
+                completionEvaluator,
+                ingestionService,
+                30L,
+            )
         baseTime = Instant.parse("2024-01-01T10:00:00Z")
     }
 

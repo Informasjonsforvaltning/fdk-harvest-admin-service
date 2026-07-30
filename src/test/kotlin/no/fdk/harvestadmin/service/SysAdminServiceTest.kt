@@ -23,14 +23,14 @@ class SysAdminServiceTest {
     private val kafkaHarvestEventPublisher: KafkaHarvestEventPublisher = mock()
     private val harvestRunRepository: HarvestRunRepository = mock()
     private val harvestMetricsService: HarvestMetricsService = mock()
-    private val harvestRunService: HarvestRunService = mock()
+    private val harvestEventIngestionService: HarvestEventIngestionService = mock()
 
     private val service =
         SysAdminService(
             kafkaHarvestEventPublisher = kafkaHarvestEventPublisher,
             harvestRunRepository = harvestRunRepository,
             harvestMetricsService = harvestMetricsService,
-            harvestRunService = harvestRunService,
+            harvestEventIngestionService = harvestEventIngestionService,
         )
 
     @Test
@@ -91,7 +91,7 @@ class SysAdminServiceTest {
         }
 
         verify(harvestMetricsService, times(2)).recordRunStarted(any())
-        verify(harvestRunService, times(2)).persistEvent(any())
+        verify(harvestEventIngestionService, times(2)).persistEvent(any())
     }
 
     @Test
@@ -101,7 +101,7 @@ class SysAdminServiceTest {
         verifyNoInteractions(kafkaHarvestEventPublisher)
         verifyNoInteractions(harvestRunRepository)
         verifyNoInteractions(harvestMetricsService)
-        verifyNoInteractions(harvestRunService)
+        verifyNoInteractions(harvestEventIngestionService)
     }
 
     @Test
@@ -130,7 +130,7 @@ class SysAdminServiceTest {
             org.mockito.Mockito.clearInvocations(kafkaHarvestEventPublisher)
             org.mockito.Mockito.clearInvocations(harvestRunRepository)
             org.mockito.Mockito.clearInvocations(harvestMetricsService)
-            org.mockito.Mockito.clearInvocations(harvestRunService)
+            org.mockito.Mockito.clearInvocations(harvestEventIngestionService)
         }
     }
 
