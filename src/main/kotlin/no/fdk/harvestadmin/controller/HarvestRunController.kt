@@ -196,6 +196,7 @@ class HarvestRunController(
                         allowedPublisherIds = allowedOrgs,
                     )
                 }
+
                 else -> {
                     // Get global metrics
                     harvestRunQueryService.getAllPerformanceMetrics(

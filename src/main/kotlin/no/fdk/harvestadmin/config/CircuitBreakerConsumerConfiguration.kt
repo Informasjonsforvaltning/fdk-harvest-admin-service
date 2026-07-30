@@ -79,7 +79,9 @@ open class CircuitBreakerConsumerConfiguration(
                 kafkaManager.resume(listenerId)
             }
 
-            else -> throw IllegalStateException("Unknown transition state: " + event.stateTransition)
+            else -> {
+                throw IllegalStateException("Unknown transition state: " + event.stateTransition)
+            }
         }
     }
 

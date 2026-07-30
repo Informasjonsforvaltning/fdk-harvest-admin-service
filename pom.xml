@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
+        <version>4.1.0</version>
         <relativePath/>
     </parent>
     <groupId>no.fdk</groupId>
@@ -15,10 +15,10 @@
     <description>FDK Harvest Admin Service - Spring Boot replacement for fdk-harvest-admin (Go)</description>
     <properties>
         <java.version>21</java.version>
-        <kotlin.version>2.2.21</kotlin.version>
-        <testcontainers.version>2.0.4</testcontainers.version>
+        <kotlin.version>2.3.21</kotlin.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
         <avro.version>1.12.1</avro.version>
-        <confluent.version>8.2.0</confluent.version>
+        <confluent.version>8.3.0</confluent.version>
     </properties>
 
     <dependencyManagement>
@@ -207,7 +207,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.5</version>
+                <version>3.5.6</version>
                 <configuration>
                     <includes>
                         <include>**/*Test.java</include>
@@ -223,7 +223,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.5.5</version>
+                <version>3.5.6</version>
                 <executions>
                     <execution>
                         <id>integration-test</id>
@@ -276,7 +276,7 @@
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.7.1</version>
                 <executions>
                     <execution>
                         <id>format</id>
