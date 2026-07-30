@@ -24,7 +24,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val runDetails = createHarvestRunDetails()
         whenever(
-            harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), eq("IN_PROGRESS"), any(), any(), anyOrNull()),
+            harvestRunQueryService.getHarvestRuns(anyOrNull(), anyOrNull(), eq("IN_PROGRESS"), any(), any(), anyOrNull()),
         ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
@@ -44,7 +44,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         val dataSourceId = UUID.randomUUID().toString()
         val runDetails = createHarvestRunDetails(dataSourceId = dataSourceId)
         whenever(
-            harvestRunService.getHarvestRuns(eq(dataSourceId), anyOrNull(), anyOrNull(), any(), any(), anyOrNull()),
+            harvestRunQueryService.getHarvestRuns(eq(dataSourceId), anyOrNull(), anyOrNull(), any(), any(), anyOrNull()),
         ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
@@ -63,7 +63,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         val dataType = "dataset"
         val runDetails = createHarvestRunDetails(dataSourceId = dataSourceId, dataType = dataType)
         whenever(
-            harvestRunService.getHarvestRuns(eq(dataSourceId), eq(dataType), anyOrNull(), any(), any(), anyOrNull()),
+            harvestRunQueryService.getHarvestRuns(eq(dataSourceId), eq(dataType), anyOrNull(), any(), any(), anyOrNull()),
         ).thenReturn(Pair(listOf(runDetails), 1L))
 
         // When/Then
@@ -82,7 +82,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
     fun `should return empty list when no filters provided`() {
         // Given
         whenever(
-            harvestRunService.getHarvestRuns(anyOrNull(), anyOrNull(), anyOrNull(), any(), any(), anyOrNull()),
+            harvestRunQueryService.getHarvestRuns(anyOrNull(), anyOrNull(), anyOrNull(), any(), any(), anyOrNull()),
         ).thenReturn(Pair(emptyList(), 0L))
 
         // When/Then
@@ -98,7 +98,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val runId = UUID.randomUUID().toString()
         val runDetails = createHarvestRunDetails()
-        whenever(harvestRunService.getHarvestRun(eq(runId), anyOrNull())).thenReturn(Pair(runDetails, HttpStatus.OK))
+        whenever(harvestRunQueryService.getHarvestRun(eq(runId), anyOrNull())).thenReturn(Pair(runDetails, HttpStatus.OK))
 
         // When/Then
         mockMvc
@@ -113,7 +113,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
     fun `should return 404 when harvest run not found`() {
         // Given
         val runId = UUID.randomUUID().toString()
-        whenever(harvestRunService.getHarvestRun(eq(runId), anyOrNull())).thenReturn(Pair(null, HttpStatus.NOT_FOUND))
+        whenever(harvestRunQueryService.getHarvestRun(eq(runId), anyOrNull())).thenReturn(Pair(null, HttpStatus.NOT_FOUND))
 
         // When/Then
         mockMvc
@@ -128,7 +128,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         val dataType = "dataset"
         val metrics = createHarvestPerformanceMetrics(dataSourceId = dataSourceId, dataType = dataType)
         whenever(
-            harvestRunService.getPerformanceMetrics(
+            harvestRunQueryService.getPerformanceMetrics(
                 eq(dataSourceId),
                 eq(dataType),
                 anyOrNull(),
@@ -157,7 +157,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val metrics = createHarvestPerformanceMetrics(dataSourceId = null, dataType = null)
         whenever(
-            harvestRunService.getAllPerformanceMetrics(
+            harvestRunQueryService.getAllPerformanceMetrics(
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
@@ -181,7 +181,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val metrics = createHarvestPerformanceMetrics()
         whenever(
-            harvestRunService.getAllPerformanceMetrics(
+            harvestRunQueryService.getAllPerformanceMetrics(
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
@@ -202,7 +202,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val metrics = createHarvestPerformanceMetrics()
         whenever(
-            harvestRunService.getAllPerformanceMetrics(
+            harvestRunQueryService.getAllPerformanceMetrics(
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
@@ -244,7 +244,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val metrics = createHarvestPerformanceMetrics()
         whenever(
-            harvestRunService.getAllPerformanceMetrics(
+            harvestRunQueryService.getAllPerformanceMetrics(
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
@@ -265,7 +265,7 @@ class HarvestRunControllerTest : BaseControllerTest() {
         // Given
         val testDataSourceId = UUID.randomUUID().toString()
         whenever(
-            harvestRunService.getPerformanceMetrics(
+            harvestRunQueryService.getPerformanceMetrics(
                 eq(testDataSourceId),
                 eq("dataset"),
                 anyOrNull(),

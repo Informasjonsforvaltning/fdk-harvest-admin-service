@@ -1,77 +1,34 @@
 package no.fdk.harvestadmin.service
 
-import no.fdk.harvest.HarvestEvent
 import no.fdk.harvestadmin.model.HarvestCurrentState
 import no.fdk.harvestadmin.model.HarvestPerformanceMetrics
 import no.fdk.harvestadmin.model.HarvestRunDetails
 import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 /**
- * Query APIs and scheduled maintenance for harvest runs.
- *
- * Event write-path logic lives in [HarvestEventIngestionService];
- * completion rules live in [HarvestCompletionEvaluator].
- * [persistEvent] remains as a thin facade for callers/tests not yet migrated.
+ * Read queries for harvest runs (listing, details, metrics, current state).
  */
 @Service
-class HarvestRunService(
+class HarvestRunQueryService(
     private val harvestRunRepository: HarvestRunRepository,
     private val dataSourceRepository: DataSourceRepository,
-    private val harvestMetricsService: HarvestMetricsService,
     private val completionEvaluator: HarvestCompletionEvaluator,
-    private val harvestEventIngestionService: HarvestEventIngestionService,
-    @param:Value("\${app.harvest.stale-timeout-minutes:30}") private val staleTimeoutMinutes: Long,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    /** Resolves allowed publisher IDs (orgs) to data source IDs for run filtering. Returns null when no restriction (e.g. system admin / API key). */
+    // Resolves allowed publisher IDs (orgs) to data source IDs for run filtering.
+    // Returns null when no restriction (e.g. system admin / API key).
     private fun resolveAllowedDataSourceIds(allowedPublisherIds: List<String>?): List<String>? {
         if (allowedPublisherIds == null) return null
         if (allowedPublisherIds.isEmpty()) return emptyList()
         return dataSourceRepository.findByPublisherIdIn(allowedPublisherIds).map { it.id }
-    }
-
-    /** Thin facade over [HarvestEventIngestionService.persistEvent]. Prefer the ingestion service for new call sites. */
-    fun persistEvent(event: HarvestEvent) {
-        harvestEventIngestionService.persistEvent(event)
-    }
-
-    @Scheduled(fixedDelayString = "\${app.harvest.stale-check-interval-ms:300000}", initialDelay = 60000)
-    @Transactional
-    fun markStaleRunsAsFailed() {
-        try {
-            val staleBefore = Instant.now().minus(staleTimeoutMinutes, ChronoUnit.MINUTES)
-            val staleRuns = harvestRunRepository.findStaleRuns(staleBefore)
-
-            if (staleRuns.isNotEmpty()) {
-                logger.warn("Found ${staleRuns.size} stale harvest run(s) that haven't been updated in $staleTimeoutMinutes minutes")
-                staleRuns.forEach { run ->
-                    val updatedRun =
-                        run.copy(
-                            status = "FAILED",
-                            errorMessage = "Harvest run timed out - no events received for $staleTimeoutMinutes minutes",
-                            runEndedAt = run.updatedAt,
-                            updatedAt = Instant.now(),
-                        )
-                    harvestRunRepository.save(updatedRun)
-                    logger.info("Marked stale harvest run ${run.runId} as FAILED (last updated: ${run.updatedAt})")
-                    // Record metrics for failed run
-                    harvestMetricsService.recordRunCompleted(updatedRun)
-                }
-            }
-        } catch (e: Exception) {
-            logger.error("Error marking stale runs as failed", e)
-        }
     }
 
     fun getCurrentState(dataSourceId: String): Pair<List<HarvestCurrentState>, HttpStatus> =

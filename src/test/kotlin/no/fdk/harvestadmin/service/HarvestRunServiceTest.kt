@@ -40,26 +40,24 @@ class HarvestRunServiceTest {
     @Mock
     private lateinit var harvestMetricsService: HarvestMetricsService
 
-    private lateinit var harvestRunService: HarvestRunService
+    private lateinit var ingestionService: HarvestEventIngestionService
+    private lateinit var queryService: HarvestRunQueryService
 
     @BeforeEach
     fun setUp() {
         val completionEvaluator = HarvestCompletionEvaluator(harvestEventRepository)
-        val ingestionService =
+        ingestionService =
             HarvestEventIngestionService(
                 harvestEventRepository,
                 harvestRunRepository,
                 harvestMetricsService,
                 completionEvaluator,
             )
-        harvestRunService =
-            HarvestRunService(
+        queryService =
+            HarvestRunQueryService(
                 harvestRunRepository,
                 dataSourceRepository,
-                harvestMetricsService,
                 completionEvaluator,
-                ingestionService,
-                30L,
             )
     }
 
@@ -96,7 +94,7 @@ class HarvestRunServiceTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val eventCaptor = ArgumentCaptor.forClass(HarvestEventEntity::class.java)
@@ -130,7 +128,7 @@ class HarvestRunServiceTest {
         whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then - event should still be persisted
         verify(harvestEventRepository).save(any())
@@ -201,7 +199,7 @@ class HarvestRunServiceTest {
                 .build()
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -253,7 +251,7 @@ class HarvestRunServiceTest {
                 .build()
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -281,7 +279,7 @@ class HarvestRunServiceTest {
             .thenReturn(runEntity)
 
         // When
-        val (states, httpStatus) = harvestRunService.getCurrentState(dataSourceId)
+        val (states, httpStatus) = queryService.getCurrentState(dataSourceId)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -299,7 +297,7 @@ class HarvestRunServiceTest {
             .thenReturn(null)
 
         // When
-        val (states, httpStatus) = harvestRunService.getCurrentState(dataSourceId)
+        val (states, httpStatus) = queryService.getCurrentState(dataSourceId)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -330,7 +328,7 @@ class HarvestRunServiceTest {
         whenever(harvestRunRepository.findAllInProgress()).thenReturn(listOf(run1, run2))
 
         // When
-        val runs = harvestRunService.getAllInProgressStates()
+        val runs = queryService.getAllInProgressStates()
 
         // Then
         assertEquals(2, runs.size)
@@ -364,7 +362,7 @@ class HarvestRunServiceTest {
         ).thenReturn(listOf(runEntity))
 
         // When
-        val (metrics, httpStatus) = harvestRunService.getPerformanceMetrics(dataSourceId, dataType, daysBack = 30)
+        val (metrics, httpStatus) = queryService.getPerformanceMetrics(dataSourceId, dataType, daysBack = 30)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -389,7 +387,7 @@ class HarvestRunServiceTest {
         ).thenReturn(emptyList())
 
         // When
-        val (metrics, httpStatus) = harvestRunService.getPerformanceMetrics(dataSourceId, "dataset", daysBack = 30)
+        val (metrics, httpStatus) = queryService.getPerformanceMetrics(dataSourceId, "dataset", daysBack = 30)
 
         // Then
         assertEquals(HttpStatus.NOT_FOUND, httpStatus)
@@ -418,7 +416,7 @@ class HarvestRunServiceTest {
         ).thenReturn(listOf(runEntity))
 
         // When
-        val (metrics, httpStatus) = harvestRunService.getPerformanceMetrics(dataSourceId, "dataset", limit = 10)
+        val (metrics, httpStatus) = queryService.getPerformanceMetrics(dataSourceId, "dataset", limit = 10)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -441,7 +439,7 @@ class HarvestRunServiceTest {
         whenever(harvestRunRepository.findAllCompletedRuns(any(), anyOrNull())).thenReturn(listOf(run1))
 
         // When
-        val (metrics, httpStatus) = harvestRunService.getAllPerformanceMetrics(daysBack = 30)
+        val (metrics, httpStatus) = queryService.getAllPerformanceMetrics(daysBack = 30)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -467,7 +465,7 @@ class HarvestRunServiceTest {
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(runEntity)
 
         // When
-        val (run, httpStatus) = harvestRunService.getHarvestRun(runId)
+        val (run, httpStatus) = queryService.getHarvestRun(runId)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -526,7 +524,7 @@ class HarvestRunServiceTest {
         )
 
         // When
-        val (run, httpStatus) = harvestRunService.getHarvestRun(runId)
+        val (run, httpStatus) = queryService.getHarvestRun(runId)
 
         // Then
         assertEquals(HttpStatus.OK, httpStatus)
@@ -555,7 +553,7 @@ class HarvestRunServiceTest {
         whenever(harvestRunRepository.findByRunId(runId)).thenReturn(null)
 
         // When
-        val (run, httpStatus) = harvestRunService.getHarvestRun(runId)
+        val (run, httpStatus) = queryService.getHarvestRun(runId)
 
         // Then
         assertEquals(HttpStatus.NOT_FOUND, httpStatus)
@@ -603,7 +601,7 @@ class HarvestRunServiceTest {
         ).thenReturn(2L)
 
         // When
-        val (runs, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, "dataset", null, 0, 50)
+        val (runs, totalCount) = queryService.getHarvestRuns(dataSourceId, "dataset", null, 0, 50)
 
         // Then
         assertEquals(2, runs.size)
@@ -646,7 +644,7 @@ class HarvestRunServiceTest {
         ).thenReturn(10L)
 
         // When
-        val (limitedRuns, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, "dataset", null, 0, 5)
+        val (limitedRuns, totalCount) = queryService.getHarvestRuns(dataSourceId, "dataset", null, 0, 5)
 
         // Then
         assertEquals(5, limitedRuns.size)

@@ -38,28 +38,26 @@ class HarvestRunServiceDurationTest {
     @Mock
     private lateinit var harvestMetricsService: HarvestMetricsService
 
-    private lateinit var harvestRunService: HarvestRunService
+    private lateinit var ingestionService: HarvestEventIngestionService
+    private lateinit var queryService: HarvestRunQueryService
 
     private lateinit var baseTime: Instant
 
     @BeforeEach
     fun setUp() {
         val completionEvaluator = HarvestCompletionEvaluator(harvestEventRepository)
-        val ingestionService =
+        ingestionService =
             HarvestEventIngestionService(
                 harvestEventRepository,
                 harvestRunRepository,
                 harvestMetricsService,
                 completionEvaluator,
             )
-        harvestRunService =
-            HarvestRunService(
+        queryService =
+            HarvestRunQueryService(
                 harvestRunRepository,
                 dataSourceRepository,
-                harvestMetricsService,
                 completionEvaluator,
-                ingestionService,
-                30L,
             )
         baseTime = Instant.parse("2024-01-01T10:00:00Z")
     }
@@ -96,7 +94,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -142,7 +140,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -189,7 +187,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event1)
+        ingestionService.persistEvent(event1)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -236,7 +234,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -283,7 +281,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -330,7 +328,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -377,7 +375,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -424,7 +422,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -511,7 +509,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -596,7 +594,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -682,7 +680,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -765,7 +763,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -835,7 +833,7 @@ class HarvestRunServiceDurationTest {
         ).thenReturn(runs)
 
         // When
-        val (metrics, httpStatus) = harvestRunService.getPerformanceMetrics(dataSourceId, "dataset", daysBack = 30)
+        val (metrics, httpStatus) = queryService.getPerformanceMetrics(dataSourceId, "dataset", daysBack = 30)
 
         // Then
         assertEquals(org.springframework.http.HttpStatus.OK, httpStatus)
@@ -899,7 +897,7 @@ class HarvestRunServiceDurationTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(event)
+        ingestionService.persistEvent(event)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)

@@ -16,7 +16,7 @@ import no.fdk.harvestadmin.model.DataSource
 import no.fdk.harvestadmin.model.DataSourceType
 import no.fdk.harvestadmin.model.DataType
 import no.fdk.harvestadmin.service.DataSourceService
-import no.fdk.harvestadmin.service.HarvestRunService
+import no.fdk.harvestadmin.service.HarvestRunQueryService
 import no.fdk.harvestadmin.service.SecurityService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 @Tag(name = "Data Source", description = "Data Source Service")
 class DataSourceController(
     private val dataSourceService: DataSourceService,
-    private val harvestRunService: HarvestRunService,
+    private val harvestRunQueryService: HarvestRunQueryService,
     private val securityService: SecurityService,
 ) {
     private val validPublisherIdPattern = Regex("^[a-zA-Z0-9-_]+$")
@@ -332,7 +332,7 @@ class DataSourceController(
     ): ResponseEntity<List<no.fdk.harvestadmin.model.HarvestCurrentState>> {
         validateOrgId(org)
         requireOrgAccess(org, authentication)
-        val (states, httpStatus) = harvestRunService.getCurrentState(id)
+        val (states, httpStatus) = harvestRunQueryService.getCurrentState(id)
         return ResponseEntity.status(httpStatus).body(states)
     }
 }

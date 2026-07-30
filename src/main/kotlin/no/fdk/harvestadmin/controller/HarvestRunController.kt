@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.fdk.harvestadmin.model.HarvestPerformanceMetrics
 import no.fdk.harvestadmin.model.HarvestRunDetails
-import no.fdk.harvestadmin.service.HarvestRunService
+import no.fdk.harvestadmin.service.HarvestRunQueryService
 import no.fdk.harvestadmin.service.SecurityService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/runs")
 @Tag(name = "Harvest Run", description = "Harvest Run Service")
 class HarvestRunController(
-    private val harvestRunService: HarvestRunService,
+    private val harvestRunQueryService: HarvestRunQueryService,
     private val securityService: SecurityService,
 ) {
     @GetMapping
@@ -84,7 +84,7 @@ class HarvestRunController(
         }
 
         val allowedOrgs = securityService.getAuthorizedOrganizations(authentication)
-        val (runs, totalCount) = harvestRunService.getHarvestRuns(dataSourceId, dataType, status, offset, limit, allowedOrgs)
+        val (runs, totalCount) = harvestRunQueryService.getHarvestRuns(dataSourceId, dataType, status, offset, limit, allowedOrgs)
 
         return ResponseEntity.ok(
             mapOf(
@@ -117,7 +117,7 @@ class HarvestRunController(
         authentication: Authentication?,
     ): ResponseEntity<Any> {
         val allowedOrgs = securityService.getAuthorizedOrganizations(authentication)
-        val (run, httpStatus) = harvestRunService.getHarvestRun(runId, allowedOrgs)
+        val (run, httpStatus) = harvestRunQueryService.getHarvestRun(runId, allowedOrgs)
         return if (run != null) {
             ResponseEntity.status(httpStatus).body(run)
         } else {
@@ -186,7 +186,7 @@ class HarvestRunController(
             when {
                 dataSourceId != null && dataType != null -> {
                     // Get metrics for a specific data source and data type
-                    harvestRunService.getPerformanceMetrics(
+                    harvestRunQueryService.getPerformanceMetrics(
                         dataSourceId,
                         dataType,
                         daysBack = daysBack,
@@ -198,7 +198,7 @@ class HarvestRunController(
                 }
                 else -> {
                     // Get global metrics
-                    harvestRunService.getAllPerformanceMetrics(
+                    harvestRunQueryService.getAllPerformanceMetrics(
                         daysBack = daysBack,
                         startDate = startDateInstant,
                         endDate = endDateInstant,
