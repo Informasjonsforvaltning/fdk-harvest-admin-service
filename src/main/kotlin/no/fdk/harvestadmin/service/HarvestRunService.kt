@@ -7,8 +7,6 @@ import no.fdk.harvestadmin.model.HarvestCurrentState
 import no.fdk.harvestadmin.model.HarvestPerformanceMetrics
 import no.fdk.harvestadmin.model.HarvestRunDetails
 import no.fdk.harvestadmin.model.PhaseCompletion
-import no.fdk.harvestadmin.model.PhaseDurations
-import no.fdk.harvestadmin.model.ResourceCounts
 import no.fdk.harvestadmin.model.RunCompletionStatus
 import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestEventRepository
@@ -737,41 +735,7 @@ class HarvestRunService(
     fun getCurrentState(dataSourceId: String): Pair<List<HarvestCurrentState>, HttpStatus> =
         try {
             val run = harvestRunRepository.findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId)
-            val runs = run?.let { listOf(it) } ?: emptyList()
-
-            val states =
-                runs.map { run ->
-                    HarvestCurrentState(
-                        dataSourceId = run.dataSourceId,
-                        dataType = run.dataType,
-                        currentPhase = run.currentPhase,
-                        phaseStartedAt = run.phaseStartedAt,
-                        lastEventTimestamp = run.lastEventTimestamp,
-                        errorMessage = run.errorMessage,
-                        totalResources = run.totalResources,
-                        processedResources = run.processedResources,
-                        remainingResources = run.remainingResources,
-                        phaseEventCounts =
-                            no.fdk.harvestadmin.model.PhaseEventCounts(
-                                initiatingEventsCount = run.initiatingEventsCount,
-                                harvestingEventsCount = run.harvestingEventsCount,
-                                reasoningEventsCount = run.reasoningEventsCount,
-                                rdfParsingEventsCount = run.rdfParsingEventsCount,
-                                resourceProcessingEventsCount = run.resourceProcessingEventsCount,
-                                searchProcessingEventsCount = run.searchProcessingEventsCount,
-                                aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
-                                sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
-                            ),
-                        changedResourcesCount = run.changedResourcesCount,
-                        removedResourcesCount = run.removedResourcesCount,
-                        removeAll = run.removeAll,
-                        forced = run.forced,
-                        status = run.status,
-                        createdAt = run.createdAt,
-                        updatedAt = run.updatedAt,
-                    )
-                }
-
+            val states = run?.let { listOf(it.toHarvestCurrentState()) } ?: emptyList()
             Pair(states, HttpStatus.OK)
         } catch (e: Exception) {
             logger.error("Error getting current state for dataSourceId: $dataSourceId", e)
@@ -781,49 +745,7 @@ class HarvestRunService(
     fun getAllInProgressStates(): List<HarvestRunDetails> =
         try {
             harvestRunRepository.findAllInProgress().map { run ->
-                HarvestRunDetails(
-                    runId = run.runId,
-                    dataSourceId = run.dataSourceId,
-                    dataType = run.dataType,
-                    runStartedAt = run.runStartedAt,
-                    runEndedAt = run.runEndedAt,
-                    totalDurationMs = run.totalDurationMs,
-                    phaseDurations =
-                        PhaseDurations(
-                            initDurationMs = run.initDurationMs,
-                            harvestDurationMs = run.harvestDurationMs,
-                            reasoningDurationMs = run.reasoningDurationMs,
-                            rdfParsingDurationMs = run.rdfParsingDurationMs,
-                            searchProcessingDurationMs = run.searchProcessingDurationMs,
-                            aiSearchProcessingDurationMs = run.aiSearchProcessingDurationMs,
-                            apiProcessingDurationMs = run.apiProcessingDurationMs,
-                            sparqlProcessingDurationMs = run.sparqlProcessingDurationMs,
-                        ),
-                    resourceCounts =
-                        ResourceCounts(
-                            totalResources = run.totalResources,
-                            changedResourcesCount = run.changedResourcesCount,
-                            removedResourcesCount = run.removedResourcesCount,
-                            phaseEventCounts =
-                                no.fdk.harvestadmin.model.PhaseEventCounts(
-                                    initiatingEventsCount = run.initiatingEventsCount,
-                                    harvestingEventsCount = run.harvestingEventsCount,
-                                    reasoningEventsCount = run.reasoningEventsCount,
-                                    rdfParsingEventsCount = run.rdfParsingEventsCount,
-                                    resourceProcessingEventsCount = run.resourceProcessingEventsCount,
-                                    searchProcessingEventsCount = run.searchProcessingEventsCount,
-                                    aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
-                                    sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
-                                ),
-                        ),
-                    removeAll = run.removeAll,
-                    forced = run.forced,
-                    status = run.status,
-                    errorMessage = run.errorMessage,
-                    createdAt = run.createdAt,
-                    updatedAt = run.updatedAt,
-                    completionStatus = checkIfAllPhasesComplete(run),
-                )
+                run.toHarvestRunDetails(completionStatus = checkIfAllPhasesComplete(run))
             }
         } catch (e: Exception) {
             logger.error("Error getting all in-progress states", e)
@@ -870,37 +792,7 @@ class HarvestRunService(
             if (runs.isEmpty()) {
                 Pair(null, HttpStatus.NOT_FOUND)
             } else {
-                // Filter out runs with errors - they can have misleadingly low durations
-                val successfulRuns = runs.filter { it.status == "COMPLETED" && it.errorMessage == null }
-                val completedRuns = runs.filter { it.status == "COMPLETED" }
-                val failedRuns = runs.filter { it.status == "FAILED" }
-
-                val periodStart = runs.minOfOrNull { it.runStartedAt } ?: Instant.now()
-                val periodEnd = runs.maxOfOrNull { it.runStartedAt } ?: Instant.now()
-
-                val metrics =
-                    HarvestPerformanceMetrics(
-                        dataSourceId = dataSourceId,
-                        dataType = dataType,
-                        totalRuns = runs.size,
-                        completedRuns = completedRuns.size,
-                        failedRuns = failedRuns.size,
-                        averageTotalDurationMs = calculateAverage(successfulRuns) { it.totalDurationMs?.toDouble() },
-                        averageHarvestDurationMs = calculateAverage(successfulRuns) { it.harvestDurationMs?.toDouble() },
-                        averageReasoningDurationMs = calculateAverage(successfulRuns) { it.reasoningDurationMs?.toDouble() },
-                        averageRdfParsingDurationMs = calculateAverage(successfulRuns) { it.rdfParsingDurationMs?.toDouble() },
-                        averageSearchProcessingDurationMs = calculateAverage(successfulRuns) { it.searchProcessingDurationMs?.toDouble() },
-                        averageAiSearchProcessingDurationMs =
-                            calculateAverage(
-                                successfulRuns,
-                            ) { it.aiSearchProcessingDurationMs?.toDouble() },
-                        averageApiProcessingDurationMs = calculateAverage(successfulRuns) { it.apiProcessingDurationMs?.toDouble() },
-                        averageSparqlProcessingDurationMs = calculateAverage(successfulRuns) { it.sparqlProcessingDurationMs?.toDouble() },
-                        periodStart = periodStart,
-                        periodEnd = periodEnd,
-                    )
-
-                Pair(metrics, HttpStatus.OK)
+                Pair(buildPerformanceMetrics(runs, dataSourceId, dataType), HttpStatus.OK)
             }
         } catch (e: Exception) {
             logger.error("Error getting performance metrics for dataSourceId: $dataSourceId, dataType: $dataType", e)
@@ -944,37 +836,7 @@ class HarvestRunService(
             if (runs.isEmpty()) {
                 Pair(null, HttpStatus.NOT_FOUND)
             } else {
-                // Filter out runs with errors - they can have misleadingly low durations
-                val successfulRuns = runs.filter { it.status == "COMPLETED" && it.errorMessage == null }
-                val completedRuns = runs.filter { it.status == "COMPLETED" }
-                val failedRuns = runs.filter { it.status == "FAILED" }
-
-                val periodStart = runs.minOfOrNull { it.runStartedAt } ?: Instant.now()
-                val periodEnd = runs.maxOfOrNull { it.runStartedAt } ?: Instant.now()
-
-                val metrics =
-                    HarvestPerformanceMetrics(
-                        dataSourceId = null, // Global metrics
-                        dataType = null, // Global metrics
-                        totalRuns = runs.size,
-                        completedRuns = completedRuns.size,
-                        failedRuns = failedRuns.size,
-                        averageTotalDurationMs = calculateAverage(successfulRuns) { it.totalDurationMs?.toDouble() },
-                        averageHarvestDurationMs = calculateAverage(successfulRuns) { it.harvestDurationMs?.toDouble() },
-                        averageReasoningDurationMs = calculateAverage(successfulRuns) { it.reasoningDurationMs?.toDouble() },
-                        averageRdfParsingDurationMs = calculateAverage(successfulRuns) { it.rdfParsingDurationMs?.toDouble() },
-                        averageSearchProcessingDurationMs = calculateAverage(successfulRuns) { it.searchProcessingDurationMs?.toDouble() },
-                        averageAiSearchProcessingDurationMs =
-                            calculateAverage(
-                                successfulRuns,
-                            ) { it.aiSearchProcessingDurationMs?.toDouble() },
-                        averageApiProcessingDurationMs = calculateAverage(successfulRuns) { it.apiProcessingDurationMs?.toDouble() },
-                        averageSparqlProcessingDurationMs = calculateAverage(successfulRuns) { it.sparqlProcessingDurationMs?.toDouble() },
-                        periodStart = periodStart,
-                        periodEnd = periodEnd,
-                    )
-
-                Pair(metrics, HttpStatus.OK)
+                Pair(buildPerformanceMetrics(runs, dataSourceId = null, dataType = null), HttpStatus.OK)
             }
         } catch (e: Exception) {
             logger.error("Error getting all performance metrics", e)
@@ -995,49 +857,7 @@ class HarvestRunService(
                 }
             }
             Pair(
-                HarvestRunDetails(
-                    runId = run.runId,
-                    dataSourceId = run.dataSourceId,
-                    dataType = run.dataType,
-                    runStartedAt = run.runStartedAt,
-                    runEndedAt = run.runEndedAt,
-                    totalDurationMs = run.totalDurationMs,
-                    phaseDurations =
-                        PhaseDurations(
-                            initDurationMs = run.initDurationMs,
-                            harvestDurationMs = run.harvestDurationMs,
-                            reasoningDurationMs = run.reasoningDurationMs,
-                            rdfParsingDurationMs = run.rdfParsingDurationMs,
-                            searchProcessingDurationMs = run.searchProcessingDurationMs,
-                            aiSearchProcessingDurationMs = run.aiSearchProcessingDurationMs,
-                            apiProcessingDurationMs = run.apiProcessingDurationMs,
-                            sparqlProcessingDurationMs = run.sparqlProcessingDurationMs,
-                        ),
-                    resourceCounts =
-                        ResourceCounts(
-                            totalResources = run.totalResources,
-                            changedResourcesCount = run.changedResourcesCount,
-                            removedResourcesCount = run.removedResourcesCount,
-                            phaseEventCounts =
-                                no.fdk.harvestadmin.model.PhaseEventCounts(
-                                    initiatingEventsCount = run.initiatingEventsCount,
-                                    harvestingEventsCount = run.harvestingEventsCount,
-                                    reasoningEventsCount = run.reasoningEventsCount,
-                                    rdfParsingEventsCount = run.rdfParsingEventsCount,
-                                    resourceProcessingEventsCount = run.resourceProcessingEventsCount,
-                                    searchProcessingEventsCount = run.searchProcessingEventsCount,
-                                    aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
-                                    sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
-                                ),
-                        ),
-                    removeAll = run.removeAll,
-                    forced = run.forced,
-                    status = run.status,
-                    errorMessage = run.errorMessage,
-                    createdAt = run.createdAt,
-                    updatedAt = run.updatedAt,
-                    completionStatus = checkIfAllPhasesComplete(run),
-                ),
+                run.toHarvestRunDetails(completionStatus = checkIfAllPhasesComplete(run)),
                 HttpStatus.OK,
             )
         } catch (e: Exception) {
@@ -1067,47 +887,7 @@ class HarvestRunService(
 
             val runDetails =
                 runs.map { run ->
-                    HarvestRunDetails(
-                        runId = run.runId,
-                        dataSourceId = run.dataSourceId,
-                        dataType = run.dataType,
-                        runStartedAt = run.runStartedAt,
-                        runEndedAt = run.runEndedAt,
-                        totalDurationMs = run.totalDurationMs,
-                        phaseDurations =
-                            PhaseDurations(
-                                initDurationMs = run.initDurationMs,
-                                harvestDurationMs = run.harvestDurationMs,
-                                reasoningDurationMs = run.reasoningDurationMs,
-                                rdfParsingDurationMs = run.rdfParsingDurationMs,
-                                searchProcessingDurationMs = run.searchProcessingDurationMs,
-                                aiSearchProcessingDurationMs = run.aiSearchProcessingDurationMs,
-                                apiProcessingDurationMs = run.apiProcessingDurationMs,
-                                sparqlProcessingDurationMs = run.sparqlProcessingDurationMs,
-                            ),
-                        resourceCounts =
-                            ResourceCounts(
-                                totalResources = run.totalResources,
-                                changedResourcesCount = run.changedResourcesCount,
-                                removedResourcesCount = run.removedResourcesCount,
-                                phaseEventCounts =
-                                    no.fdk.harvestadmin.model.PhaseEventCounts(
-                                        initiatingEventsCount = run.initiatingEventsCount,
-                                        harvestingEventsCount = run.harvestingEventsCount,
-                                        reasoningEventsCount = run.reasoningEventsCount,
-                                        rdfParsingEventsCount = run.rdfParsingEventsCount,
-                                        resourceProcessingEventsCount = run.resourceProcessingEventsCount,
-                                        searchProcessingEventsCount = run.searchProcessingEventsCount,
-                                        aiSearchProcessingEventsCount = run.aiSearchProcessingEventsCount,
-                                        sparqlProcessingEventsCount = run.sparqlProcessingEventsCount,
-                                    ),
-                            ),
-                        removeAll = run.removeAll,
-                        forced = run.forced,
-                        status = run.status,
-                        errorMessage = run.errorMessage,
-                        createdAt = run.createdAt,
-                        updatedAt = run.updatedAt,
+                    run.toHarvestRunDetails(
                         completionStatus = if (run.status == "COMPLETED") null else checkIfAllPhasesComplete(run),
                     )
                 }
@@ -1115,18 +895,6 @@ class HarvestRunService(
         } catch (e: Exception) {
             logger.error("Error getting harvest runs for dataSourceId: $dataSourceId, dataType: $dataType, status: $status", e)
             Pair(emptyList(), 0L)
-        }
-    }
-
-    private fun <T> calculateAverage(
-        items: List<T>,
-        extractor: (T) -> Double?,
-    ): Double? {
-        val values = items.mapNotNull(extractor)
-        return if (values.isNotEmpty()) {
-            values.average()
-        } else {
-            null
         }
     }
 
