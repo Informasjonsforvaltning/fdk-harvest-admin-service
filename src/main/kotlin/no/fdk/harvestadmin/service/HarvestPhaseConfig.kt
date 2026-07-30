@@ -9,6 +9,7 @@ package no.fdk.harvestadmin.service
  * events do exist they behave like required phases (counts must match).
  */
 object HarvestPhaseConfig {
+    const val INITIATING_PHASE: String = "INITIATING"
     const val HARVESTING_PHASE: String = "HARVESTING"
 
     /**
@@ -31,6 +32,12 @@ object HarvestPhaseConfig {
      */
     val allPhasesInCompletionOrder: List<String> =
         listOf(HARVESTING_PHASE) + resourceProcessingPhases
+
+    /**
+     * All phases for which per-run event counts are tracked.
+     */
+    val allPhasesForEventCounts: List<String> =
+        listOf(INITIATING_PHASE) + allPhasesInCompletionOrder
 
     /**
      * Phases that are optional for completion when there are no events
