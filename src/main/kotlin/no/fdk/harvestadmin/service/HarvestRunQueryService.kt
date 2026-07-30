@@ -73,14 +73,17 @@ class HarvestRunQueryService(
                         // Get last N completed runs
                         harvestRunRepository.findLastCompletedRuns(dataSourceId, dataType, PageRequest.of(0, limit))
                     }
+
                     startDate != null && endDate != null -> {
                         // Get runs from date range
                         harvestRunRepository.findCompletedRunsByDateRange(dataSourceId, dataType, startDate, endDate)
                     }
+
                     startDate != null -> {
                         // Get runs from startDate to now
                         harvestRunRepository.findCompletedRunsByDateRange(dataSourceId, dataType, startDate, Instant.now())
                     }
+
                     else -> {
                         // Default: use daysBack (backward compatibility)
                         val start = Instant.now().minus((daysBack ?: 30).toLong(), ChronoUnit.DAYS)
@@ -117,14 +120,17 @@ class HarvestRunQueryService(
                         // Get last N completed runs across all data sources
                         harvestRunRepository.findLastAllCompletedRuns(allowedDataSourceIds, PageRequest.of(0, limit))
                     }
+
                     startDate != null && endDate != null -> {
                         // Get runs from date range across all data sources
                         harvestRunRepository.findAllCompletedRunsByDateRange(startDate, endDate, allowedDataSourceIds)
                     }
+
                     startDate != null -> {
                         // Get runs from startDate to now across all data sources
                         harvestRunRepository.findAllCompletedRunsByDateRange(startDate, Instant.now(), allowedDataSourceIds)
                     }
+
                     else -> {
                         // Default: use daysBack (backward compatibility)
                         val start = Instant.now().minus((daysBack ?: 30).toLong(), ChronoUnit.DAYS)

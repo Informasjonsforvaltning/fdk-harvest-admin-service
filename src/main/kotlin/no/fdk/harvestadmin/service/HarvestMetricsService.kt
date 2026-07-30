@@ -202,7 +202,7 @@ class HarvestMetricsService(
             .increment()
 
         // Record event by data source URL (if available)
-        val dataSourceUrl = event.dataSourceUrl?.toString()
+        val dataSourceUrl = event.dataSourceUrl
         if (!dataSourceUrl.isNullOrBlank()) {
             eventsByDataSourceUrlCounter
                 .tag("datasource_url", dataSourceUrl)

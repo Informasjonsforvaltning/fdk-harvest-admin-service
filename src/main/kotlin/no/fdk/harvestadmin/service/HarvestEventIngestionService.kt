@@ -23,7 +23,7 @@ class HarvestEventIngestionService(
     @Transactional
     fun persistEvent(event: HarvestEvent) {
         try {
-            val runId = event.runId?.toString()
+            val runId = event.runId
             if (runId == null) {
                 logger.warn("Cannot process harvest event: runId is required. phase=${event.phase}")
                 return
@@ -32,7 +32,7 @@ class HarvestEventIngestionService(
             val currentRun = harvestRunRepository.findByRunId(runId)
 
             // Use dataSourceId from event if available (INITIATING phase), otherwise from the found run
-            val effectiveDataSourceId = event.dataSourceId?.toString() ?: currentRun?.dataSourceId
+            val effectiveDataSourceId = event.dataSourceId ?: currentRun?.dataSourceId
             if (effectiveDataSourceId == null) {
                 logger.warn("Cannot process harvest event: no dataSourceId available. phase=${event.phase}, runId=$runId")
                 return
@@ -45,15 +45,15 @@ class HarvestEventIngestionService(
                     dataSourceId = effectiveDataSourceId,
                     runId = runId,
                     dataType = dataType,
-                    dataSourceUrl = event.dataSourceUrl?.toString(),
-                    acceptHeader = event.acceptHeader?.toString(),
-                    fdkId = event.fdkId?.toString(),
-                    resourceUri = event.resourceUri?.toString(),
-                    startTime = event.startTime?.toString(),
-                    endTime = event.endTime?.toString(),
-                    errorMessage = event.errorMessage?.toString(),
-                    changedResourcesCount = event.changedResourcesCount?.let { it.toInt() },
-                    removedResourcesCount = event.removedResourcesCount?.let { it.toInt() },
+                    dataSourceUrl = event.dataSourceUrl,
+                    acceptHeader = event.acceptHeader,
+                    fdkId = event.fdkId,
+                    resourceUri = event.resourceUri,
+                    startTime = event.startTime,
+                    endTime = event.endTime,
+                    errorMessage = event.errorMessage,
+                    changedResourcesCount = event.changedResourcesCount,
+                    removedResourcesCount = event.removedResourcesCount,
                 )
             harvestEventRepository.save(entity)
 
@@ -95,8 +95,9 @@ class HarvestEventIngestionService(
             }
 
             // Record resources processed if applicable
-            if (savedRun.processedResources != null &&
-                savedRun.processedResources > 0 &&
+            val processedResources = savedRun.processedResources
+            if (processedResources != null &&
+                processedResources > 0 &&
                 event.phase.name in HarvestPhaseConfig.resourceProcessingPhases
             ) {
                 harvestMetricsService.recordResourcesProcessed(
@@ -145,7 +146,7 @@ class HarvestEventIngestionService(
                 currentPhase = currentPhase,
                 phaseStartedAt = if (currentPhase != run.currentPhase) eventTimestamp else run.phaseStartedAt,
                 lastEventTimestamp = eventTimestamp.toEpochMilli(),
-                errorMessage = event.errorMessage?.toString() ?: run.errorMessage,
+                errorMessage = event.errorMessage ?: run.errorMessage,
                 totalResources = totalResources,
                 processedResources = processedResources,
                 remainingResources = remainingResources,
@@ -159,8 +160,8 @@ class HarvestEventIngestionService(
         // Update resource counts from extraction event (when changedResourcesCount is set)
         if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
             val newTotalResources =
-                (event.changedResourcesCount?.toInt() ?: 0).plus(
-                    event.removedResourcesCount?.toInt() ?: 0,
+                (event.changedResourcesCount ?: 0).plus(
+                    event.removedResourcesCount ?: 0,
                 )
             val newRemainingResources =
                 updatedRun.processedResources?.let { processed -> newTotalResources - processed }
@@ -168,8 +169,8 @@ class HarvestEventIngestionService(
                 updatedRun.copy(
                     totalResources = newTotalResources,
                     remainingResources = newRemainingResources,
-                    changedResourcesCount = event.changedResourcesCount?.toInt(),
-                    removedResourcesCount = event.removedResourcesCount?.toInt(),
+                    changedResourcesCount = event.changedResourcesCount,
+                    removedResourcesCount = event.removedResourcesCount,
                 )
         }
 
@@ -276,19 +277,33 @@ class HarvestEventIngestionService(
 
         val deltaMs = ChronoUnit.MILLIS.between(startTime, endTime)
         return when (phase) {
-            "REASONING" ->
+            "REASONING" -> {
                 updatedRun.copy(reasoningDurationMs = (run.reasoningDurationMs ?: 0L) + deltaMs)
-            "RDF_PARSING" ->
+            }
+
+            "RDF_PARSING" -> {
                 updatedRun.copy(rdfParsingDurationMs = (run.rdfParsingDurationMs ?: 0L) + deltaMs)
-            "SEARCH_PROCESSING" ->
+            }
+
+            "SEARCH_PROCESSING" -> {
                 updatedRun.copy(searchProcessingDurationMs = (run.searchProcessingDurationMs ?: 0L) + deltaMs)
-            "AI_SEARCH_PROCESSING" ->
+            }
+
+            "AI_SEARCH_PROCESSING" -> {
                 updatedRun.copy(aiSearchProcessingDurationMs = (run.aiSearchProcessingDurationMs ?: 0L) + deltaMs)
-            "RESOURCE_PROCESSING" ->
+            }
+
+            "RESOURCE_PROCESSING" -> {
                 updatedRun.copy(apiProcessingDurationMs = (run.apiProcessingDurationMs ?: 0L) + deltaMs)
-            "SPARQL_PROCESSING" ->
+            }
+
+            "SPARQL_PROCESSING" -> {
                 updatedRun.copy(sparqlProcessingDurationMs = (run.sparqlProcessingDurationMs ?: 0L) + deltaMs)
-            else -> updatedRun
+            }
+
+            else -> {
+                updatedRun
+            }
         }
     }
 
@@ -320,8 +335,8 @@ class HarvestEventIngestionService(
     ): Int? {
         // Calculate total when resource counts are provided
         if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
-            val changed = event.changedResourcesCount?.toInt() ?: 0
-            val removed = event.removedResourcesCount?.toInt() ?: 0
+            val changed = event.changedResourcesCount ?: 0
+            val removed = event.removedResourcesCount ?: 0
             return changed + removed
         }
         return existingRun?.totalResources
@@ -339,7 +354,7 @@ class HarvestEventIngestionService(
         }
 
         val resourceProcessingPhases = HarvestPhaseConfig.resourceProcessingPhases
-        val runId = event.runId?.toString() ?: existingRun?.runId
+        val runId = event.runId ?: existingRun?.runId
 
         // Only recompute processed resources when we are in a resource-processing phase and have a runId
         if (runId == null || event.phase.name !in resourceProcessingPhases) {
