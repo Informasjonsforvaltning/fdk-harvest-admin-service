@@ -143,23 +143,15 @@ class HarvestRunService(
             }
 
             // Record resources processed if applicable
-            if (savedRun.processedResources != null && savedRun.processedResources > 0) {
-                val resourceProcessingPhases =
-                    listOf(
-                        "REASONING",
-                        "RDF_PARSING",
-                        "RESOURCE_PROCESSING",
-                        "SEARCH_PROCESSING",
-                        "AI_SEARCH_PROCESSING",
-                        "SPARQL_PROCESSING",
-                    )
-                if (event.phase.name in resourceProcessingPhases) {
-                    harvestMetricsService.recordResourcesProcessed(
-                        savedRun.dataType,
-                        event.phase.name,
-                        1,
-                    )
-                }
+            if (savedRun.processedResources != null &&
+                savedRun.processedResources > 0 &&
+                event.phase.name in HarvestPhaseConfig.resourceProcessingPhases
+            ) {
+                harvestMetricsService.recordResourcesProcessed(
+                    savedRun.dataType,
+                    event.phase.name,
+                    1,
+                )
             }
 
             // Record resource counts during run (including 0) so Grafana "Resources per Run" gets data
@@ -191,8 +183,10 @@ class HarvestRunService(
         val remainingResources = totalResources?.let { total -> processedResources?.let { processed -> total - processed } }
 
         // For INITIATING, capture removeAll and forced from the event
-        val removeAll = if (event.phase.name == "INITIATING") event.removeAll else run.removeAll
-        val forced = if (event.phase.name == "INITIATING") event.forced else run.forced
+        val removeAll =
+            if (event.phase.name == HarvestPhaseConfig.INITIATING_PHASE) event.removeAll else run.removeAll
+        val forced =
+            if (event.phase.name == HarvestPhaseConfig.INITIATING_PHASE) event.forced else run.forced
 
         var updatedRun =
             run.copy(
@@ -203,90 +197,12 @@ class HarvestRunService(
                 totalResources = totalResources,
                 processedResources = processedResources,
                 remainingResources = remainingResources,
-                initiatingEventsCount = phaseEventCounts["INITIATING"]?.toInt(),
-                harvestingEventsCount = phaseEventCounts["HARVESTING"]?.toInt(),
-                reasoningEventsCount = phaseEventCounts["REASONING"]?.toInt(),
-                rdfParsingEventsCount = phaseEventCounts["RDF_PARSING"]?.toInt(),
-                resourceProcessingEventsCount = phaseEventCounts["RESOURCE_PROCESSING"]?.toInt(),
-                searchProcessingEventsCount = phaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
-                aiSearchProcessingEventsCount = phaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
-                sparqlProcessingEventsCount = phaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
                 removeAll = removeAll,
                 forced = forced,
                 updatedAt = Instant.now(),
             )
 
-        // Update phase durations based on phase
-        when (event.phase.name) {
-            "HARVESTING" -> {
-                if (startTime != null) {
-                    updatedRun =
-                        updatedRun.copy(
-                            initDurationMs = ChronoUnit.MILLIS.between(run.runStartedAt, startTime),
-                        )
-                }
-                if (startTime != null && endTime != null) {
-                    updatedRun =
-                        updatedRun.copy(
-                            harvestDurationMs = ChronoUnit.MILLIS.between(startTime, endTime),
-                        )
-                }
-            }
-            "REASONING" -> {
-                if (startTime != null && endTime != null) {
-                    val existingDuration = run.reasoningDurationMs ?: 0L
-                    updatedRun =
-                        updatedRun.copy(
-                            reasoningDurationMs = existingDuration + ChronoUnit.MILLIS.between(startTime, endTime),
-                        )
-                }
-            }
-            "RDF_PARSING" -> {
-                if (startTime != null && endTime != null) {
-                    val existingDuration = run.rdfParsingDurationMs ?: 0L
-                    updatedRun =
-                        updatedRun.copy(
-                            rdfParsingDurationMs = existingDuration + ChronoUnit.MILLIS.between(startTime, endTime),
-                        )
-                }
-            }
-            "SEARCH_PROCESSING" -> {
-                if (startTime != null && endTime != null) {
-                    val existingDuration = run.searchProcessingDurationMs ?: 0L
-                    updatedRun =
-                        updatedRun.copy(
-                            searchProcessingDurationMs = existingDuration + ChronoUnit.MILLIS.between(startTime, endTime),
-                        )
-                }
-            }
-            "AI_SEARCH_PROCESSING" -> {
-                if (startTime != null && endTime != null) {
-                    val existingDuration = run.aiSearchProcessingDurationMs ?: 0L
-                    updatedRun =
-                        updatedRun.copy(
-                            aiSearchProcessingDurationMs = existingDuration + ChronoUnit.MILLIS.between(startTime, endTime),
-                        )
-                }
-            }
-            "RESOURCE_PROCESSING" -> {
-                if (startTime != null && endTime != null) {
-                    val existingDuration = run.apiProcessingDurationMs ?: 0L
-                    updatedRun =
-                        updatedRun.copy(
-                            apiProcessingDurationMs = existingDuration + ChronoUnit.MILLIS.between(startTime, endTime),
-                        )
-                }
-            }
-            "SPARQL_PROCESSING" -> {
-                if (startTime != null && endTime != null) {
-                    val existingDuration = run.sparqlProcessingDurationMs ?: 0L
-                    updatedRun =
-                        updatedRun.copy(
-                            sparqlProcessingDurationMs = existingDuration + ChronoUnit.MILLIS.between(startTime, endTime),
-                        )
-                }
-            }
-        }
+        updatedRun = applyPhaseDurations(run, updatedRun, currentPhase, startTime, endTime)
 
         // Update resource counts from extraction event (when changedResourcesCount is set)
         if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
@@ -300,18 +216,13 @@ class HarvestRunService(
                 updatedRun.copy(
                     totalResources = newTotalResources,
                     remainingResources = newRemainingResources,
-                    initiatingEventsCount = phaseEventCounts["INITIATING"]?.toInt(),
-                    harvestingEventsCount = phaseEventCounts["HARVESTING"]?.toInt(),
-                    reasoningEventsCount = phaseEventCounts["REASONING"]?.toInt(),
-                    rdfParsingEventsCount = phaseEventCounts["RDF_PARSING"]?.toInt(),
-                    resourceProcessingEventsCount = phaseEventCounts["RESOURCE_PROCESSING"]?.toInt(),
-                    searchProcessingEventsCount = phaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
-                    aiSearchProcessingEventsCount = phaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
-                    sparqlProcessingEventsCount = phaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
                     changedResourcesCount = event.changedResourcesCount?.toInt(),
                     removedResourcesCount = event.removedResourcesCount?.toInt(),
                 )
         }
+
+        // Apply phase event counts once after all other field updates.
+        updatedRun = updatedRun.withPhaseEventCounts(phaseEventCounts)
 
         // Evaluate completion across phases using the latest in-memory run state
         val completionStatus = checkIfAllPhasesComplete(updatedRun, phaseEventCounts)
@@ -379,6 +290,67 @@ class HarvestRunService(
 
         return finalUpdatedRun
     }
+
+    /**
+     * Accumulate phase duration fields from start/end times.
+     */
+    private fun applyPhaseDurations(
+        run: HarvestRunEntity,
+        updatedRun: HarvestRunEntity,
+        phase: String,
+        startTime: Instant?,
+        endTime: Instant?,
+    ): HarvestRunEntity {
+        if (phase == HarvestPhaseConfig.HARVESTING_PHASE) {
+            var result = updatedRun
+            if (startTime != null) {
+                result =
+                    result.copy(
+                        initDurationMs = ChronoUnit.MILLIS.between(run.runStartedAt, startTime),
+                    )
+            }
+            if (startTime != null && endTime != null) {
+                result =
+                    result.copy(
+                        harvestDurationMs = ChronoUnit.MILLIS.between(startTime, endTime),
+                    )
+            }
+            return result
+        }
+
+        if (startTime == null || endTime == null) {
+            return updatedRun
+        }
+
+        val deltaMs = ChronoUnit.MILLIS.between(startTime, endTime)
+        return when (phase) {
+            "REASONING" ->
+                updatedRun.copy(reasoningDurationMs = (run.reasoningDurationMs ?: 0L) + deltaMs)
+            "RDF_PARSING" ->
+                updatedRun.copy(rdfParsingDurationMs = (run.rdfParsingDurationMs ?: 0L) + deltaMs)
+            "SEARCH_PROCESSING" ->
+                updatedRun.copy(searchProcessingDurationMs = (run.searchProcessingDurationMs ?: 0L) + deltaMs)
+            "AI_SEARCH_PROCESSING" ->
+                updatedRun.copy(aiSearchProcessingDurationMs = (run.aiSearchProcessingDurationMs ?: 0L) + deltaMs)
+            "RESOURCE_PROCESSING" ->
+                updatedRun.copy(apiProcessingDurationMs = (run.apiProcessingDurationMs ?: 0L) + deltaMs)
+            "SPARQL_PROCESSING" ->
+                updatedRun.copy(sparqlProcessingDurationMs = (run.sparqlProcessingDurationMs ?: 0L) + deltaMs)
+            else -> updatedRun
+        }
+    }
+
+    private fun HarvestRunEntity.withPhaseEventCounts(phaseEventCounts: Map<String, Long>): HarvestRunEntity =
+        copy(
+            initiatingEventsCount = phaseEventCounts[HarvestPhaseConfig.INITIATING_PHASE]?.toInt(),
+            harvestingEventsCount = phaseEventCounts[HarvestPhaseConfig.HARVESTING_PHASE]?.toInt(),
+            reasoningEventsCount = phaseEventCounts["REASONING"]?.toInt(),
+            rdfParsingEventsCount = phaseEventCounts["RDF_PARSING"]?.toInt(),
+            resourceProcessingEventsCount = phaseEventCounts["RESOURCE_PROCESSING"]?.toInt(),
+            searchProcessingEventsCount = phaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
+            aiSearchProcessingEventsCount = phaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
+            sparqlProcessingEventsCount = phaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
+        )
 
     private fun existingStatusOrDefault(run: HarvestRunEntity): String = run.status.ifBlank { "IN_PROGRESS" }
 
@@ -562,25 +534,13 @@ class HarvestRunService(
     private fun checkIfAllPhasesComplete(run: HarvestRunEntity): RunCompletionStatus =
         checkIfAllPhasesComplete(run, calculatePhaseEventCounts(run.runId))
 
-    private fun getLatestEndTime(runId: String): Instant? {
-        val requiredPhases =
-            listOf(
-                "HARVESTING",
-                "REASONING",
-                "RDF_PARSING",
-                "SEARCH_PROCESSING",
-                "AI_SEARCH_PROCESSING",
-                "RESOURCE_PROCESSING",
-                "SPARQL_PROCESSING",
-            )
-
-        return requiredPhases
+    private fun getLatestEndTime(runId: String): Instant? =
+        HarvestPhaseConfig.allPhasesInCompletionOrder
             .flatMap { phase ->
                 harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
             }.mapNotNull { event ->
                 event.endTime?.let { parseDateTime(it) }
             }.maxOrNull()
-    }
 
     private fun calculateTotalResources(
         event: HarvestEvent,
@@ -621,24 +581,12 @@ class HarvestRunService(
     }
 
     private fun calculatePhaseEventCounts(runId: String): Map<String, Long> {
-        val phases =
-            listOf(
-                "INITIATING",
-                "HARVESTING",
-                "REASONING",
-                "RDF_PARSING",
-                "RESOURCE_PROCESSING",
-                "SEARCH_PROCESSING",
-                "AI_SEARCH_PROCESSING",
-                "SPARQL_PROCESSING",
-            )
-
         val countsByPhase =
             harvestEventRepository
                 .countEventsByPhase(runId)
                 .associate { (eventType, count) -> eventType as String to count as Long }
 
-        return phases.associateWith { phase -> countsByPhase[phase] ?: 0L }
+        return HarvestPhaseConfig.allPhasesForEventCounts.associateWith { phase -> countsByPhase[phase] ?: 0L }
     }
 
     private fun countResourcesWithAllPhases(
