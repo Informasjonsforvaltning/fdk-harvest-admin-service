@@ -37,6 +37,7 @@ class HarvestEventProcessor(
                 }
             } catch (e: Exception) {
                 logger.error("Error processing harvest event: phase=${event.phase}, runId=${event.runId}", e)
+                harvestMetricsService.recordEventProcessingFailed(event.phase.name, event.dataType.name)
                 throw e
             }
         }

@@ -39,7 +39,7 @@ class StaleHarvestRunJob(
                         )
                     harvestRunRepository.save(updatedRun)
                     logger.info("Marked stale harvest run ${run.runId} as FAILED (last updated: ${run.updatedAt})")
-                    harvestMetricsService.recordRunCompleted(updatedRun)
+                    harvestMetricsService.recordRunCompleted(updatedRun, failureReason = "stale_timeout")
                 }
             }
         } catch (e: Exception) {

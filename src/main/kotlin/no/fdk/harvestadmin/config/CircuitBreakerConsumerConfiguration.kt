@@ -5,6 +5,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker.StateTransition
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.github.resilience4j.circuitbreaker.event.CircuitBreakerOnStateTransitionEvent
+import io.github.resilience4j.micrometer.tagged.TaggedCircuitBreakerMetrics
+import io.micrometer.core.instrument.MeterRegistry
 import no.fdk.harvestadmin.kafka.KafkaHarvestEventConsumer
 import no.fdk.harvestadmin.kafka.KafkaManager
 import org.slf4j.Logger
@@ -16,6 +18,7 @@ import java.time.Duration
 @Configuration
 open class CircuitBreakerConsumerConfiguration(
     private val kafkaManager: KafkaManager,
+    private val meterRegistry: MeterRegistry,
 ) {
     @Bean
     open fun circuitBreakerRegistry(): CircuitBreakerRegistry {
@@ -31,6 +34,9 @@ open class CircuitBreakerConsumerConfiguration(
                 .build()
 
         val registry = CircuitBreakerRegistry.of(defaultConfig)
+        TaggedCircuitBreakerMetrics
+            .ofCircuitBreakerRegistry(registry)
+            .bindTo(meterRegistry)
         registerListeners(registry)
         return registry
     }

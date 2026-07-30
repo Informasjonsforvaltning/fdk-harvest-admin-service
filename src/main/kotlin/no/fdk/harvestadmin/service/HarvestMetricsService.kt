@@ -66,11 +66,25 @@ class HarvestMetricsService(
             .description("Total number of harvest runs completed")
             .register(meterRegistry)
 
-    private val runsFailedCounter: Counter =
+    private val runsFailedCounter: Counter.Builder =
         Counter
             .builder("harvest.runs.failed")
             .description("Total number of harvest runs failed")
-            .register(meterRegistry)
+
+    private val eventsProcessingFailedCounter: Counter.Builder =
+        Counter
+            .builder("harvest.events.processing.failed")
+            .description("Number of harvest events that failed during processing")
+
+    private val eventsErrorsCounter: Counter.Builder =
+        Counter
+            .builder("harvest.events.errors")
+            .description("Number of harvest events that reported an errorMessage")
+
+    private val eventsPublishFailedCounter: Counter.Builder =
+        Counter
+            .builder("harvest.events.publish.failed")
+            .description("Number of harvest events that failed to publish to Kafka")
 
     // Timers for phase durations (records in seconds for Prometheus)
     private val phaseDurationTimer: Timer.Builder =
@@ -195,9 +209,11 @@ class HarvestMetricsService(
             .register(meterRegistry)
             .increment()
 
+        val dataType = normalizeDataType(event.dataType.name)
+
         // Record event by data type
         eventsByDataTypeCounter
-            .tag("datatype", normalizeDataType(event.dataType.name))
+            .tag("datatype", dataType)
             .register(meterRegistry)
             .increment()
 
@@ -207,7 +223,15 @@ class HarvestMetricsService(
             eventsByDataSourceUrlCounter
                 .tag("datasource_url", dataSourceUrl)
                 .tag("phase", event.phase.name)
-                .tag("datatype", normalizeDataType(event.dataType.name))
+                .tag("datatype", dataType)
+                .register(meterRegistry)
+                .increment()
+        }
+
+        if (!event.errorMessage.isNullOrBlank()) {
+            eventsErrorsCounter
+                .tag("phase", event.phase.name)
+                .tag("datatype", dataType)
                 .register(meterRegistry)
                 .increment()
         }
@@ -226,7 +250,7 @@ class HarvestMetricsService(
                 val duration = java.time.Duration.ofMillis(durationMs)
                 phaseDurationTimer
                     .tag("phase", event.phase.name)
-                    .tag("datatype", normalizeDataType(event.dataType.name))
+                    .tag("datatype", dataType)
                     .register(meterRegistry)
                     .record(duration)
             } catch (e: Exception) {
@@ -235,11 +259,36 @@ class HarvestMetricsService(
         }
     }
 
+    fun recordEventProcessingFailed(
+        phase: String,
+        dataType: String,
+    ) {
+        eventsProcessingFailedCounter
+            .tag("phase", phase)
+            .tag("datatype", normalizeDataType(dataType))
+            .register(meterRegistry)
+            .increment()
+    }
+
+    fun recordPublishFailed(
+        phase: String,
+        dataType: String,
+    ) {
+        eventsPublishFailedCounter
+            .tag("phase", phase)
+            .tag("datatype", normalizeDataType(dataType))
+            .register(meterRegistry)
+            .increment()
+    }
+
     fun recordRunStarted(run: HarvestRunEntity) {
         runsStartedCounter.increment()
     }
 
-    fun recordRunCompleted(run: HarvestRunEntity) {
+    fun recordRunCompleted(
+        run: HarvestRunEntity,
+        failureReason: String = "pipeline",
+    ) {
         if (run.status == "COMPLETED") {
             runsCompletedCounter.increment()
 
@@ -275,7 +324,10 @@ class HarvestMetricsService(
                 .register(meterRegistry)
                 .record(processed)
         } else if (run.status == "FAILED") {
-            runsFailedCounter.increment()
+            runsFailedCounter
+                .tag("reason", failureReason)
+                .register(meterRegistry)
+                .increment()
         }
     }
 
