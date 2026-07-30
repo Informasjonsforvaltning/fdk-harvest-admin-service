@@ -7,7 +7,7 @@ import no.fdk.harvestadmin.entity.HarvestEventEntity
 import no.fdk.harvestadmin.entity.HarvestRunEntity
 import no.fdk.harvestadmin.repository.HarvestEventRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
-import no.fdk.harvestadmin.service.HarvestRunService
+import no.fdk.harvestadmin.service.HarvestEventIngestionService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ class HarvestCompletionIntegrationTest : BaseIntegrationTest() {
     private lateinit var harvestRunRepository: HarvestRunRepository
 
     @Autowired
-    private lateinit var harvestRunService: HarvestRunService
+    private lateinit var harvestEventIngestionService: HarvestEventIngestionService
 
     private val baseTime: Instant = Instant.parse("2024-01-01T10:00:00Z")
 
@@ -148,7 +148,7 @@ class HarvestCompletionIntegrationTest : BaseIntegrationTest() {
                 .setEndTime(baseTime.plusSeconds(5).toString())
                 .build()
 
-        harvestRunService.persistEvent(finalEvent)
+        harvestEventIngestionService.persistEvent(finalEvent)
 
         val updatedRun = harvestRunRepository.findByRunId(runId)
         assertEquals("COMPLETED", updatedRun?.status)
@@ -192,7 +192,7 @@ class HarvestCompletionIntegrationTest : BaseIntegrationTest() {
                 .setEndTime(baseTime.plusSeconds(5).toString())
                 .build()
 
-        harvestRunService.persistEvent(finalEvent)
+        harvestEventIngestionService.persistEvent(finalEvent)
 
         val updatedRun = harvestRunRepository.findByRunId(runId)
         assertEquals("IN_PROGRESS", updatedRun?.status)

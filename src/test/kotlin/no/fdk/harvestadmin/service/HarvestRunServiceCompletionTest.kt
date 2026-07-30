@@ -5,7 +5,6 @@ import no.fdk.harvest.HarvestEvent
 import no.fdk.harvest.HarvestPhase
 import no.fdk.harvestadmin.entity.HarvestEventEntity
 import no.fdk.harvestadmin.entity.HarvestRunEntity
-import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestEventRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,12 +30,9 @@ class HarvestRunServiceCompletionTest {
     private lateinit var harvestRunRepository: HarvestRunRepository
 
     @Mock
-    private lateinit var dataSourceRepository: DataSourceRepository
-
-    @Mock
     private lateinit var harvestMetricsService: HarvestMetricsService
 
-    private lateinit var harvestRunService: HarvestRunService
+    private lateinit var ingestionService: HarvestEventIngestionService
 
     private lateinit var baseTime: Instant
 
@@ -46,21 +42,12 @@ class HarvestRunServiceCompletionTest {
     @BeforeEach
     fun setUp() {
         val completionEvaluator = HarvestCompletionEvaluator(harvestEventRepository)
-        val ingestionService =
+        ingestionService =
             HarvestEventIngestionService(
                 harvestEventRepository,
                 harvestRunRepository,
                 harvestMetricsService,
                 completionEvaluator,
-            )
-        harvestRunService =
-            HarvestRunService(
-                harvestRunRepository,
-                dataSourceRepository,
-                harvestMetricsService,
-                completionEvaluator,
-                ingestionService,
-                30L,
             )
         baseTime = Instant.parse("2024-01-01T10:00:00Z")
     }
@@ -134,7 +121,7 @@ class HarvestRunServiceCompletionTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(finalEvent)
+        ingestionService.persistEvent(finalEvent)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -192,7 +179,7 @@ class HarvestRunServiceCompletionTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(finalEvent)
+        ingestionService.persistEvent(finalEvent)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -249,7 +236,7 @@ class HarvestRunServiceCompletionTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(finalEvent)
+        ingestionService.persistEvent(finalEvent)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -307,7 +294,7 @@ class HarvestRunServiceCompletionTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(finalEvent)
+        ingestionService.persistEvent(finalEvent)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -365,7 +352,7 @@ class HarvestRunServiceCompletionTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(finalEvent)
+        ingestionService.persistEvent(finalEvent)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -424,7 +411,7 @@ class HarvestRunServiceCompletionTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(finalEvent)
+        ingestionService.persistEvent(finalEvent)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
@@ -478,7 +465,7 @@ class HarvestRunServiceCompletionTest {
         whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
 
         // When
-        harvestRunService.persistEvent(finalEvent)
+        ingestionService.persistEvent(finalEvent)
 
         // Then
         val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)

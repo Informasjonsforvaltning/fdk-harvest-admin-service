@@ -1,7 +1,7 @@
 package no.fdk.harvestadmin.controller
 
 import no.fdk.harvestadmin.service.DataSourceService
-import no.fdk.harvestadmin.service.HarvestRunService
+import no.fdk.harvestadmin.service.HarvestRunQueryService
 import no.fdk.harvestadmin.service.SecurityService
 import no.fdk.harvestadmin.service.SysAdminService
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,7 +22,7 @@ abstract class BaseControllerTest {
     protected lateinit var dataSourceService: DataSourceService
 
     @MockitoBean
-    protected lateinit var harvestRunService: HarvestRunService
+    protected lateinit var harvestRunQueryService: HarvestRunQueryService
 
     @MockitoBean
     protected lateinit var securityService: SecurityService
