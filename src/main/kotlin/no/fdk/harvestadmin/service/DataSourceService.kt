@@ -35,39 +35,16 @@ class DataSourceService(
         authorizedOrgs: List<String>?,
         dataType: DataType?,
         dataSourceType: DataSourceType?,
-    ): List<DataSource> {
-        try {
-            val entities = dataSourceRepository.findByFilters(authorizedOrgs, dataType, dataSourceType)
-            return entities.map { it.toModel() }
-        } catch (e: Exception) {
-            logger.error("Error getting data sources", e)
-            throw RuntimeException("Error getting data sources", e)
-        }
-    }
+    ): List<DataSource> = dataSourceRepository.findByFilters(authorizedOrgs, dataType, dataSourceType).map { it.toModel() }
 
-    fun getDataSource(id: String): DataSource {
-        try {
-            val entity =
-                dataSourceRepository
-                    .findById(id)
-                    .orElseThrow { NotFoundException("Data source not found with id: $id") }
-            return entity.toModel()
-        } catch (e: NotFoundException) {
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error getting data source with id: $id", e)
-            throw RuntimeException("Error getting data source", e)
-        }
-    }
+    fun getDataSource(id: String): DataSource = findDataSource(id).toModel()
 
     @Transactional
     fun createDataSource(
         dataSource: DataSource,
         org: String,
     ): DataSource {
-        if (org != dataSource.publisherId) {
-            throw ValidationException("Trying to create data source for other organization")
-        }
+        requireOwnedBy(dataSource.publisherId, org, "Trying to create data source for other organization")
 
         val existing = dataSourceRepository.findByUrlAndDataType(dataSource.url, dataSource.dataType)
         if (existing.isNotEmpty()) {
@@ -76,14 +53,7 @@ class DataSourceService(
 
         val id = UUID.randomUUID().toString()
         val entity = DataSourceEntity.fromModel(dataSource.copy(id = id))
-
-        return try {
-            val saved = dataSourceRepository.save(entity)
-            saved.toModel()
-        } catch (e: Exception) {
-            logger.error("Error creating data source", e)
-            throw RuntimeException("Error creating data source", e)
-        }
+        return dataSourceRepository.save(entity).toModel()
     }
 
     @Transactional
@@ -92,14 +62,8 @@ class DataSourceService(
         dataSource: DataSource,
         org: String,
     ): DataSource {
-        val existing =
-            dataSourceRepository
-                .findById(id)
-                .orElseThrow { NotFoundException("Data source not found with id: $id") }
-
-        if (org != existing.publisherId) {
-            throw ValidationException("Trying to update data source for other organization")
-        }
+        val existing = findDataSource(id)
+        requireOwnedBy(existing, org, "Trying to update data source for other organization")
 
         val conflicting = dataSourceRepository.findByUrlAndDataType(dataSource.url, dataSource.dataType)
         if (conflicting.isNotEmpty() && conflicting.any { it.id != id }) {
@@ -107,14 +71,7 @@ class DataSourceService(
         }
 
         existing.updateFromModel(dataSource)
-
-        return try {
-            val saved = dataSourceRepository.save(existing)
-            saved.toModel()
-        } catch (e: Exception) {
-            logger.error("Error updating data source", e)
-            throw RuntimeException("Error updating data source", e)
-        }
+        return dataSourceRepository.save(existing).toModel()
     }
 
     @Transactional
@@ -123,39 +80,19 @@ class DataSourceService(
         org: String,
         active: Boolean,
     ): DataSource {
-        val existing =
-            dataSourceRepository
-                .findById(id)
-                .orElseThrow { NotFoundException("Data source not found with id: $id") }
-
-        if (org != existing.publisherId) {
-            throw ValidationException("Trying to modify data source for other organization")
-        }
+        val existing = findDataSource(id)
+        requireOwnedBy(existing, org, "Trying to modify data source for other organization")
 
         existing.active = active
-
-        return try {
-            val saved = dataSourceRepository.save(existing)
-            saved.toModel()
-        } catch (e: Exception) {
-            logger.error("Error updating active status for data source with id: $id", e)
-            throw RuntimeException("Error updating active status", e)
-        }
+        return dataSourceRepository.save(existing).toModel()
     }
 
     @Transactional
     fun deleteDataSource(id: String) {
-        try {
-            if (!dataSourceRepository.existsById(id)) {
-                throw NotFoundException("Data source not found with id: $id")
-            }
-            dataSourceRepository.deleteById(id)
-        } catch (e: NotFoundException) {
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error deleting data source with id: $id", e)
-            throw RuntimeException("Error deleting data source", e)
+        if (!dataSourceRepository.existsById(id)) {
+            throw NotFoundException("Data source not found with id: $id")
         }
+        dataSourceRepository.deleteById(id)
     }
 
     fun startHarvesting(
@@ -164,69 +101,50 @@ class DataSourceService(
         removeAll: Boolean? = null,
         forced: Boolean? = null,
     ) {
-        val dataSource =
-            dataSourceRepository
-                .findById(id)
-                .orElseThrow { NotFoundException("Data source not found with id: $id") }
-
-        if (org != dataSource.publisherId) {
-            throw ValidationException("Trying to start harvest for other organization")
-        }
+        val dataSource = findDataSource(id)
+        requireOwnedBy(dataSource, org, "Trying to start harvest for other organization")
 
         if (!dataSource.active) {
             throw ValidationException("Cannot start harvest for inactive data source: $id")
         }
 
-        try {
-            val timestamp = Instant.now()
+        val timestamp = Instant.now()
+        val runId = UUID.randomUUID().toString()
 
-            // Generate a unique run ID for this harvest
-            val runId = UUID.randomUUID().toString()
+        val run =
+            HarvestRunEntity(
+                runId = runId,
+                dataSourceId = id,
+                dataType = dataSource.dataType.name,
+                runStartedAt = timestamp,
+                status = "IN_PROGRESS",
+                removeAll = removeAll,
+                forced = forced,
+            )
+        val savedRun = harvestRunRepository.save(run)
+        harvestMetricsService.recordRunStarted(savedRun)
 
-            // Create harvest run with the generated runId
-            val run =
-                HarvestRunEntity(
-                    runId = runId,
-                    dataSourceId = id,
-                    dataType = dataSource.dataType.name,
-                    runStartedAt = timestamp,
-                    status = "IN_PROGRESS",
-                    removeAll = removeAll,
-                    forced = forced,
-                )
-            val savedRun = harvestRunRepository.save(run)
-
-            // Record metrics for run started
-            harvestMetricsService.recordRunStarted(savedRun)
-
-            // Create harvest trigger event with the run ID
-            val triggerEvent =
-                no.fdk.harvest.HarvestEvent
-                    .newBuilder()
-                    .setPhase(no.fdk.harvest.HarvestPhase.INITIATING)
-                    .setDataSourceId(id)
-                    .setRunId(runId)
-                    .setDataType(mapDataType(dataSource.dataType))
-                    .setDataSourceUrl(dataSource.url)
-                    .setAcceptHeader(dataSource.acceptHeader)
-                    .setFdkId(null)
-                    .setResourceUri(null)
-                    .setStartTime(timestamp.toString())
-                    .setEndTime(timestamp.toString())
-                    .setErrorMessage(null)
-                    .setChangedResourcesCount(null)
-                    .setRemovedResourcesCount(null)
-                    .setRemoveAll(removeAll)
-                    .setForced(forced ?: false)
-                    .build()
-            harvestEventIngestionService.persistEvent(triggerEvent)
-
-            // Publish harvest trigger event to Kafka
-            kafkaHarvestEventPublisher.publishEvent(triggerEvent)
-        } catch (e: Exception) {
-            logger.error("Error starting harvest for data source with id: $id", e)
-            throw RuntimeException("Error starting harvest", e)
-        }
+        val triggerEvent =
+            no.fdk.harvest.HarvestEvent
+                .newBuilder()
+                .setPhase(no.fdk.harvest.HarvestPhase.INITIATING)
+                .setDataSourceId(id)
+                .setRunId(runId)
+                .setDataType(mapDataType(dataSource.dataType))
+                .setDataSourceUrl(dataSource.url)
+                .setAcceptHeader(dataSource.acceptHeader)
+                .setFdkId(null)
+                .setResourceUri(null)
+                .setStartTime(timestamp.toString())
+                .setEndTime(timestamp.toString())
+                .setErrorMessage(null)
+                .setChangedResourcesCount(null)
+                .setRemovedResourcesCount(null)
+                .setRemoveAll(removeAll)
+                .setForced(forced ?: false)
+                .build()
+        harvestEventIngestionService.persistEvent(triggerEvent)
+        kafkaHarvestEventPublisher.publishEvent(triggerEvent)
     }
 
     fun startHarvestingByUrlAndDataType(
@@ -234,33 +152,28 @@ class DataSourceService(
         url: String,
         dataType: DataType,
     ) {
-        try {
-            val dataSources = dataSourceRepository.findByUrlAndDataType(url, dataType)
+        val dataSources = dataSourceRepository.findByUrlAndDataType(url, dataType)
 
-            if (dataSources.isEmpty()) {
-                throw NotFoundException("Data source not found for url '$url' and data type '${dataType.value}'")
-            }
-
-            val matchingOrgSources = dataSources.filter { it.publisherId == org }
-            if (matchingOrgSources.isEmpty()) {
-                throw ValidationException("Trying to start harvest for other organization")
-            }
-
-            if (matchingOrgSources.size > 1) {
-                throw ConflictException("Multiple data sources found for url '$url' and data type '${dataType.value}'")
-            }
-
-            val dataSource = matchingOrgSources.first()
-            startHarvesting(
-                id = dataSource.id,
-                org = org,
-                removeAll = false,
-                forced = false,
-            )
-        } catch (e: Exception) {
-            logger.error("Error starting harvest for url '$url' and data type '${dataType.value}'", e)
-            throw e
+        if (dataSources.isEmpty()) {
+            throw NotFoundException("Data source not found for url '$url' and data type '${dataType.value}'")
         }
+
+        val matchingOrgSources = dataSources.filter { it.publisherId == org }
+        if (matchingOrgSources.isEmpty()) {
+            throw ValidationException("Trying to start harvest for other organization")
+        }
+
+        if (matchingOrgSources.size > 1) {
+            throw ConflictException("Multiple data sources found for url '$url' and data type '${dataType.value}'")
+        }
+
+        val dataSource = matchingOrgSources.first()
+        startHarvesting(
+            id = dataSource.id,
+            org = org,
+            removeAll = false,
+            forced = false,
+        )
     }
 
     @Scheduled(cron = "\${app.harvest.scheduled-cron:0 */5 * * * *}")
@@ -283,6 +196,29 @@ class DataSourceService(
                     logger.error("Failed to start scheduled harvest for data source ${ds.id}", e)
                 }
             }
+    }
+
+    private fun findDataSource(id: String): DataSourceEntity =
+        dataSourceRepository
+            .findById(id)
+            .orElseThrow { NotFoundException("Data source not found with id: $id") }
+
+    private fun requireOwnedBy(
+        entity: DataSourceEntity,
+        org: String,
+        message: String,
+    ) {
+        requireOwnedBy(entity.publisherId, org, message)
+    }
+
+    private fun requireOwnedBy(
+        publisherId: String,
+        org: String,
+        message: String,
+    ) {
+        if (org != publisherId) {
+            throw ValidationException(message)
+        }
     }
 
     private fun mapDataType(dataType: DataType): no.fdk.harvest.DataType =

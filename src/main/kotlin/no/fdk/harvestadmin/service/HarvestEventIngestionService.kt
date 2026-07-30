@@ -39,34 +39,6 @@ class HarvestEventIngestionService(
             }
             val dataType = event.dataType.name
 
-            // Check if this resource has already been processed for this phase, is only used for logging.
-            val isDuplicate =
-                runId.let { runIdValue ->
-                    when {
-                        event.fdkId != null -> {
-                            harvestEventRepository.existsByRunIdAndEventTypeAndFdkId(
-                                runIdValue,
-                                event.phase.name,
-                                event.fdkId.toString(),
-                            )
-                        }
-                        event.resourceUri != null -> {
-                            harvestEventRepository.existsByRunIdAndEventTypeAndResourceUri(
-                                runIdValue,
-                                event.phase.name,
-                                event.resourceUri.toString(),
-                            )
-                        }
-                        else -> false
-                    }
-                } ?: false
-
-            if (isDuplicate) {
-                logger.debug(
-                    "Duplicate event detected for phase=${event.phase}, runId=$runId, fdkId=${event.fdkId}, resourceUri=${event.resourceUri}. Using latest event approach.",
-                )
-            }
-
             val entity =
                 HarvestEventEntity(
                     eventType = event.phase.name,
@@ -381,24 +353,23 @@ class HarvestEventIngestionService(
         return minOf(totalResources, resourcesWithAllPhases)
     }
 
-    private fun parseDateTime(dateString: String): Instant? =
-        try {
-            // Try parsing as ISO format first
-            Instant.parse(dateString)
-        } catch (e: Exception) {
-            try {
-                // Try parsing as "yyyy-MM-dd HH:mm:ss Z" format (e.g., "2025-12-11 13:21:38 +0100")
-                java.time.format.DateTimeFormatter
-                    .ofPattern("yyyy-MM-dd HH:mm:ss Z")
-                    .parse(dateString)
-                    .let { temporalAccessor ->
-                        java.time.OffsetDateTime
-                            .from(temporalAccessor)
-                            .toInstant()
-                    }
-            } catch (e2: Exception) {
-                try {
-                    // Try parsing as "yyyy-MM-dd HH:mm:ss" format (without timezone)
+    private fun parseDateTime(dateString: String): Instant? {
+        val parsers: List<() -> Instant> =
+            listOf(
+                { Instant.parse(dateString) },
+                {
+                    // e.g. "2025-12-11 13:21:38 +0100"
+                    java.time.format.DateTimeFormatter
+                        .ofPattern("yyyy-MM-dd HH:mm:ss Z")
+                        .parse(dateString)
+                        .let {
+                            java.time.OffsetDateTime
+                                .from(it)
+                                .toInstant()
+                        }
+                },
+                {
+                    // Local wall time without zone
                     java.time.LocalDateTime
                         .parse(
                             dateString,
@@ -406,12 +377,20 @@ class HarvestEventIngestionService(
                                 .ofPattern("yyyy-MM-dd HH:mm:ss"),
                         ).atZone(java.time.ZoneId.systemDefault())
                         .toInstant()
-                } catch (e3: Exception) {
-                    logger.warn("Could not parse date string: $dateString", e3)
-                    null
-                }
+                },
+            )
+
+        for (parser in parsers) {
+            try {
+                return parser()
+            } catch (_: Exception) {
+                // try next format
             }
         }
+
+        logger.warn("Could not parse date string: $dateString")
+        return null
+    }
 
     /**
      * Calculate total duration as the sum of all phase durations.
