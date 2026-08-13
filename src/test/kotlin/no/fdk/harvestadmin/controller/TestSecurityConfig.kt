@@ -10,9 +10,8 @@ import org.springframework.security.web.SecurityFilterChain
 class TestSecurityConfig {
     @Bean
     @Order(1)
-    fun testSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
-        http
-            .csrf { it.disable() }
-            .authorizeHttpRequests { it.anyRequest().permitAll() }
-            .build()
+    fun testSecurityFilterChain(http: HttpSecurity): SecurityFilterChain = http
+        .csrf { it.disable() }
+        .authorizeHttpRequests { it.anyRequest().permitAll() }
+        .build()
 }

@@ -22,17 +22,12 @@ import org.springframework.stereotype.Service
  *   If events do exist, they behave like required phases.
  */
 @Service
-class HarvestCompletionEvaluator(
-    private val harvestEventRepository: HarvestEventRepository,
-) {
+class HarvestCompletionEvaluator(private val harvestEventRepository: HarvestEventRepository) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun evaluate(run: HarvestRunEntity): RunCompletionStatus = evaluate(run, calculatePhaseEventCounts(run.runId))
 
-    fun evaluate(
-        run: HarvestRunEntity,
-        phaseEventCounts: Map<String, Long>,
-    ): RunCompletionStatus {
+    fun evaluate(run: HarvestRunEntity, phaseEventCounts: Map<String, Long>): RunCompletionStatus {
         val expectedResourceCount = (run.changedResourcesCount ?: 0) + (run.removedResourcesCount ?: 0)
         val hasExplicitResourceCounts =
             run.changedResourcesCount != null ||
@@ -176,11 +171,7 @@ class HarvestCompletionEvaluator(
         return HarvestPhaseConfig.allPhasesForEventCounts.associateWith { phase -> countsByPhase[phase] ?: 0L }
     }
 
-    fun countResourcesWithAllPhases(
-        runId: String,
-        requiredPhases: List<String>,
-        phaseEventCounts: Map<String, Long>,
-    ): Int {
+    fun countResourcesWithAllPhases(runId: String, requiredPhases: List<String>, phaseEventCounts: Map<String, Long>): Int {
         val effectiveRequiredPhases =
             requiredPhases.filter { phase ->
                 if (phase in HarvestPhaseConfig.optionalPhases) {
@@ -203,11 +194,7 @@ class HarvestCompletionEvaluator(
             ).toInt()
     }
 
-    private fun logBlockingPhasesIfNeeded(
-        runId: String,
-        allRequiredComplete: Boolean,
-        phaseCompletions: List<PhaseCompletion>,
-    ) {
+    private fun logBlockingPhasesIfNeeded(runId: String, allRequiredComplete: Boolean, phaseCompletions: List<PhaseCompletion>) {
         if (!allRequiredComplete) {
             val blockingPhases =
                 phaseCompletions

@@ -78,22 +78,18 @@ class KafkaHarvestEventPublisherTest {
         verify(harvestMetricsService).recordPublishFailed("HARVESTING", "dataset")
     }
 
-    private fun harvestEvent(
-        dataSourceId: String,
-        runId: String,
-    ): HarvestEvent =
-        HarvestEvent
-            .newBuilder()
-            .setPhase(HarvestPhase.HARVESTING)
-            .setRunId(runId)
-            .setDataSourceId(dataSourceId)
-            .setDataType(no.fdk.harvest.DataType.dataset)
-            .setStartTime(null)
-            .setEndTime(null)
-            .setErrorMessage(null)
-            .setFdkId(null)
-            .setResourceUri(null)
-            .setChangedResourcesCount(null)
-            .setRemovedResourcesCount(null)
-            .build()
+    private fun harvestEvent(dataSourceId: String, runId: String): HarvestEvent = HarvestEvent
+        .newBuilder()
+        .setPhase(HarvestPhase.HARVESTING)
+        .setRunId(runId)
+        .setDataSourceId(dataSourceId)
+        .setDataType(no.fdk.harvest.DataType.dataset)
+        .setStartTime(null)
+        .setEndTime(null)
+        .setErrorMessage(null)
+        .setFdkId(null)
+        .setResourceUri(null)
+        .setChangedResourcesCount(null)
+        .setRemovedResourcesCount(null)
+        .build()
 }

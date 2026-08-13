@@ -137,8 +137,8 @@ data class HarvestRunDetails(
     val updatedAt: Instant?,
     @field:Schema(
         description =
-            "Per-phase completion details for this run. " +
-                "Populated in particular when the run is not COMPLETED to show which phases or resources are missing.",
+        "Per-phase completion details for this run. " +
+            "Populated in particular when the run is not COMPLETED to show which phases or resources are missing.",
     )
     val completionStatus: RunCompletionStatus? = null,
 )
@@ -195,15 +195,15 @@ data class PhaseCompletion(
     val required: Boolean,
     @field:Schema(
         description =
-            "Expected number of unique resources for this phase (changed + removed) when known. " +
-                "For phases without per-resource identifiers (like HARVESTING) this is null.",
+        "Expected number of unique resources for this phase (changed + removed) when known. " +
+            "For phases without per-resource identifiers (like HARVESTING) this is null.",
         example = "120",
     )
     val expectedResources: Int?,
     @field:Schema(
         description =
-            "Number of unique resources whose latest event in this phase has completed successfully " +
-                "(has endTime and no error).",
+        "Number of unique resources whose latest event in this phase has completed successfully " +
+            "(has endTime and no error).",
         example = "117",
     )
     val completedResources: Int,

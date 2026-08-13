@@ -285,15 +285,7 @@
                 <version>3.7.1</version>
                 <executions>
                     <execution>
-                        <id>format</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>check</id>
-                        <phase>test-compile</phase>
+                        <id>ktlint-check</id>
                         <goals>
                             <goal>check</goal>
                         </goals>

@@ -52,10 +52,7 @@ class DataSourceController(
     }
 
     /** Ensures the authenticated user (JWT or API key) may access the given org. API key = system admin = any org. */
-    private fun requireOrgAccess(
-        org: String,
-        authentication: Authentication?,
-    ) {
+    private fun requireOrgAccess(org: String, authentication: Authentication?) {
         val authorizedOrgs = securityService.getAuthorizedOrganizations(authentication)
         if (authorizedOrgs != null && org !in authorizedOrgs) {
             throw ForbiddenException("Access denied to organization $org")
@@ -93,11 +90,7 @@ class DataSourceController(
         description = "Returns a data source by id",
         security = [SecurityRequirement(name = "api-key")],
     )
-    fun getDataSource(
-        @PathVariable org: String,
-        @PathVariable id: String,
-        authentication: Authentication?,
-    ): ResponseEntity<DataSource> {
+    fun getDataSource(@PathVariable org: String, @PathVariable id: String, authentication: Authentication?): ResponseEntity<DataSource> {
         validateOrgId(org)
         requireOrgAccess(org, authentication)
         val source = dataSourceService.getDataSource(id)
@@ -221,11 +214,7 @@ class DataSourceController(
         description = "Deletes a data source by id",
         security = [SecurityRequirement(name = "api-key")],
     )
-    fun deleteDataSource(
-        @PathVariable org: String,
-        @PathVariable id: String,
-        authentication: Authentication?,
-    ): ResponseEntity<Void> {
+    fun deleteDataSource(@PathVariable org: String, @PathVariable id: String, authentication: Authentication?): ResponseEntity<Void> {
         validateOrgId(org)
         requireOrgAccess(org, authentication)
         dataSourceService.deleteDataSource(id)

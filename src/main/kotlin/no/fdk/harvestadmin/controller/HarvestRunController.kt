@@ -23,16 +23,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/runs")
 @Tag(name = "Harvest Run", description = "Harvest Run Service")
-class HarvestRunController(
-    private val harvestRunQueryService: HarvestRunQueryService,
-    private val securityService: SecurityService,
-) {
+class HarvestRunController(private val harvestRunQueryService: HarvestRunQueryService, private val securityService: SecurityService) {
     @GetMapping
     @Operation(
         summary = "List harvest runs",
         description =
-            "Returns a paginated list of harvest runs sorted by runStartedAt (descending). " +
-                "Can be filtered by dataSourceId, dataType, and status.",
+        "Returns a paginated list of harvest runs sorted by runStartedAt (descending). " +
+            "Can be filtered by dataSourceId, dataType, and status.",
         security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
@@ -54,7 +51,7 @@ class HarvestRunController(
         @Parameter(description = "Filter by data type") @RequestParam(required = false) dataType: String?,
         @Parameter(description = "Filter by status (IN_PROGRESS, COMPLETED, FAILED)") @RequestParam(required = false) status: String?,
         @Parameter(description = "Number of records to skip (for pagination)") @RequestParam(required = false, defaultValue = "0") offset:
-            Int,
+        Int,
         @Parameter(description = "Maximum number of runs to return") @RequestParam(required = false, defaultValue = "50") limit: Int,
         authentication: Authentication?,
     ): ResponseEntity<Map<String, Any>> {
@@ -129,8 +126,8 @@ class HarvestRunController(
     @Operation(
         summary = "Get performance metrics",
         description =
-            "Returns aggregated performance metrics. " +
-                "Can filter by dataSourceId, dataType, date range, days back, or limit to last N runs.",
+        "Returns aggregated performance metrics. " +
+            "Can filter by dataSourceId, dataType, date range, days back, or limit to last N runs.",
         security = [SecurityRequirement(name = "bearer-jwt"), SecurityRequirement(name = "api-key")],
     )
     @ApiResponses(
@@ -147,7 +144,7 @@ class HarvestRunController(
     fun getMetrics(
         @Parameter(description = "Filter by data source ID") @RequestParam(required = false) dataSourceId: String?,
         @Parameter(description = "Filter by data type (required if dataSourceId is provided)") @RequestParam(required = false) dataType:
-            String?,
+        String?,
         @Parameter(
             description = "Number of days to look back (used if no date range or limit specified)",
         ) @RequestParam(required = false) daysBack: Int?,

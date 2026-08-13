@@ -3,9 +3,7 @@ package no.fdk.harvestadmin.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 
-enum class DataSourceType(
-    @JsonValue val value: String,
-) {
+enum class DataSourceType(@JsonValue val value: String) {
     SKOS_AP_NO("SKOS-AP-NO"),
     DCAT_AP_NO("DCAT-AP-NO"),
     CPSV_AP_NO("CPSV-AP-NO"),

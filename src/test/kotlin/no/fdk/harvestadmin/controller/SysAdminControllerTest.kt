@@ -24,10 +24,10 @@ class SysAdminControllerTest : BaseControllerTest() {
             RemoveResourcesRequest(
                 dataType = DataType.DATASET,
                 resources =
-                    listOf(
-                        ResourceToRemove(fdkId = "fdk-1", resourceUri = "https://example.com/r/1"),
-                        ResourceToRemove(fdkId = "fdk-2", resourceUri = "https://example.com/r/2"),
-                    ),
+                listOf(
+                    ResourceToRemove(fdkId = "fdk-1", resourceUri = "https://example.com/r/1"),
+                    ResourceToRemove(fdkId = "fdk-2", resourceUri = "https://example.com/r/2"),
+                ),
             )
 
         whenever(securityService.hasSystemAdminAccess(isNull())).thenReturn(true)
@@ -49,9 +49,9 @@ class SysAdminControllerTest : BaseControllerTest() {
             RemoveResourcesRequest(
                 dataType = DataType.DATASET,
                 resources =
-                    listOf(
-                        ResourceToRemove(fdkId = "fdk-1", resourceUri = "https://example.com/r/1"),
-                    ),
+                listOf(
+                    ResourceToRemove(fdkId = "fdk-1", resourceUri = "https://example.com/r/1"),
+                ),
             )
 
         whenever(securityService.hasSystemAdminAccess(isNull())).thenReturn(false)

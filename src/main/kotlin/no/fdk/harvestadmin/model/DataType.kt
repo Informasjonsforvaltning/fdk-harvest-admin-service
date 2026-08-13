@@ -3,9 +3,7 @@ package no.fdk.harvestadmin.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 
-enum class DataType(
-    @JsonValue val value: String,
-) {
+enum class DataType(@JsonValue val value: String) {
     CONCEPT("concept"),
     DATASET("dataset"),
     INFORMATION_MODEL("informationmodel"),

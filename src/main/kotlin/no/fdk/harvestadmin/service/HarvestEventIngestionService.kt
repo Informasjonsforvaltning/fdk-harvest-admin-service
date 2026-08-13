@@ -71,10 +71,7 @@ class HarvestEventIngestionService(
         }
     }
 
-    private fun updateHarvestRun(
-        event: HarvestEvent,
-        currentRun: HarvestRunEntity,
-    ) {
+    private fun updateHarvestRun(event: HarvestEvent, currentRun: HarvestRunEntity) {
         val oldStatus = currentRun.status
         val updatedRun = updateRunWithEvent(currentRun, event)
         val savedRun = harvestRunRepository.save(updatedRun)
@@ -117,10 +114,7 @@ class HarvestEventIngestionService(
         }
     }
 
-    private fun updateRunWithEvent(
-        run: HarvestRunEntity,
-        event: HarvestEvent,
-    ): HarvestRunEntity {
+    private fun updateRunWithEvent(run: HarvestRunEntity, event: HarvestEvent): HarvestRunEntity {
         val startTime = event.startTime?.let { parseDateTime(it) }
         val endTime = event.endTime?.let { parseDateTime(it) }
         val currentPhase = event.phase.name
@@ -307,32 +301,27 @@ class HarvestEventIngestionService(
         }
     }
 
-    private fun HarvestRunEntity.withPhaseEventCounts(phaseEventCounts: Map<String, Long>): HarvestRunEntity =
-        copy(
-            initiatingEventsCount = phaseEventCounts[HarvestPhaseConfig.INITIATING_PHASE]?.toInt(),
-            harvestingEventsCount = phaseEventCounts[HarvestPhaseConfig.HARVESTING_PHASE]?.toInt(),
-            reasoningEventsCount = phaseEventCounts["REASONING"]?.toInt(),
-            rdfParsingEventsCount = phaseEventCounts["RDF_PARSING"]?.toInt(),
-            resourceProcessingEventsCount = phaseEventCounts["RESOURCE_PROCESSING"]?.toInt(),
-            searchProcessingEventsCount = phaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
-            aiSearchProcessingEventsCount = phaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
-            sparqlProcessingEventsCount = phaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
-        )
+    private fun HarvestRunEntity.withPhaseEventCounts(phaseEventCounts: Map<String, Long>): HarvestRunEntity = copy(
+        initiatingEventsCount = phaseEventCounts[HarvestPhaseConfig.INITIATING_PHASE]?.toInt(),
+        harvestingEventsCount = phaseEventCounts[HarvestPhaseConfig.HARVESTING_PHASE]?.toInt(),
+        reasoningEventsCount = phaseEventCounts["REASONING"]?.toInt(),
+        rdfParsingEventsCount = phaseEventCounts["RDF_PARSING"]?.toInt(),
+        resourceProcessingEventsCount = phaseEventCounts["RESOURCE_PROCESSING"]?.toInt(),
+        searchProcessingEventsCount = phaseEventCounts["SEARCH_PROCESSING"]?.toInt(),
+        aiSearchProcessingEventsCount = phaseEventCounts["AI_SEARCH_PROCESSING"]?.toInt(),
+        sparqlProcessingEventsCount = phaseEventCounts["SPARQL_PROCESSING"]?.toInt(),
+    )
 
     private fun existingStatusOrDefault(run: HarvestRunEntity): String = run.status.ifBlank { "IN_PROGRESS" }
 
-    private fun getLatestEndTime(runId: String): Instant? =
-        HarvestPhaseConfig.allPhasesInCompletionOrder
-            .flatMap { phase ->
-                harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
-            }.mapNotNull { event ->
-                event.endTime?.let { parseDateTime(it) }
-            }.maxOrNull()
+    private fun getLatestEndTime(runId: String): Instant? = HarvestPhaseConfig.allPhasesInCompletionOrder
+        .flatMap { phase ->
+            harvestEventRepository.findByRunIdAndEventTypeAndEndTimeIsNotNull(runId, phase)
+        }.mapNotNull { event ->
+            event.endTime?.let { parseDateTime(it) }
+        }.maxOrNull()
 
-    private fun calculateTotalResources(
-        event: HarvestEvent,
-        existingRun: HarvestRunEntity?,
-    ): Int? {
+    private fun calculateTotalResources(event: HarvestEvent, existingRun: HarvestRunEntity?): Int? {
         // Calculate total when resource counts are provided
         if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
             val changed = event.changedResourcesCount ?: 0

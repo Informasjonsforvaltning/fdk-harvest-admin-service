@@ -26,8 +26,5 @@ interface DataSourceRepository : JpaRepository<DataSourceEntity, String> {
         @Param("dataSourceType") dataSourceType: DataSourceType?,
     ): List<DataSourceEntity>
 
-    fun findByUrlAndDataType(
-        url: String,
-        dataType: DataType,
-    ): List<DataSourceEntity>
+    fun findByUrlAndDataType(url: String, dataType: DataType): List<DataSourceEntity>
 }

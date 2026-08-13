@@ -12,10 +12,7 @@ import java.time.Instant
 interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
     fun findByDataSourceIdOrderByRunStartedAtDesc(dataSourceId: String): List<HarvestRunEntity>
 
-    fun findByDataSourceIdAndDataTypeOrderByRunStartedAtDesc(
-        dataSourceId: String,
-        dataType: String,
-    ): List<HarvestRunEntity>
+    fun findByDataSourceIdAndDataTypeOrderByRunStartedAtDesc(dataSourceId: String, dataType: String): List<HarvestRunEntity>
 
     fun findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId: String): HarvestRunEntity?
 
@@ -26,10 +23,7 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
     @Query(
         "SELECT h FROM HarvestRunEntity h WHERE h.dataSourceId = :dataSourceId AND h.dataType = :dataType AND h.status = 'IN_PROGRESS' ORDER BY h.runStartedAt DESC",
     )
-    fun findCurrentRun(
-        @Param("dataSourceId") dataSourceId: String,
-        @Param("dataType") dataType: String,
-    ): HarvestRunEntity?
+    fun findCurrentRun(@Param("dataSourceId") dataSourceId: String, @Param("dataType") dataType: String): HarvestRunEntity?
 
     @Query(
         "SELECT h FROM HarvestRunEntity h WHERE h.dataSourceId = :dataSourceId AND h.status = 'IN_PROGRESS' ORDER BY h.runStartedAt DESC",
@@ -150,7 +144,5 @@ interface HarvestRunRepository : JpaRepository<HarvestRunEntity, Long> {
     @Query(
         "SELECT h FROM HarvestRunEntity h WHERE h.status = 'IN_PROGRESS' AND h.updatedAt < :staleBefore",
     )
-    fun findStaleRuns(
-        @Param("staleBefore") staleBefore: Instant,
-    ): List<HarvestRunEntity>
+    fun findStaleRuns(@Param("staleBefore") staleBefore: Instant): List<HarvestRunEntity>
 }

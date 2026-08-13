@@ -11,10 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 @Component
-class KafkaManager(
-    private val registry: KafkaListenerEndpointRegistry,
-    private val meterRegistry: MeterRegistry,
-) {
+class KafkaManager(private val registry: KafkaListenerEndpointRegistry, private val meterRegistry: MeterRegistry) {
     private val pausedByListenerId = ConcurrentHashMap<String, AtomicInteger>()
 
     @PostConstruct

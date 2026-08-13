@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service
 import java.util.regex.Pattern
 
 @Service
-class SecurityService(
-    @param:Value("\${app.security.org-type}") private val orgType: String,
-) {
+class SecurityService(@param:Value("\${app.security.org-type}") private val orgType: String) {
     private fun extractAuthorities(authentication: Authentication?): String? {
         if (authentication == null) {
             return null
@@ -46,11 +44,7 @@ class SecurityService(
 
     private fun hasSystemAdminRole(authorities: String): Boolean = authorities.contains("system:root:admin")
 
-    fun hasOrganizationRole(
-        authorities: String,
-        org: String,
-        role: String,
-    ): Boolean {
+    fun hasOrganizationRole(authorities: String, org: String, role: String): Boolean {
         val orgAuth = "$orgType:$org:$role"
         return authorities.contains(orgAuth)
     }

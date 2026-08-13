@@ -44,10 +44,9 @@ class KafkaManagerTest {
         assertEquals(0.0, pausedGaugeValue(listenerId))
     }
 
-    private fun pausedGaugeValue(listenerId: String): Double =
-        meterRegistry
-            .find("harvest.kafka.listener.paused")
-            .tag("listener_id", listenerId)
-            .gauge()!!
-            .value()
+    private fun pausedGaugeValue(listenerId: String): Double = meterRegistry
+        .find("harvest.kafka.listener.paused")
+        .tag("listener_id", listenerId)
+        .gauge()!!
+        .value()
 }

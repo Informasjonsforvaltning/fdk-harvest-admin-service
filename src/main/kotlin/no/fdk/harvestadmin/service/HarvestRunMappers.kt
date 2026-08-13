@@ -10,83 +10,74 @@ import no.fdk.harvestadmin.model.ResourceCounts
 import no.fdk.harvestadmin.model.RunCompletionStatus
 import java.time.Instant
 
-fun HarvestRunEntity.toPhaseEventCounts(): PhaseEventCounts =
-    PhaseEventCounts(
-        initiatingEventsCount = initiatingEventsCount,
-        harvestingEventsCount = harvestingEventsCount,
-        reasoningEventsCount = reasoningEventsCount,
-        rdfParsingEventsCount = rdfParsingEventsCount,
-        resourceProcessingEventsCount = resourceProcessingEventsCount,
-        searchProcessingEventsCount = searchProcessingEventsCount,
-        aiSearchProcessingEventsCount = aiSearchProcessingEventsCount,
-        sparqlProcessingEventsCount = sparqlProcessingEventsCount,
-    )
+fun HarvestRunEntity.toPhaseEventCounts(): PhaseEventCounts = PhaseEventCounts(
+    initiatingEventsCount = initiatingEventsCount,
+    harvestingEventsCount = harvestingEventsCount,
+    reasoningEventsCount = reasoningEventsCount,
+    rdfParsingEventsCount = rdfParsingEventsCount,
+    resourceProcessingEventsCount = resourceProcessingEventsCount,
+    searchProcessingEventsCount = searchProcessingEventsCount,
+    aiSearchProcessingEventsCount = aiSearchProcessingEventsCount,
+    sparqlProcessingEventsCount = sparqlProcessingEventsCount,
+)
 
-fun HarvestRunEntity.toPhaseDurations(): PhaseDurations =
-    PhaseDurations(
-        initDurationMs = initDurationMs,
-        harvestDurationMs = harvestDurationMs,
-        reasoningDurationMs = reasoningDurationMs,
-        rdfParsingDurationMs = rdfParsingDurationMs,
-        searchProcessingDurationMs = searchProcessingDurationMs,
-        aiSearchProcessingDurationMs = aiSearchProcessingDurationMs,
-        apiProcessingDurationMs = apiProcessingDurationMs,
-        sparqlProcessingDurationMs = sparqlProcessingDurationMs,
-    )
+fun HarvestRunEntity.toPhaseDurations(): PhaseDurations = PhaseDurations(
+    initDurationMs = initDurationMs,
+    harvestDurationMs = harvestDurationMs,
+    reasoningDurationMs = reasoningDurationMs,
+    rdfParsingDurationMs = rdfParsingDurationMs,
+    searchProcessingDurationMs = searchProcessingDurationMs,
+    aiSearchProcessingDurationMs = aiSearchProcessingDurationMs,
+    apiProcessingDurationMs = apiProcessingDurationMs,
+    sparqlProcessingDurationMs = sparqlProcessingDurationMs,
+)
 
-fun HarvestRunEntity.toResourceCounts(): ResourceCounts =
-    ResourceCounts(
-        totalResources = totalResources,
-        changedResourcesCount = changedResourcesCount,
-        removedResourcesCount = removedResourcesCount,
-        phaseEventCounts = toPhaseEventCounts(),
-    )
+fun HarvestRunEntity.toResourceCounts(): ResourceCounts = ResourceCounts(
+    totalResources = totalResources,
+    changedResourcesCount = changedResourcesCount,
+    removedResourcesCount = removedResourcesCount,
+    phaseEventCounts = toPhaseEventCounts(),
+)
 
-fun HarvestRunEntity.toHarvestRunDetails(completionStatus: RunCompletionStatus? = null): HarvestRunDetails =
-    HarvestRunDetails(
-        runId = runId,
-        dataSourceId = dataSourceId,
-        dataType = dataType,
-        runStartedAt = runStartedAt,
-        runEndedAt = runEndedAt,
-        totalDurationMs = totalDurationMs,
-        phaseDurations = toPhaseDurations(),
-        resourceCounts = toResourceCounts(),
-        removeAll = removeAll,
-        forced = forced,
-        status = status,
-        errorMessage = errorMessage,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
-        completionStatus = completionStatus,
-    )
+fun HarvestRunEntity.toHarvestRunDetails(completionStatus: RunCompletionStatus? = null): HarvestRunDetails = HarvestRunDetails(
+    runId = runId,
+    dataSourceId = dataSourceId,
+    dataType = dataType,
+    runStartedAt = runStartedAt,
+    runEndedAt = runEndedAt,
+    totalDurationMs = totalDurationMs,
+    phaseDurations = toPhaseDurations(),
+    resourceCounts = toResourceCounts(),
+    removeAll = removeAll,
+    forced = forced,
+    status = status,
+    errorMessage = errorMessage,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+    completionStatus = completionStatus,
+)
 
-fun HarvestRunEntity.toHarvestCurrentState(): HarvestCurrentState =
-    HarvestCurrentState(
-        dataSourceId = dataSourceId,
-        dataType = dataType,
-        currentPhase = currentPhase,
-        phaseStartedAt = phaseStartedAt,
-        lastEventTimestamp = lastEventTimestamp,
-        errorMessage = errorMessage,
-        totalResources = totalResources,
-        processedResources = processedResources,
-        remainingResources = remainingResources,
-        phaseEventCounts = toPhaseEventCounts(),
-        changedResourcesCount = changedResourcesCount,
-        removedResourcesCount = removedResourcesCount,
-        removeAll = removeAll,
-        forced = forced,
-        status = status,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
-    )
+fun HarvestRunEntity.toHarvestCurrentState(): HarvestCurrentState = HarvestCurrentState(
+    dataSourceId = dataSourceId,
+    dataType = dataType,
+    currentPhase = currentPhase,
+    phaseStartedAt = phaseStartedAt,
+    lastEventTimestamp = lastEventTimestamp,
+    errorMessage = errorMessage,
+    totalResources = totalResources,
+    processedResources = processedResources,
+    remainingResources = remainingResources,
+    phaseEventCounts = toPhaseEventCounts(),
+    changedResourcesCount = changedResourcesCount,
+    removedResourcesCount = removedResourcesCount,
+    removeAll = removeAll,
+    forced = forced,
+    status = status,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
 
-fun buildPerformanceMetrics(
-    runs: List<HarvestRunEntity>,
-    dataSourceId: String?,
-    dataType: String?,
-): HarvestPerformanceMetrics {
+fun buildPerformanceMetrics(runs: List<HarvestRunEntity>, dataSourceId: String?, dataType: String?): HarvestPerformanceMetrics {
     val successfulRuns = runs.filter { it.status == "COMPLETED" && it.errorMessage == null }
     val completedRuns = runs.filter { it.status == "COMPLETED" }
     val failedRuns = runs.filter { it.status == "FAILED" }
@@ -110,10 +101,7 @@ fun buildPerformanceMetrics(
     )
 }
 
-private fun <T> averageOf(
-    items: List<T>,
-    extractor: (T) -> Double?,
-): Double? {
+private fun <T> averageOf(items: List<T>, extractor: (T) -> Double?): Double? {
     val values = items.mapNotNull(extractor)
     return if (values.isNotEmpty()) values.average() else null
 }
