@@ -22,10 +22,7 @@ class SysAdminService(
     private val logger = LoggerFactory.getLogger(javaClass)
     private val adminSourceId = "sys-admin-operations"
 
-    fun publishRemovingEvents(
-        dataType: DataType,
-        resources: List<ResourceToRemove>,
-    ) {
+    fun publishRemovingEvents(dataType: DataType, resources: List<ResourceToRemove>) {
         val timestamp = Instant.now()
 
         resources.forEach { resource ->
@@ -77,13 +74,12 @@ class SysAdminService(
         )
     }
 
-    private fun mapDataType(dataType: DataType): no.fdk.harvest.DataType =
-        when (dataType) {
-            DataType.CONCEPT -> no.fdk.harvest.DataType.concept
-            DataType.DATASET -> no.fdk.harvest.DataType.dataset
-            DataType.INFORMATION_MODEL -> no.fdk.harvest.DataType.informationmodel
-            DataType.DATA_SERVICE -> no.fdk.harvest.DataType.dataservice
-            DataType.PUBLIC_SERVICE -> no.fdk.harvest.DataType.publicService
-            DataType.EVENT -> no.fdk.harvest.DataType.event
-        }
+    private fun mapDataType(dataType: DataType): no.fdk.harvest.DataType = when (dataType) {
+        DataType.CONCEPT -> no.fdk.harvest.DataType.concept
+        DataType.DATASET -> no.fdk.harvest.DataType.dataset
+        DataType.INFORMATION_MODEL -> no.fdk.harvest.DataType.informationmodel
+        DataType.DATA_SERVICE -> no.fdk.harvest.DataType.dataservice
+        DataType.PUBLIC_SERVICE -> no.fdk.harvest.DataType.publicService
+        DataType.EVENT -> no.fdk.harvest.DataType.event
+    }
 }

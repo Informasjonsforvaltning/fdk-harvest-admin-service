@@ -8,9 +8,7 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 
 @Component
-class KafkaHarvestEventConsumer(
-    private val harvestEventProcessor: HarvestEventProcessor,
-) {
+class KafkaHarvestEventConsumer(private val harvestEventProcessor: HarvestEventProcessor) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(

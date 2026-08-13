@@ -9,14 +9,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.web.filter.OncePerRequestFilter
 
-class ApiKeyAuthenticationFilter(
-    private val apiKey: String,
-) : OncePerRequestFilter() {
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        filterChain: FilterChain,
-    ) {
+class ApiKeyAuthenticationFilter(private val apiKey: String) : OncePerRequestFilter() {
+    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         // Process API key authentication; JWT is also accepted when no API key is sent
         val path = request.requestURI
         // Skip API key check for public endpoints

@@ -3,10 +3,7 @@ package no.fdk.harvestadmin.model
 import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class HarvestStatuses(
-    val id: String,
-    val statuses: List<HarvestStatus>,
-)
+data class HarvestStatuses(val id: String, val statuses: List<HarvestStatus>)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class HarvestStatus(
@@ -17,9 +14,7 @@ data class HarvestStatus(
     val endTime: String? = null,
 )
 
-enum class Status(
-    val value: String,
-) {
+enum class Status(val value: String) {
     DONE("done"),
     ERROR("error"),
     IN_PROGRESS("in-progress"),

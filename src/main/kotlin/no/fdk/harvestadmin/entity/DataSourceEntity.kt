@@ -36,17 +36,16 @@ data class DataSourceEntity(
     @Column(name = "active", nullable = false)
     var active: Boolean = true,
 ) {
-    fun toModel(): DataSource =
-        DataSource(
-            id = id,
-            dataSourceType = dataSourceType,
-            dataType = dataType,
-            url = url,
-            acceptHeader = acceptHeader,
-            publisherId = publisherId,
-            description = description,
-            active = active,
-        )
+    fun toModel(): DataSource = DataSource(
+        id = id,
+        dataSourceType = dataSourceType,
+        dataType = dataType,
+        url = url,
+        acceptHeader = acceptHeader,
+        publisherId = publisherId,
+        description = description,
+        active = active,
+    )
 
     fun updateFromModel(dataSource: DataSource) {
         // Note: id and publisherId are not updated - id is immutable, publisherId should not change
@@ -58,16 +57,15 @@ data class DataSourceEntity(
     }
 
     companion object {
-        fun fromModel(dataSource: DataSource): DataSourceEntity =
-            DataSourceEntity(
-                id = dataSource.id ?: "",
-                dataSourceType = dataSource.dataSourceType,
-                dataType = dataSource.dataType,
-                url = dataSource.url,
-                acceptHeader = dataSource.acceptHeader,
-                publisherId = dataSource.publisherId,
-                description = dataSource.description,
-                active = dataSource.active,
-            )
+        fun fromModel(dataSource: DataSource): DataSourceEntity = DataSourceEntity(
+            id = dataSource.id ?: "",
+            dataSourceType = dataSource.dataSourceType,
+            dataType = dataSource.dataType,
+            url = dataSource.url,
+            acceptHeader = dataSource.acceptHeader,
+            publisherId = dataSource.publisherId,
+            description = dataSource.description,
+            active = dataSource.active,
+        )
     }
 }

@@ -11,10 +11,7 @@ import no.fdk.harvestadmin.repository.HarvestRunRepository
 import org.springframework.stereotype.Service
 
 @Service
-class HarvestMetricsService(
-    private val meterRegistry: MeterRegistry,
-    private val harvestRunRepository: HarvestRunRepository,
-) {
+class HarvestMetricsService(private val meterRegistry: MeterRegistry, private val harvestRunRepository: HarvestRunRepository) {
     // Normalize dataType to lowercase for consistent Prometheus labels
     private fun normalizeDataType(dataType: String): String {
         // Convert to lowercase and handle special cases
@@ -259,10 +256,7 @@ class HarvestMetricsService(
         }
     }
 
-    fun recordEventProcessingFailed(
-        phase: String,
-        dataType: String,
-    ) {
+    fun recordEventProcessingFailed(phase: String, dataType: String) {
         eventsProcessingFailedCounter
             .tag("phase", phase)
             .tag("datatype", normalizeDataType(dataType))
@@ -270,10 +264,7 @@ class HarvestMetricsService(
             .increment()
     }
 
-    fun recordPublishFailed(
-        phase: String,
-        dataType: String,
-    ) {
+    fun recordPublishFailed(phase: String, dataType: String) {
         eventsPublishFailedCounter
             .tag("phase", phase)
             .tag("datatype", normalizeDataType(dataType))
@@ -285,10 +276,7 @@ class HarvestMetricsService(
         runsStartedCounter.increment()
     }
 
-    fun recordRunCompleted(
-        run: HarvestRunEntity,
-        failureReason: String = "pipeline",
-    ) {
+    fun recordRunCompleted(run: HarvestRunEntity, failureReason: String = "pipeline") {
         if (run.status == "COMPLETED") {
             runsCompletedCounter.increment()
 
@@ -331,11 +319,7 @@ class HarvestMetricsService(
         }
     }
 
-    fun recordResourcesProcessed(
-        dataType: String,
-        phase: String,
-        count: Int,
-    ) {
+    fun recordResourcesProcessed(dataType: String, phase: String, count: Int) {
         resourcesProcessedCounter
             .tag("datatype", normalizeDataType(dataType))
             .tag("phase", phase)
@@ -343,11 +327,7 @@ class HarvestMetricsService(
             .increment(count.toDouble())
     }
 
-    fun recordPhaseResourceShortfall(
-        dataType: String,
-        phase: String,
-        shortfall: Int,
-    ) {
+    fun recordPhaseResourceShortfall(dataType: String, phase: String, shortfall: Int) {
         if (shortfall <= 0) return
         phaseResourceShortfallHistogram
             .tag("datatype", normalizeDataType(dataType))
@@ -356,11 +336,7 @@ class HarvestMetricsService(
             .record(shortfall.toDouble())
     }
 
-    private fun recordPhaseDuration(
-        phase: String,
-        durationMs: Long?,
-        dataType: String,
-    ) {
+    private fun recordPhaseDuration(phase: String, durationMs: Long?, dataType: String) {
         if (durationMs != null && durationMs > 0) {
             // Convert milliseconds to Duration for Timer
             val duration = java.time.Duration.ofMillis(durationMs)
@@ -373,11 +349,7 @@ class HarvestMetricsService(
     }
 
     // Record phase duration during run (when phase completes)
-    fun recordPhaseDurationDuringRun(
-        phase: String,
-        durationMs: Long,
-        dataType: String,
-    ) {
+    fun recordPhaseDurationDuringRun(phase: String, durationMs: Long, dataType: String) {
         val duration = java.time.Duration.ofMillis(durationMs)
         phaseDurationTimer
             .tag("phase", phase)

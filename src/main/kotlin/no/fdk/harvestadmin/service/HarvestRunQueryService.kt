@@ -31,25 +31,23 @@ class HarvestRunQueryService(
         return dataSourceRepository.findByPublisherIdIn(allowedPublisherIds).map { it.id }
     }
 
-    fun getCurrentState(dataSourceId: String): Pair<List<HarvestCurrentState>, HttpStatus> =
-        try {
-            val run = harvestRunRepository.findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId)
-            val states = run?.let { listOf(it.toHarvestCurrentState()) } ?: emptyList()
-            Pair(states, HttpStatus.OK)
-        } catch (e: Exception) {
-            logger.error("Error getting current state for dataSourceId: $dataSourceId", e)
-            Pair(emptyList(), HttpStatus.INTERNAL_SERVER_ERROR)
-        }
+    fun getCurrentState(dataSourceId: String): Pair<List<HarvestCurrentState>, HttpStatus> = try {
+        val run = harvestRunRepository.findFirstByDataSourceIdOrderByRunStartedAtDesc(dataSourceId)
+        val states = run?.let { listOf(it.toHarvestCurrentState()) } ?: emptyList()
+        Pair(states, HttpStatus.OK)
+    } catch (e: Exception) {
+        logger.error("Error getting current state for dataSourceId: $dataSourceId", e)
+        Pair(emptyList(), HttpStatus.INTERNAL_SERVER_ERROR)
+    }
 
-    fun getAllInProgressStates(): List<HarvestRunDetails> =
-        try {
-            harvestRunRepository.findAllInProgress().map { run ->
-                run.toHarvestRunDetails(completionStatus = completionEvaluator.evaluate(run))
-            }
-        } catch (e: Exception) {
-            logger.error("Error getting all in-progress states", e)
-            emptyList()
+    fun getAllInProgressStates(): List<HarvestRunDetails> = try {
+        harvestRunRepository.findAllInProgress().map { run ->
+            run.toHarvestRunDetails(completionStatus = completionEvaluator.evaluate(run))
         }
+    } catch (e: Exception) {
+        logger.error("Error getting all in-progress states", e)
+        emptyList()
+    }
 
     fun getPerformanceMetrics(
         dataSourceId: String,
@@ -149,10 +147,7 @@ class HarvestRunQueryService(
         }
     }
 
-    fun getHarvestRun(
-        runId: String,
-        allowedPublisherIds: List<String>? = null,
-    ): Pair<HarvestRunDetails?, HttpStatus> {
+    fun getHarvestRun(runId: String, allowedPublisherIds: List<String>? = null): Pair<HarvestRunDetails?, HttpStatus> {
         return try {
             val run = harvestRunRepository.findByRunId(runId) ?: return Pair(null, HttpStatus.NOT_FOUND)
             if (allowedPublisherIds != null) {

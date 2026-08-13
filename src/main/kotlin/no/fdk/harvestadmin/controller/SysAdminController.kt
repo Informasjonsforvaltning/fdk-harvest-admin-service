@@ -21,10 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping
 @Tag(name = "SysAdmin", description = "System admin operations")
-class SysAdminController(
-    private val sysAdminService: SysAdminService,
-    private val securityService: SecurityService,
-) {
+class SysAdminController(private val sysAdminService: SysAdminService, private val securityService: SecurityService) {
     @PostMapping("/resources/remove")
     @Operation(
         summary = "Remove resources (sys-admin)",
@@ -38,10 +35,7 @@ class SysAdminController(
             ApiResponse(responseCode = "403", description = "Forbidden"),
         ],
     )
-    fun removeResources(
-        @RequestBody request: RemoveResourcesRequest,
-        authentication: Authentication?,
-    ): ResponseEntity<Void> {
+    fun removeResources(@RequestBody request: RemoveResourcesRequest, authentication: Authentication?): ResponseEntity<Void> {
         if (!securityService.hasSystemAdminAccess(authentication)) {
             throw ForbiddenException("Access denied")
         }

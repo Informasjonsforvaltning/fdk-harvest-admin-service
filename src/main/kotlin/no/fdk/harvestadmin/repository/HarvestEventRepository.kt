@@ -12,9 +12,7 @@ interface HarvestEventRepository : JpaRepository<HarvestEventEntity, Long> {
     @Query(
         "SELECT e.eventType, COUNT(e) FROM HarvestEventEntity e WHERE e.runId = :runId GROUP BY e.eventType",
     )
-    fun countEventsByPhase(
-        @Param("runId") runId: String,
-    ): List<Array<Any>>
+    fun countEventsByPhase(@Param("runId") runId: String): List<Array<Any>>
 
     /**
      * For each of the given phases, counts the resources whose *latest* event (by created_at)
@@ -44,10 +42,7 @@ interface HarvestEventRepository : JpaRepository<HarvestEventEntity, Long> {
             GROUP BY latest.event_type
         """,
     )
-    fun countCompletedResourcesPerPhase(
-        @Param("runId") runId: String,
-        @Param("phases") phases: Collection<String>,
-    ): List<Array<Any>>
+    fun countCompletedResourcesPerPhase(@Param("runId") runId: String, @Param("phases") phases: Collection<String>): List<Array<Any>>
 
     /**
      * Counts resources that have at least one event with end_time set (error_message is NOT
@@ -87,25 +82,11 @@ interface HarvestEventRepository : JpaRepository<HarvestEventEntity, Long> {
 
     fun findByFdkIdOrderByCreatedAtDesc(fdkId: String): List<HarvestEventEntity>
 
-    fun findByRunIdAndEventTypeAndEndTimeIsNotNull(
-        runId: String,
-        eventType: String,
-    ): List<HarvestEventEntity>
+    fun findByRunIdAndEventTypeAndEndTimeIsNotNull(runId: String, eventType: String): List<HarvestEventEntity>
 
-    fun existsByRunIdAndEventTypeAndFdkId(
-        runId: String,
-        eventType: String,
-        fdkId: String,
-    ): Boolean
+    fun existsByRunIdAndEventTypeAndFdkId(runId: String, eventType: String, fdkId: String): Boolean
 
-    fun existsByRunIdAndEventTypeAndResourceUri(
-        runId: String,
-        eventType: String,
-        resourceUri: String,
-    ): Boolean
+    fun existsByRunIdAndEventTypeAndResourceUri(runId: String, eventType: String, resourceUri: String): Boolean
 
-    fun countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(
-        runId: String,
-        eventType: String,
-    ): Long
+    fun countByRunIdAndEventTypeAndEndTimeIsNotNullAndErrorMessageIsNull(runId: String, eventType: String): Long
 }

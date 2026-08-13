@@ -247,3 +247,12 @@ export HARVEST_API_KEY=my-api-key
 ## Migration from Go Application
 
 This Spring Boot application replaces the original Go-based `fdk-harvest-admin`. It maintains API compatibility and supports the same endpoints. Harvest events flow via Kafka.
+
+### Formatting code
+
+This project uses [ktlint](https://github.com/gantsign/ktlint-maven-plugin) to enforce a consistent code style.
+To automatically fix formatting violations, run:
+
+```sh
+mvn ktlint:format
+```

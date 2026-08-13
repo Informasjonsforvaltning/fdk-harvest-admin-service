@@ -53,20 +53,14 @@ class HarvestRunServiceCompletionTest {
     }
 
     /** Stubs the grouped total-events-per-phase query so every phase is treated as "used". */
-    private fun stubPhaseEventCounts(
-        runId: String,
-        count: Long,
-    ) {
+    private fun stubPhaseEventCounts(runId: String, count: Long) {
         whenever(harvestEventRepository.countEventsByPhase(eq(runId))).thenReturn(
             (listOf("INITIATING", "HARVESTING") + resourcePhases).map { arrayOf<Any>(it, count) },
         )
     }
 
     /** Stubs the completed-resources-per-phase aggregate, the same completed count for every resource phase. */
-    private fun stubCompletedResourcesPerPhase(
-        runId: String,
-        completedPerPhase: Long,
-    ) {
+    private fun stubCompletedResourcesPerPhase(runId: String, completedPerPhase: Long) {
         whenever(harvestEventRepository.countCompletedResourcesPerPhase(eq(runId), any())).thenReturn(
             resourcePhases.map { arrayOf<Any>(it, completedPerPhase) },
         )
