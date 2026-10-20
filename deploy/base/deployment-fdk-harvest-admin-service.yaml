@@ -54,8 +54,23 @@ spec:
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
                 secretKeyRef:
-                  name: kafka
+                  name: kafka-user-fdk-harvest-admin-service
                   key: BROKERS
+            - name: KAFKA_SECURITY_PROTOCOL
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-user-fdk-harvest-admin-service
+                  key: SECURITY_PROTOCOL
+            - name: KAFKA_SASL_MECHANISM
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-user-fdk-harvest-admin-service
+                  key: SASL_MECHANISM
+            - name: KAFKA_SASL_JAAS_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-user-fdk-harvest-admin-service
+                  key: SASL_JAAS_CONFIG
             - name: SCHEMA_REGISTRY_URL
               valueFrom:
                 secretKeyRef:
