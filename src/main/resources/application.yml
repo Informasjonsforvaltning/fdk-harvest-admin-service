@@ -29,6 +29,9 @@ spring:
       group-id: ${KAFKA_CONSUMER_GROUP_ID:fdk-harvest-admin-service}
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+      sasl.mechanism: ${KAFKA_SASL_MECHANISM:SCRAM-SHA-512}
+      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
 
 server:
   port: 8080
