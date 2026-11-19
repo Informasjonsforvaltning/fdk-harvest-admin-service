@@ -68,6 +68,7 @@ class KafkaConfig(
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, HarvestEvent> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, HarvestEvent>()
         factory.setConsumerFactory(consumerFactory())
+        factory.setBatchListener(true)
         factory.containerProperties.ackMode = ContainerProperties.AckMode.BATCH
         // Keep retrying instead of stopping the listeners for good on an auth failure.
         factory.containerProperties.setAuthExceptionRetryInterval(Duration.ofSeconds(30))
