@@ -70,6 +70,13 @@ logging:
 
 # Application specific configuration
 app:
+  harvester:
+    uri: ${FDK_HARVESTER_URI:http://fdk-harvester:8080}
+    api-key: ${FDK_HARVESTER_API_KEY:}
+  curation:
+    uri: ${CURATION_URI:http://fdk-curation:8080/high-value-dataset-types.csv}
+    poll-interval: ${CURATION_POLL_INTERVAL:PT5M}
+    force-delay: ${CURATION_FORCE_DELAY:PT6M}
   security:
     token-audience: ${TOKEN_AUDIENCE:fdk-harvest-admin}
     sys-admin-auth: ${SYS_ADMIN_AUTH:system:root:admin}

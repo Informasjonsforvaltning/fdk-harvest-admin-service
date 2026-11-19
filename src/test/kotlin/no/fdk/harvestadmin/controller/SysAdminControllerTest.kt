@@ -1,6 +1,9 @@
 package no.fdk.harvestadmin.controller
 
 import no.fdk.harvestadmin.model.DataType
+import no.fdk.harvestadmin.model.ForceHarvestRequest
+import no.fdk.harvestadmin.model.ForceHarvestResponse
+import no.fdk.harvestadmin.model.ForcedHarvestRun
 import no.fdk.harvestadmin.model.RemoveResourcesRequest
 import no.fdk.harvestadmin.model.ResourceToRemove
 import org.junit.jupiter.api.Test
@@ -82,5 +85,49 @@ class SysAdminControllerTest : BaseControllerTest() {
                     .content(objectMapper.writeValueAsString(request)),
             ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("resources must not be empty"))
+    }
+
+    @Test
+    fun `should return 202 with started runs for force harvest`() {
+        val request = ForceHarvestRequest(dataType = DataType.DATASET, fdkIds = listOf("fdk-1", "fdk-2"))
+        whenever(securityService.hasSystemAdminAccess(isNull())).thenReturn(true)
+        whenever(forcedHarvestService.forceHarvest(eq(DataType.DATASET), eq(request.fdkIds))).thenReturn(
+            ForceHarvestResponse(startedRuns = listOf(ForcedHarvestRun("ds-1", listOf("fdk-1"))), notFound = listOf("fdk-2")),
+        )
+
+        mockMvc
+            .perform(
+                post("/resources/force-harvest")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isAccepted)
+            .andExpect(jsonPath("$.startedRuns[0].dataSourceId").value("ds-1"))
+            .andExpect(jsonPath("$.notFound[0]").value("fdk-2"))
+    }
+
+    @Test
+    fun `should return 403 for force harvest without sys admin access`() {
+        val request = ForceHarvestRequest(dataType = DataType.DATASET, fdkIds = listOf("fdk-1"))
+        whenever(securityService.hasSystemAdminAccess(isNull())).thenReturn(false)
+
+        mockMvc
+            .perform(
+                post("/resources/force-harvest")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `should return 400 for force harvest without fdk ids`() {
+        val request = ForceHarvestRequest(dataType = DataType.DATASET, fdkIds = emptyList())
+        whenever(securityService.hasSystemAdminAccess(isNull())).thenReturn(true)
+
+        mockMvc
+            .perform(
+                post("/resources/force-harvest")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isBadRequest)
     }
 }
