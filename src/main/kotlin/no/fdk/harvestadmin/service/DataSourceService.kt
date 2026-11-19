@@ -89,13 +89,21 @@ class DataSourceService(
             throw ValidationException("Cannot start harvest for inactive data source: $id")
         }
 
+        publishInitiatingEvent(dataSource, removeAll = removeAll, forced = forced, forcedFdkIds = null)
+    }
+
+    fun startForcedHarvest(dataSource: DataSourceEntity, forcedFdkIds: List<String>) {
+        publishInitiatingEvent(dataSource, removeAll = null, forced = false, forcedFdkIds = forcedFdkIds)
+    }
+
+    private fun publishInitiatingEvent(dataSource: DataSourceEntity, removeAll: Boolean?, forced: Boolean?, forcedFdkIds: List<String>?) {
         val timestamp = Instant.now()
         val runId = UUID.randomUUID().toString()
 
         val run =
             HarvestRunEntity(
                 runId = runId,
-                dataSourceId = id,
+                dataSourceId = dataSource.id,
                 dataType = dataSource.dataType.name,
                 runStartedAt = timestamp,
                 status = "IN_PROGRESS",
@@ -109,7 +117,7 @@ class DataSourceService(
             no.fdk.harvest.HarvestEvent
                 .newBuilder()
                 .setPhase(no.fdk.harvest.HarvestPhase.INITIATING)
-                .setDataSourceId(id)
+                .setDataSourceId(dataSource.id)
                 .setRunId(runId)
                 .setDataType(mapDataType(dataSource.dataType))
                 .setDataSourceUrl(dataSource.url)
@@ -123,6 +131,7 @@ class DataSourceService(
                 .setRemovedResourcesCount(null)
                 .setRemoveAll(removeAll)
                 .setForced(forced ?: false)
+                .setForcedFdkIds(forcedFdkIds)
                 .build()
         harvestEventIngestionService.persistEvent(triggerEvent)
         kafkaHarvestEventPublisher.publishEvent(triggerEvent)

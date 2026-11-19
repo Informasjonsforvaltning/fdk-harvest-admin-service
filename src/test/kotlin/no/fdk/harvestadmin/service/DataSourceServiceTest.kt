@@ -11,11 +11,13 @@ import no.fdk.harvestadmin.model.DataSourceType
 import no.fdk.harvestadmin.model.DataType
 import no.fdk.harvestadmin.repository.DataSourceRepository
 import no.fdk.harvestadmin.repository.HarvestRunRepository
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -69,6 +71,30 @@ class DataSourceServiceTest {
 
         verify(harvestEventIngestionService).persistEvent(any<HarvestEvent>())
         verify(kafkaHarvestEventPublisher).publishEvent(any<HarvestEvent>())
+    }
+
+    @Test
+    fun `startForcedHarvest should publish initiating event with forced fdk ids`() {
+        val dataSourceEntity =
+            DataSourceEntity(
+                id = "ds-1",
+                publisherId = "test-org",
+                dataType = DataType.DATASET,
+                dataSourceType = DataSourceType.DCAT_AP_NO,
+                url = "https://example.com/data",
+                acceptHeader = "text/turtle",
+                description = null,
+            )
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+
+        service.startForcedHarvest(dataSourceEntity, listOf("fdk-1", "fdk-2"))
+
+        val captor = argumentCaptor<HarvestEvent>()
+        verify(kafkaHarvestEventPublisher).publishEvent(captor.capture())
+        assertEquals(no.fdk.harvest.HarvestPhase.INITIATING, captor.firstValue.phase)
+        assertEquals("ds-1", captor.firstValue.dataSourceId.toString())
+        assertEquals(false, captor.firstValue.forced)
+        assertEquals(listOf("fdk-1", "fdk-2"), captor.firstValue.forcedFdkIds.map { it.toString() })
     }
 
     @Test

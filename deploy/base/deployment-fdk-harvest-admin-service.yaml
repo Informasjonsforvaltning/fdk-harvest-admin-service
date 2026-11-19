@@ -81,6 +81,11 @@ spec:
                 secretKeyRef:
                   name: fdk-harvest-admin
                   key: API_KEY
+            - name: FDK_HARVESTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fdk-harvester
+                  key: API_KEY
             - name: CORS_ORIGIN_PATTERNS
               valueFrom:
                 secretKeyRef:

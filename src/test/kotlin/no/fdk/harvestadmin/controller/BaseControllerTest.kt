@@ -1,6 +1,7 @@
 package no.fdk.harvestadmin.controller
 
 import no.fdk.harvestadmin.service.DataSourceService
+import no.fdk.harvestadmin.service.ForcedHarvestService
 import no.fdk.harvestadmin.service.HarvestRunQueryService
 import no.fdk.harvestadmin.service.SecurityService
 import no.fdk.harvestadmin.service.SysAdminService
@@ -29,4 +30,7 @@ abstract class BaseControllerTest {
 
     @MockitoBean
     protected lateinit var sysAdminService: SysAdminService
+
+    @MockitoBean
+    protected lateinit var forcedHarvestService: ForcedHarvestService
 }
