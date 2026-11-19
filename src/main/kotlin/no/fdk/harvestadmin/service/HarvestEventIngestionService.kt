@@ -21,87 +21,109 @@ class HarvestEventIngestionService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    fun persistEvent(event: HarvestEvent) {
-        try {
+    fun persistEvent(event: HarvestEvent) = persistEvents(listOf(event))
+
+    /**
+     * Persists a batch of harvest events in one transaction.
+     */
+    @Transactional
+    fun persistEvents(events: List<HarvestEvent>) {
+        val eventsByRunId = LinkedHashMap<String, MutableList<HarvestEvent>>()
+        events.forEach { event ->
             val runId = event.runId
             if (runId == null) {
                 logger.warn("Cannot process harvest event: runId is required. phase=${event.phase}")
-                return
+            } else {
+                eventsByRunId.getOrPut(runId) { mutableListOf() }.add(event)
             }
+        }
 
+        eventsByRunId.forEach { (runId, runEvents) -> persistRunEvents(runId, runEvents) }
+    }
+
+    private fun persistRunEvents(runId: String, events: List<HarvestEvent>) {
+        try {
             val currentRun = harvestRunRepository.findByRunId(runId)
 
-            // Use dataSourceId from event if available (INITIATING phase), otherwise from the found run
-            val effectiveDataSourceId = event.dataSourceId ?: currentRun?.dataSourceId
-            if (effectiveDataSourceId == null) {
-                logger.warn("Cannot process harvest event: no dataSourceId available. phase=${event.phase}, runId=$runId")
+            val persistedEvents =
+                events.filter { event ->
+                    // Use dataSourceId from event if available (INITIATING phase), otherwise from the found run
+                    val effectiveDataSourceId = event.dataSourceId ?: currentRun?.dataSourceId
+                    if (effectiveDataSourceId == null) {
+                        logger.warn("Cannot process harvest event: no dataSourceId available. phase=${event.phase}, runId=$runId")
+                        false
+                    } else {
+                        harvestEventRepository.save(event.toEntity(runId, effectiveDataSourceId))
+                        logger.debug("Persisted harvest event: phase=${event.phase}, runId=$runId, fdkId=${event.fdkId}")
+                        true
+                    }
+                }
+
+            if (persistedEvents.isEmpty()) {
                 return
             }
-            val dataType = event.dataType.name
 
-            val entity =
-                HarvestEventEntity(
-                    eventType = event.phase.name,
-                    dataSourceId = effectiveDataSourceId,
-                    runId = runId,
-                    dataType = dataType,
-                    dataSourceUrl = event.dataSourceUrl,
-                    acceptHeader = event.acceptHeader,
-                    fdkId = event.fdkId,
-                    resourceUri = event.resourceUri,
-                    startTime = event.startTime,
-                    endTime = event.endTime,
-                    errorMessage = event.errorMessage,
-                    changedResourcesCount = event.changedResourcesCount,
-                    removedResourcesCount = event.removedResourcesCount,
-                )
-            harvestEventRepository.save(entity)
-
-            // Update or create harvest run, only update run if it exists
+            // Only update the run if it exists
             if (currentRun != null) {
-                updateHarvestRun(event, currentRun)
+                updateHarvestRun(persistedEvents, currentRun)
             } else {
                 logger.debug("Skipping run update: harvest run not found for runId: $runId")
             }
-
-            logger.debug("Persisted harvest event: phase=${event.phase}, rundId=${event.runId}, fdkId=${event.fdkId}")
         } catch (e: Exception) {
-            logger.error("Error persisting harvest event: phase=${event.phase}, runId=${event.runId}", e)
+            logger.error("Error persisting ${events.size} harvest event(s) for runId=$runId", e)
             throw e
         }
     }
 
-    private fun updateHarvestRun(event: HarvestEvent, currentRun: HarvestRunEntity) {
+    private fun HarvestEvent.toEntity(runId: String, dataSourceId: String): HarvestEventEntity = HarvestEventEntity(
+        eventType = phase.name,
+        dataSourceId = dataSourceId,
+        runId = runId,
+        dataType = dataType.name,
+        dataSourceUrl = dataSourceUrl,
+        acceptHeader = acceptHeader,
+        fdkId = fdkId,
+        resourceUri = resourceUri,
+        startTime = startTime,
+        endTime = endTime,
+        errorMessage = errorMessage,
+        changedResourcesCount = changedResourcesCount,
+        removedResourcesCount = removedResourcesCount,
+    )
+
+    private fun updateHarvestRun(events: List<HarvestEvent>, currentRun: HarvestRunEntity) {
         val oldStatus = currentRun.status
-        val updatedRun = updateRunWithEvent(currentRun, event)
+        val updatedRun = updateRunWithEvents(currentRun, events)
         val savedRun = harvestRunRepository.save(updatedRun)
 
-        // Only record ongoing metrics if the run was still IN_PROGRESS when the event arrived
+        // Only record ongoing metrics if the run was still IN_PROGRESS when the batch arrived
         // This prevents recording metrics for late-arriving events after a run has completed
         if (oldStatus == "IN_PROGRESS") {
-            // Record phase duration if this phase just completed (has endTime)
-            val eventStartTime = event.startTime?.let { parseDateTime(it) }
-            val eventEndTime = event.endTime?.let { parseDateTime(it) }
-            if (eventStartTime != null && eventEndTime != null) {
-                val phaseDurationMs = ChronoUnit.MILLIS.between(eventStartTime, eventEndTime)
-                harvestMetricsService.recordPhaseDurationDuringRun(
-                    event.phase.name,
-                    phaseDurationMs,
-                    savedRun.dataType,
-                )
-            }
-
-            // Record resources processed if applicable
             val processedResources = savedRun.processedResources
-            if (processedResources != null &&
-                processedResources > 0 &&
-                event.phase.name in HarvestPhaseConfig.resourceProcessingPhases
-            ) {
-                harvestMetricsService.recordResourcesProcessed(
-                    savedRun.dataType,
-                    event.phase.name,
-                    1,
-                )
+            events.forEach { event ->
+                // Record phase duration if this phase just completed (has endTime)
+                val eventStartTime = event.startTime?.let { parseDateTime(it) }
+                val eventEndTime = event.endTime?.let { parseDateTime(it) }
+                if (eventStartTime != null && eventEndTime != null) {
+                    val phaseDurationMs = ChronoUnit.MILLIS.between(eventStartTime, eventEndTime)
+                    harvestMetricsService.recordPhaseDurationDuringRun(
+                        event.phase.name,
+                        phaseDurationMs,
+                        savedRun.dataType,
+                    )
+                }
+
+                // Record resources processed if applicable
+                if (processedResources != null &&
+                    processedResources > 0 &&
+                    event.phase.name in HarvestPhaseConfig.resourceProcessingPhases
+                ) {
+                    harvestMetricsService.recordResourcesProcessed(
+                        savedRun.dataType,
+                        event.phase.name,
+                        1,
+                    )
+                }
             }
 
             // Record resource counts during run (including 0) so Grafana "Resources per Run" gets data
@@ -114,74 +136,40 @@ class HarvestEventIngestionService(
         }
     }
 
-    private fun updateRunWithEvent(run: HarvestRunEntity, event: HarvestEvent): HarvestRunEntity {
-        val startTime = event.startTime?.let { parseDateTime(it) }
-        val endTime = event.endTime?.let { parseDateTime(it) }
-        val currentPhase = event.phase.name
-        // Use startTime if available, otherwise fallback to runStartedAt for timestamp
-        val eventTimestamp = startTime ?: run.runStartedAt
+    private fun updateRunWithEvents(run: HarvestRunEntity, events: List<HarvestEvent>): HarvestRunEntity {
+        val lastEvent = events.last()
+        var updatedRun = events.fold(run) { acc, event -> applyEventFields(acc, event) }
 
         // Per-phase total event counts (single grouped query), reused by completion and processed-count logic.
         val phaseEventCounts = completionEvaluator.calculatePhaseEventCounts(run.runId)
 
-        // Calculate resource counts
-        val totalResources = calculateTotalResources(event, run)
-        val processedResources = calculateProcessedResources(event, run, totalResources, phaseEventCounts)
+        val totalResources = updatedRun.totalResources
+        val processedResources =
+            calculateProcessedResources(
+                run.runId,
+                totalResources,
+                updatedRun.processedResources,
+                events.any { it.phase.name in HarvestPhaseConfig.resourceProcessingPhases },
+                phaseEventCounts,
+            )
         val remainingResources = totalResources?.let { total -> processedResources?.let { processed -> total - processed } }
 
-        // For INITIATING, capture removeAll and forced from the event
-        val removeAll =
-            if (event.phase.name == HarvestPhaseConfig.INITIATING_PHASE) event.removeAll else run.removeAll
-        val forced =
-            if (event.phase.name == HarvestPhaseConfig.INITIATING_PHASE) event.forced else run.forced
-
-        var updatedRun =
-            run.copy(
-                currentPhase = currentPhase,
-                phaseStartedAt = if (currentPhase != run.currentPhase) eventTimestamp else run.phaseStartedAt,
-                lastEventTimestamp = eventTimestamp.toEpochMilli(),
-                errorMessage = event.errorMessage ?: run.errorMessage,
-                totalResources = totalResources,
-                processedResources = processedResources,
-                remainingResources = remainingResources,
-                removeAll = removeAll,
-                forced = forced,
-                updatedAt = Instant.now(),
-            )
-
-        updatedRun = applyPhaseDurations(run, updatedRun, currentPhase, startTime, endTime)
-
-        // Update resource counts from extraction event (when changedResourcesCount is set)
-        if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
-            val newTotalResources =
-                (event.changedResourcesCount ?: 0).plus(
-                    event.removedResourcesCount ?: 0,
-                )
-            val newRemainingResources =
-                updatedRun.processedResources?.let { processed -> newTotalResources - processed }
-            updatedRun =
-                updatedRun.copy(
-                    totalResources = newTotalResources,
-                    remainingResources = newRemainingResources,
-                    changedResourcesCount = event.changedResourcesCount,
-                    removedResourcesCount = event.removedResourcesCount,
-                )
-        }
-
-        // Apply phase event counts once after all other field updates.
-        updatedRun = updatedRun.withPhaseEventCounts(phaseEventCounts)
+        updatedRun =
+            updatedRun
+                .copy(processedResources = processedResources, remainingResources = remainingResources)
+                .withPhaseEventCounts(phaseEventCounts)
 
         // Evaluate completion across phases using the latest in-memory run state
         val completionStatus = completionEvaluator.evaluate(updatedRun, phaseEventCounts)
 
-        // Determine status based on error and completion state
+        // Determine status based on error and completion state.
         val status =
-            if (event.errorMessage != null) {
+            if (lastEvent.errorMessage != null) {
                 "FAILED"
             } else if (completionStatus.allPhasesComplete) {
                 "COMPLETED"
             } else {
-                existingStatusOrDefault(run)
+                existingStatusOrDefault(updatedRun)
             }
 
         var finalUpdatedRun = updatedRun.copy(status = status)
@@ -212,7 +200,7 @@ class HarvestEventIngestionService(
                     run.runStartedAt.plusMillis(totalDuration)
                 } else {
                     // Fallback to latest endTime if we can't calculate from durations
-                    getLatestEndTime(run.runId) ?: endTime
+                    getLatestEndTime(run.runId) ?: lastEvent.endTime?.let { parseDateTime(it) }
                 }
 
             finalUpdatedRun =
@@ -231,11 +219,48 @@ class HarvestEventIngestionService(
 
         // Clear errorMessage when run successfully completes (status is COMPLETED and current event has no error)
         // This handles the case where a retry fixed the issue but the old errorMessage persisted
-        if (finalUpdatedRun.status == "COMPLETED" && event.errorMessage == null) {
+        if (finalUpdatedRun.status == "COMPLETED" && lastEvent.errorMessage == null) {
             finalUpdatedRun = finalUpdatedRun.copy(errorMessage = null)
         }
 
         return finalUpdatedRun
+    }
+
+    private fun applyEventFields(run: HarvestRunEntity, event: HarvestEvent): HarvestRunEntity {
+        val startTime = event.startTime?.let { parseDateTime(it) }
+        val endTime = event.endTime?.let { parseDateTime(it) }
+        val currentPhase = event.phase.name
+        val eventTimestamp = startTime ?: run.runStartedAt
+
+        val removeAll =
+            if (event.phase.name == HarvestPhaseConfig.INITIATING_PHASE) event.removeAll else run.removeAll
+        val forced =
+            if (event.phase.name == HarvestPhaseConfig.INITIATING_PHASE) event.forced else run.forced
+
+        var updatedRun =
+            run.copy(
+                currentPhase = currentPhase,
+                phaseStartedAt = if (currentPhase != run.currentPhase) eventTimestamp else run.phaseStartedAt,
+                lastEventTimestamp = eventTimestamp.toEpochMilli(),
+                errorMessage = event.errorMessage ?: run.errorMessage,
+                removeAll = removeAll,
+                forced = forced,
+                status = if (event.errorMessage != null) "FAILED" else run.status,
+                updatedAt = Instant.now(),
+            )
+
+        updatedRun = applyPhaseDurations(run, updatedRun, currentPhase, startTime, endTime)
+
+        if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
+            updatedRun =
+                updatedRun.copy(
+                    totalResources = (event.changedResourcesCount ?: 0) + (event.removedResourcesCount ?: 0),
+                    changedResourcesCount = event.changedResourcesCount,
+                    removedResourcesCount = event.removedResourcesCount,
+                )
+        }
+
+        return updatedRun
     }
 
     /**
@@ -321,39 +346,22 @@ class HarvestEventIngestionService(
             event.endTime?.let { parseDateTime(it) }
         }.maxOrNull()
 
-    private fun calculateTotalResources(event: HarvestEvent, existingRun: HarvestRunEntity?): Int? {
-        // Calculate total when resource counts are provided
-        if (event.changedResourcesCount != null || event.removedResourcesCount != null) {
-            val changed = event.changedResourcesCount ?: 0
-            val removed = event.removedResourcesCount ?: 0
-            return changed + removed
-        }
-        return existingRun?.totalResources
-    }
-
     private fun calculateProcessedResources(
-        event: HarvestEvent,
-        existingRun: HarvestRunEntity?,
+        runId: String,
         totalResources: Int?,
+        existingProcessed: Int?,
+        hasResourcePhaseEvent: Boolean,
         phaseEventCounts: Map<String, Long>,
     ): Int? {
-        // If total resources is not set yet, we can't calculate processed
-        if (totalResources == null) {
-            return existingRun?.processedResources
-        }
-
-        val resourceProcessingPhases = HarvestPhaseConfig.resourceProcessingPhases
-        val runId = event.runId ?: existingRun?.runId
-
-        // Only recompute processed resources when we are in a resource-processing phase and have a runId
-        if (runId == null || event.phase.name !in resourceProcessingPhases) {
-            return existingRun?.processedResources
+        // If total resources is not set yet, we can't calculate processed.
+        if (totalResources == null || !hasResourcePhaseEvent) {
+            return existingProcessed
         }
 
         // Use the same effective phase logic as completion: optional phases without events
         // are not required when counting fully processed resources for the run.
         val resourcesWithAllPhases =
-            completionEvaluator.countResourcesWithAllPhases(runId, resourceProcessingPhases, phaseEventCounts)
+            completionEvaluator.countResourcesWithAllPhases(runId, HarvestPhaseConfig.resourceProcessingPhases, phaseEventCounts)
         return minOf(totalResources, resourcesWithAllPhases)
     }
 

@@ -650,4 +650,69 @@ class HarvestRunServiceTest {
         assertEquals(5, limitedRuns.size)
         assertEquals(10L, totalCount)
     }
+
+    @Test
+    fun `should recompute run aggregates once per run for a batch of events`() {
+        // Given
+        val dataSourceId = UUID.randomUUID().toString()
+        val runId = UUID.randomUUID().toString()
+        val otherRunId = UUID.randomUUID().toString()
+        val start = Instant.parse("2024-01-01T10:00:00Z")
+
+        fun reasoningEvent(run: String, fdkId: String, errorMessage: String? = null) = HarvestEvent
+            .newBuilder()
+            .setPhase(HarvestPhase.REASONING)
+            .setDataSourceId(dataSourceId)
+            .setRunId(run)
+            .setDataType(DataType.dataset)
+            .setFdkId(fdkId)
+            .setStartTime(start.toString())
+            .setEndTime(start.plusSeconds(5).toString())
+            .setErrorMessage(errorMessage)
+            .build()
+
+        fun run(id: Long, run: String) = HarvestRunEntity(
+            id = id,
+            runId = run,
+            dataSourceId = dataSourceId,
+            dataType = "dataset",
+            runStartedAt = start,
+            status = "IN_PROGRESS",
+        )
+
+        whenever(harvestRunRepository.findByRunId(runId)).thenReturn(run(1L, runId))
+        whenever(harvestRunRepository.findByRunId(otherRunId)).thenReturn(run(2L, otherRunId))
+        whenever(harvestEventRepository.save(any<HarvestEventEntity>())).thenAnswer { it.arguments[0] as HarvestEventEntity }
+        whenever(harvestRunRepository.save(any<HarvestRunEntity>())).thenAnswer { it.arguments[0] as HarvestRunEntity }
+
+        val events =
+            listOf(
+                reasoningEvent(runId, "a"),
+                reasoningEvent(otherRunId, "x"),
+                reasoningEvent(runId, "b", errorMessage = "failed"),
+                reasoningEvent(runId, "c"),
+            )
+
+        // When
+        ingestionService.persistEvents(events)
+
+        // Then: every event is stored, but each run is loaded, aggregated and saved once
+        verify(harvestEventRepository, org.mockito.kotlin.times(4)).save(any<HarvestEventEntity>())
+        verify(harvestRunRepository).findByRunId(runId)
+        verify(harvestRunRepository).findByRunId(otherRunId)
+        verify(harvestEventRepository).countEventsByPhase(runId)
+        verify(harvestEventRepository).countEventsByPhase(otherRunId)
+
+        val runCaptor = ArgumentCaptor.forClass(HarvestRunEntity::class.java)
+        verify(harvestRunRepository, org.mockito.kotlin.times(2)).save(runCaptor.capture())
+        val savedRun = runCaptor.allValues.single { it.runId == runId }
+        // Per-event fields are still applied for every event in the batch
+        assertEquals(15_000L, savedRun.reasoningDurationMs)
+        // An error earlier in the batch keeps the run FAILED
+        assertEquals("FAILED", savedRun.status)
+        assertEquals("failed", savedRun.errorMessage)
+        val otherRun = runCaptor.allValues.single { it.runId == otherRunId }
+        assertEquals(5_000L, otherRun.reasoningDurationMs)
+        assertEquals("IN_PROGRESS", otherRun.status)
+    }
 }
