@@ -76,6 +76,8 @@ app:
   curation:
     uri: ${CURATION_URI:http://fdk-curation:8080/high-value-dataset-types.csv}
     poll-interval: ${CURATION_POLL_INTERVAL:PT5M}
+    # Wait before forcing harvest so fdk-reasoning-service has loaded the new CSV first.
+    # Keep higher than fdk-reasoning-service's curation refresh interval (CURATION_REFRESH_INTERVAL, PT5M).
     force-delay: ${CURATION_FORCE_DELAY:PT6M}
   security:
     token-audience: ${TOKEN_AUDIENCE:fdk-harvest-admin}

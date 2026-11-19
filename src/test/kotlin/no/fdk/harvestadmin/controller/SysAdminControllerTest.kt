@@ -97,7 +97,7 @@ class SysAdminControllerTest : BaseControllerTest() {
 
         mockMvc
             .perform(
-                post("/resources/force-harvest")
+                post("/resources/force-harvest-by-ids")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)),
             ).andExpect(status().isAccepted)
@@ -112,7 +112,7 @@ class SysAdminControllerTest : BaseControllerTest() {
 
         mockMvc
             .perform(
-                post("/resources/force-harvest")
+                post("/resources/force-harvest-by-ids")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)),
             ).andExpect(status().isForbidden)
@@ -125,7 +125,7 @@ class SysAdminControllerTest : BaseControllerTest() {
 
         mockMvc
             .perform(
-                post("/resources/force-harvest")
+                post("/resources/force-harvest-by-ids")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)),
             ).andExpect(status().isBadRequest)

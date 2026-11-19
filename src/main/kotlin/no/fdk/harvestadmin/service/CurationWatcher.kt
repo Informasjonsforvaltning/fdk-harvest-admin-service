@@ -18,6 +18,7 @@ class CurationWatcher(
     private val curationClient: CurationClient,
     private val curationStateRepository: CurationStateRepository,
     private val forcedHarvestService: ForcedHarvestService,
+    // Must exceed fdk-reasoning-service's refresh interval so reasoning uses the new CSV when the forced harvest arrives.
     @param:Value("\${app.curation.force-delay}") private val forceDelay: Duration,
     private val clock: Clock = Clock.systemUTC(),
 ) {

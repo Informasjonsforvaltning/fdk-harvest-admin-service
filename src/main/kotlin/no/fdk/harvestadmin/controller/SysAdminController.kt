@@ -55,7 +55,7 @@ class SysAdminController(
         return ResponseEntity.status(HttpStatus.ACCEPTED).build()
     }
 
-    @PostMapping("/resources/force-harvest")
+    @PostMapping("/resources/force-harvest-by-ids")
     @Operation(
         summary = "Force harvest of resources (sys-admin)",
         description = "Starts one harvest per data source of the given resources, updating them even if unchanged.",
@@ -68,7 +68,10 @@ class SysAdminController(
             ApiResponse(responseCode = "403", description = "Forbidden"),
         ],
     )
-    fun forceHarvest(@RequestBody request: ForceHarvestRequest, authentication: Authentication?): ResponseEntity<ForceHarvestResponse> {
+    fun forceHarvestByIDs(
+        @RequestBody request: ForceHarvestRequest,
+        authentication: Authentication?,
+    ): ResponseEntity<ForceHarvestResponse> {
         if (!securityService.hasSystemAdminAccess(authentication)) {
             throw ForbiddenException("Access denied")
         }
