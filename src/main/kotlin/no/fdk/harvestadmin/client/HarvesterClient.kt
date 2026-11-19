@@ -12,7 +12,7 @@ data class SourceLookupRequest(val fdkIds: List<String>)
 
 data class SourceLookupResponse(val sources: List<HarvestedSource> = emptyList(), val notFound: List<String> = emptyList())
 
-data class HarvestedSource(val dataSourceUrl: String, val fdkIds: List<String>)
+data class HarvestedSource(val dataSourceUrl: String, val resourceType: String, val fdkIds: List<String>)
 
 private const val MAX_FDK_IDS_PER_LOOKUP = 1000
 
@@ -45,8 +45,8 @@ class HarvesterClient(@Value("\${app.harvester.uri}") harvesterUri: String, @Val
         val sources =
             responses
                 .flatMap { it.sources }
-                .groupBy { it.dataSourceUrl }
-                .map { (url, sources) -> HarvestedSource(url, sources.flatMap { it.fdkIds }.distinct()) }
+                .groupBy { it.dataSourceUrl to it.resourceType }
+                .map { (key, sources) -> HarvestedSource(key.first, key.second, sources.flatMap { it.fdkIds }.distinct()) }
         return SourceLookupResponse(sources = sources, notFound = responses.flatMap { it.notFound })
     }
 }

@@ -21,10 +21,22 @@ class ForcedHarvestService(
         val notFound = lookup.notFound.toMutableList()
         val startedRuns = mutableListOf<ForcedHarvestRun>()
 
+        if (lookup.notFound.isNotEmpty()) {
+            logger.warn("Resources not found in harvester: ${lookup.notFound.sorted()}")
+        }
+
         lookup.sources.forEach { source ->
-            val dataSource = dataSourceRepository.findByUrlAndDataType(source.dataSourceUrl, dataType).singleOrNull { it.active }
+            val sourceDataType = DATA_TYPE_BY_RESOURCE_TYPE[source.resourceType]
+            val dataSource =
+                if (sourceDataType == dataType) {
+                    dataSourceRepository.findByUrlAndDataType(source.dataSourceUrl, dataType).singleOrNull { it.active }
+                } else {
+                    null
+                }
             if (dataSource == null) {
-                logger.warn("No single active ${dataType.value} data source for ${source.dataSourceUrl}, skipping ${source.fdkIds}")
+                logger.warn(
+                    "No single active ${dataType.value} data source for ${source.resourceType} at ${source.dataSourceUrl}, skipping ${source.fdkIds}",
+                )
                 notFound.addAll(source.fdkIds)
             } else {
                 dataSourceService.startForcedHarvest(dataSource, source.fdkIds)
@@ -36,5 +48,17 @@ class ForcedHarvestService(
             "Started ${startedRuns.size} forced harvest(s) for ${fdkIds.size} ${dataType.value} resource(s), ${notFound.size} not found",
         )
         return ForceHarvestResponse(startedRuns = startedRuns, notFound = notFound.sorted())
+    }
+
+    companion object {
+        private val DATA_TYPE_BY_RESOURCE_TYPE =
+            mapOf(
+                "CONCEPT" to DataType.CONCEPT,
+                "DATASET" to DataType.DATASET,
+                "INFORMATIONMODEL" to DataType.INFORMATION_MODEL,
+                "DATASERVICE" to DataType.DATA_SERVICE,
+                "SERVICE" to DataType.PUBLIC_SERVICE,
+                "EVENT" to DataType.EVENT,
+            )
     }
 }

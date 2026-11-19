@@ -39,7 +39,7 @@ class HarvesterClientTest {
         assertEquals(2, requests.size)
         assertEquals(listOf("test-key", "test-key"), apiKeys)
         assertTrue(requests.first().contains("\"id-1\""))
-        assertEquals(listOf(HarvestedSource("https://a.example/catalog", listOf("a1"))), response.sources)
+        assertEquals(listOf(HarvestedSource("https://a.example/catalog", "DATASET", listOf("a1"))), response.sources)
         assertEquals(listOf("x", "x"), response.notFound)
     }
 }

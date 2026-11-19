@@ -30,8 +30,8 @@ class ForcedHarvestServiceTest {
             SourceLookupResponse(
                 sources =
                 listOf(
-                    HarvestedSource("https://a.example/catalog", listOf("a1", "a2")),
-                    HarvestedSource("https://b.example/catalog", listOf("b1")),
+                    HarvestedSource("https://a.example/catalog", "DATASET", listOf("a1", "a2")),
+                    HarvestedSource("https://b.example/catalog", "DATASET", listOf("b1")),
                 ),
                 notFound = listOf("x"),
             ),
@@ -45,6 +45,28 @@ class ForcedHarvestServiceTest {
         verify(dataSourceService, times(1)).startForcedHarvest(any(), any())
         assertEquals(listOf(ForcedHarvestRun("ds-a", listOf("a1", "a2"))), response.startedRuns)
         assertEquals(listOf("b1", "x"), response.notFound)
+    }
+
+    @Test
+    fun `matches data source on both url and data type`() {
+        val datasetSource = dataSource("ds-dataset", "https://a.example/catalog")
+        whenever(harvesterClient.lookupSources(listOf("dataset", "dataservice"))).thenReturn(
+            SourceLookupResponse(
+                sources =
+                listOf(
+                    HarvestedSource("https://a.example/catalog", "DATASET", listOf("dataset")),
+                    HarvestedSource("https://a.example/catalog", "DATASERVICE", listOf("dataservice")),
+                ),
+            ),
+        )
+        whenever(dataSourceRepository.findByUrlAndDataType("https://a.example/catalog", DataType.DATASET)).thenReturn(listOf(datasetSource))
+
+        val response = service.forceHarvest(DataType.DATASET, listOf("dataset", "dataservice"))
+
+        verify(dataSourceService).startForcedHarvest(datasetSource, listOf("dataset"))
+        verify(dataSourceService, times(1)).startForcedHarvest(any(), any())
+        assertEquals(listOf(ForcedHarvestRun("ds-dataset", listOf("dataset"))), response.startedRuns)
+        assertEquals(listOf("dataservice"), response.notFound)
     }
 
     private fun dataSource(id: String, url: String, active: Boolean = true) = DataSourceEntity(
